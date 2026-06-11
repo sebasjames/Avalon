@@ -13505,26 +13505,6 @@ export const MOCK_INVENTORY: Product[] = [
     batches: []
   },
   {
-    id: "1608",
-    sku: "CAT 29 Y 50",
-    originalSku: "CAT 29 Y 50",
-    name: "CATALIZADOR GAMA PREMIUM PF 45",
-    category: Category.FINISHED_GOOD,
-    family: "Catalizadores",
-    brand: "VETRO",
-    baseUnit: "TBD",
-    density: 1,
-    unitCost: 0,
-    price: 0,
-    totalStock: 0,
-    reservedStock: 0,
-    status: InventoryStatus.ACTIVE,
-    abc: ABCClass.A,
-    xyz: XYZClass.X,
-    agingDays: 0,
-    batches: []
-  },
-  {
     id: "1609",
     sku: "CAT 100",
     originalSku: "CAT 100",
