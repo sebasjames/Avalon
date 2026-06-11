@@ -137,6 +137,11 @@ function createProduct(row, suffix, variantDesc, unitOverride, customCode = null
     let codigo = customCode || String(row['CODIGO']).trim().toUpperCase();
     let name = customName || String(row['DESCRIPCIÓN']).trim().toUpperCase();
     
+    // Override name for TS 18
+    if (codigo.startsWith('TS 18') || codigo.startsWith('IL-TS 18')) {
+        name = name.replace("ACABADO ACRILICO NATURAL EFFECT TRANSP. 5ºGLOSS", "FONDO ACABADO ACRILICO - EFECTO NATURAL TRANSP. 4ºGLOSS");
+    }
+    
     // Extirpar bases específicas para que solo existan sus variantes (GL, QT, etc)
     if (!suffix && BASES_TO_EXCLUDE.has(codigo)) {
         return;
