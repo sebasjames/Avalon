@@ -331,7 +331,6 @@ export const Configuration: React.FC = () => {
                         <Plus size={16} /> Añadir Regla
                       </button>
                     </form>
-                    </form>
                   </section>
 
                   <div className="h-px bg-slate-100 my-8" />
