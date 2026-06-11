@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Settings, 
@@ -30,9 +30,27 @@ export const Configuration: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules } = useEnterprise();
+  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules, inventory } = useEnterprise();
   const [newRule, setNewRule] = useState('');
   const [newReverseRule, setNewReverseRule] = useState('');
+
+  const getSuggestions = (input: string) => {
+    if (input.length < 2) return [];
+    const search = input.toUpperCase();
+    const results = new Set<string>();
+    
+    for (const item of inventory) {
+      if (results.size >= 8) break;
+      if (item.sku.toUpperCase().includes(search)) results.add(item.sku);
+      if (item.name.toUpperCase().includes(search)) results.add(item.name);
+      if (item.brand && item.brand.toUpperCase().includes(search)) results.add(item.brand.toUpperCase());
+      if (item.family && item.family.toUpperCase().includes(search)) results.add(item.family.toUpperCase());
+    }
+    return Array.from(results).slice(0, 8);
+  };
+
+  const ruleSuggestions = useMemo(() => getSuggestions(newRule), [newRule, inventory]);
+  const reverseRuleSuggestions = useMemo(() => getSuggestions(newReverseRule), [newReverseRule, inventory]);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -315,18 +333,38 @@ export const Configuration: React.FC = () => {
                           setNewRule('');
                         }
                       }}
-                      className="flex items-center gap-2"
+                      className="flex items-start gap-2 relative"
                     >
-                      <input 
-                        type="text" 
-                        value={newRule}
-                        onChange={(e) => setNewRule(e.target.value)}
-                        placeholder="Ej: PL 900 o TINTILLA" 
-                        className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
-                      />
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          value={newRule}
+                          onChange={(e) => setNewRule(e.target.value)}
+                          placeholder="Ej: PL 900 o TINTILLA" 
+                          className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
+                        />
+                        {ruleSuggestions.length > 0 && (
+                          <ul className="absolute z-50 left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+                            {ruleSuggestions.map((suggestion, idx) => (
+                              <li 
+                                key={idx}
+                                onClick={() => {
+                                  if (!tintometricRules.includes(suggestion)) {
+                                    updateTintometricRules([...tintometricRules, suggestion]);
+                                  }
+                                  setNewRule('');
+                                }}
+                                className="px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer font-medium border-b border-slate-50 last:border-0"
+                              >
+                                {suggestion}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                       <button 
                         type="submit" 
-                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors"
+                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors h-[38px]"
                       >
                         <Plus size={16} /> Añadir Regla
                       </button>
@@ -366,18 +404,38 @@ export const Configuration: React.FC = () => {
                           setNewReverseRule('');
                         }
                       }}
-                      className="flex items-center gap-2"
+                      className="flex items-start gap-2 relative"
                     >
-                      <input 
-                        type="text" 
-                        value={newReverseRule}
-                        onChange={(e) => setNewReverseRule(e.target.value)}
-                        placeholder="Ej: ILVA o DIS 7771" 
-                        className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
-                      />
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          value={newReverseRule}
+                          onChange={(e) => setNewReverseRule(e.target.value)}
+                          placeholder="Ej: ILVA o DIS 7771" 
+                          className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
+                        />
+                        {reverseRuleSuggestions.length > 0 && (
+                          <ul className="absolute z-50 left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+                            {reverseRuleSuggestions.map((suggestion, idx) => (
+                              <li 
+                                key={idx}
+                                onClick={() => {
+                                  if (!reverseDisplayRules.includes(suggestion)) {
+                                    updateReverseDisplayRules([...reverseDisplayRules, suggestion]);
+                                  }
+                                  setNewReverseRule('');
+                                }}
+                                className="px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer font-medium border-b border-slate-50 last:border-0"
+                              >
+                                {suggestion}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                       <button 
                         type="submit" 
-                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors"
+                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors h-[38px]"
                       >
                         <Plus size={16} /> Añadir Regla
                       </button>
