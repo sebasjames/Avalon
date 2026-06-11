@@ -165,6 +165,10 @@ function createProduct(row, suffix, variantDesc, unitOverride, customCode = null
         brand = 'PROCOQUINAL';
     }
     
+    if (codigo.startsWith('DIS 7771')) {
+        brand = 'VETRO';
+    }
+    
     let sku = codigo;
     if (brand.toUpperCase() === 'ILVA' && !sku.startsWith('IL-')) {
         sku = `IL-${sku}`;
