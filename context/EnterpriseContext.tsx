@@ -35,6 +35,8 @@ interface EnterpriseContextType {
     setGlobalSelectedContactId: (id: string | null) => void;
     fullProfileContactId: string | null;
     setFullProfileContactId: (id: string | null) => void;
+    globalInventorySearch: string;
+    setGlobalInventorySearch: (s: string) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -70,6 +72,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const [globalSelectedContactId, setGlobalSelectedContactId] = useState<string | null>(null);
     const [fullProfileContactId, setFullProfileContactId] = useState<string | null>(null);
+    const [globalInventorySearch, setGlobalInventorySearch] = useState<string>('');
 
     const addEvent = (event: SystemEvent) => setEvents(prev => [event, ...prev]);
     const addContact = (contact: CrmContact) => setContacts(prev => [contact, ...prev]);
@@ -375,7 +378,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             globalSelectedContactId,
             setGlobalSelectedContactId,
             fullProfileContactId,
-            setFullProfileContactId
+            setFullProfileContactId,
+            globalInventorySearch,
+            setGlobalInventorySearch
         }}>
             {children}
         </EnterpriseContext.Provider>

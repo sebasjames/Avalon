@@ -4,13 +4,22 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
 
 export const GlobalHeader: React.FC = () => {
-    const { contacts, getActiveNotifications, setGlobalSelectedContactId } = useEnterprise();
+    const { contacts, getActiveNotifications, setGlobalSelectedContactId, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
     const navigate = useNavigate();
     const location = useLocation();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
+
+    const isInventoryView = location.pathname.includes('/inventory-hub');
+    
+    // Sync local searchTerm with globalInventorySearch if we just entered inventory view
+    React.useEffect(() => {
+        if (isInventoryView) {
+            setSearchTerm(globalInventorySearch);
+        }
+    }, [isInventoryView]);
 
     const notifications = getActiveNotifications();
 
@@ -42,15 +51,23 @@ export const GlobalHeader: React.FC = () => {
                     <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     <input 
                         type="text" 
-                        placeholder="Buscar cliente, NIT, persona clave..."
+                        placeholder={isInventoryView ? "Buscar en inventario (SKU, nombre, familia)..." : "Buscar cliente, NIT, persona clave..."}
                         value={searchTerm}
-                        onChange={e => { setSearchTerm(e.target.value); setIsSearchOpen(true); }}
-                        onFocus={() => setIsSearchOpen(true)}
+                        onChange={e => { 
+                            const val = e.target.value;
+                            setSearchTerm(val); 
+                            if (isInventoryView) {
+                                setGlobalInventorySearch(val);
+                            } else {
+                                setIsSearchOpen(true); 
+                            }
+                        }}
+                        onFocus={() => { if(!isInventoryView) setIsSearchOpen(true); }}
                         className="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 ring-indigo-500 outline-none transition-all"
                     />
-                    {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="w-3 h-3"/></button>}
+                    {searchTerm && <button onClick={() => { setSearchTerm(''); if(isInventoryView) setGlobalInventorySearch(''); }} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="w-3 h-3"/></button>}
                 </div>
-                {isSearchOpen && searchTerm && (
+                {isSearchOpen && searchTerm && !isInventoryView && (
                     <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden py-2">
                         {filteredContacts.length > 0 ? filteredContacts.map(c => (
                             <button key={c.id} onClick={() => handleSelectResult(c.id)} className="w-full text-left px-4 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors">

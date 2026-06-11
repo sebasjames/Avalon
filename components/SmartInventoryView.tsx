@@ -378,7 +378,8 @@ const CheckboxDropdown = ({ title, options, selected, onChange }: any) => {
 };
 
 export const SmartInventoryView: React.FC = () => {
-    const { inventory, updateInventoryProduct } = useEnterprise();
+    const { inventory, updateInventoryProduct, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
+    const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number }>>({});
     const [showReviewModal, setShowReviewModal] = useState(false);
@@ -460,6 +461,19 @@ export const SmartInventoryView: React.FC = () => {
         }, 300);
         return () => clearTimeout(debounceTimer);
     }, [searchInput, viewMode]);
+
+    // Sync with global search from header
+    useEffect(() => {
+        if (globalInventorySearch !== undefined && globalInventorySearch !== searchInput) {
+            setSearchInput(globalInventorySearch);
+        }
+    }, [globalInventorySearch]);
+
+    const handleLocalSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setSearchInput(val);
+        setGlobalInventorySearch(val);
+    };
 
     const filteredData = useMemo(() => {
         let result = inventory.filter(item => {
@@ -578,7 +592,7 @@ export const SmartInventoryView: React.FC = () => {
                                 type="text" 
                                 placeholder="Escanear SKU..." 
                                 value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
+                                onChange={handleLocalSearchChange}
                                 className="px-3 py-2.5 bg-transparent text-sm font-medium text-slate-700 outline-none w-32 sm:w-48 lg:w-56 placeholder:text-slate-400"
                             />
                         </div>
