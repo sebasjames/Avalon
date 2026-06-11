@@ -13,7 +13,9 @@ export const SmartPosPanel: React.FC = () => {
     const isReversedDisplay = (product: Product) => {
         const s = product.sku.toUpperCase();
         const n = product.name.toUpperCase();
-        return reverseDisplayRules.some(trigger => s.includes(trigger) || n.includes(trigger));
+        const b = (product.brand || '').toUpperCase();
+        const f = (product.family || '').toUpperCase();
+        return reverseDisplayRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
     };
 
     const isTintometric = (product: Product) => {

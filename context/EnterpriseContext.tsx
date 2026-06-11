@@ -60,7 +60,13 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ]);
     
     // Reverse Display Rules
-    const [reverseDisplayRules, setReverseDisplayRules] = useState<string[]>([]);
+    const [reverseDisplayRules, setReverseDisplayRules] = useState<string[]>([
+        'VETRO',
+        'VET',
+        'LACA CATALIZA',
+        'PROCOQUINAL',
+        'PF 45'
+    ]);
 
     const [globalSelectedContactId, setGlobalSelectedContactId] = useState<string | null>(null);
     const [fullProfileContactId, setFullProfileContactId] = useState<string | null>(null);
