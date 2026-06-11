@@ -30,8 +30,9 @@ export const Configuration: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  const { tintometricRules, updateTintometricRules } = useEnterprise();
+  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules } = useEnterprise();
   const [newRule, setNewRule] = useState('');
+  const [newReverseRule, setNewReverseRule] = useState('');
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -321,6 +322,58 @@ export const Configuration: React.FC = () => {
                         value={newRule}
                         onChange={(e) => setNewRule(e.target.value)}
                         placeholder="Ej: PL 900 o TINTILLA" 
+                        className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
+                      />
+                      <button 
+                        type="submit" 
+                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors"
+                      >
+                        <Plus size={16} /> Añadir Regla
+                      </button>
+                    </form>
+                    </form>
+                  </section>
+
+                  <div className="h-px bg-slate-100 my-8" />
+
+                  <section className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                      <ArrowRightLeft size={18} className="text-indigo-600" />
+                      Reglas de Visualización Invertida (POS)
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Define qué familias, SKUs o descripciones mostrarán su nombre en la cabecera y el código en la etiqueta secundaria dentro del catálogo.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {reverseDisplayRules.map((rule, idx) => (
+                        <div key={idx} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2">
+                          {rule}
+                          <button 
+                            onClick={() => updateReverseDisplayRules(reverseDisplayRules.filter(r => r !== rule))}
+                            className="hover:text-rose-300 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (newReverseRule.trim() && !reverseDisplayRules.includes(newReverseRule.trim().toUpperCase())) {
+                          updateReverseDisplayRules([...reverseDisplayRules, newReverseRule.trim().toUpperCase()]);
+                          setNewReverseRule('');
+                        }
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <input 
+                        type="text" 
+                        value={newReverseRule}
+                        onChange={(e) => setNewReverseRule(e.target.value)}
+                        placeholder="Ej: ILVA o DIS 7771" 
                         className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
                       />
                       <button 

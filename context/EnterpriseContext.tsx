@@ -26,6 +26,8 @@ interface EnterpriseContextType {
     updateInventoryProduct: (productId: string, updates: Partial<Product>) => void;
     tintometricRules: string[];
     updateTintometricRules: (rules: string[]) => void;
+    reverseDisplayRules: string[];
+    updateReverseDisplayRules: (rules: string[]) => void;
     assignmentLogs: CrmAssignmentLog[];
     cleanGarbageLeads: (daysInactive: number) => void;
     getActiveNotifications: () => CrmNotification[];
@@ -56,6 +58,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'TINTILLA COLORES BASE BLANCA',
         'TINTILLA SEMIPIGMENTARIA'
     ]);
+    
+    // Reverse Display Rules
+    const [reverseDisplayRules, setReverseDisplayRules] = useState<string[]>([]);
 
     const [globalSelectedContactId, setGlobalSelectedContactId] = useState<string | null>(null);
     const [fullProfileContactId, setFullProfileContactId] = useState<string | null>(null);
@@ -355,6 +360,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateInventoryProduct,
             tintometricRules,
             updateTintometricRules,
+            reverseDisplayRules,
+            setReverseDisplayRules,
+            updateReverseDisplayRules: setReverseDisplayRules,
             assignmentLogs,
             cleanGarbageLeads,
             getActiveNotifications,

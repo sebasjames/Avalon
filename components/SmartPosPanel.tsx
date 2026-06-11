@@ -8,7 +8,13 @@ import {
 import { Product, CrmContact, CustomerTier } from '../types';
 
 export const SmartPosPanel: React.FC = () => {
-    const { inventory, contacts, tintometricRules } = useEnterprise();
+    const { inventory, contacts, tintometricRules, reverseDisplayRules } = useEnterprise();
+
+    const isReversedDisplay = (product: Product) => {
+        const s = product.sku.toUpperCase();
+        const n = product.name.toUpperCase();
+        return reverseDisplayRules.some(trigger => s.includes(trigger) || n.includes(trigger));
+    };
 
     const isTintometric = (product: Product) => {
         const s = product.sku.toUpperCase();
@@ -190,6 +196,7 @@ export const SmartPosPanel: React.FC = () => {
                             {filteredCatalog.map((product) => {
                                 const price = product.category === 'Materia Prima' ? product.unitCost * 1.3 : product.price;
                                 const atp = product.totalStock - product.reservedStock;
+                                const reversed = isReversedDisplay(product);
                                 
                                 return (
                                     <motion.button 
@@ -206,16 +213,16 @@ export const SmartPosPanel: React.FC = () => {
                                         {/* Status Line */}
                                         <div className={`absolute top-0 left-0 w-full h-1 ${atp > 0 ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
 
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded uppercase tracking-wider">
-                                                {product.sku.split('-')[0]}
+                                        <div className="flex justify-between items-start mb-2 gap-2">
+                                            <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider line-clamp-1 ${reversed ? 'bg-indigo-100 text-indigo-700 max-w-[70%]' : 'bg-slate-100 text-slate-600'}`} title={reversed ? product.name : product.sku.split('-')[0]}>
+                                                {reversed ? product.name : product.sku.split('-')[0]}
                                             </div>
-                                            <div className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                            <div className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors shrink-0">
                                                 ${(price / 1000).toFixed(1)}k
                                             </div>
                                         </div>
-                                        <div className="font-bold text-sm text-slate-800 leading-tight mb-auto line-clamp-2" title={product.name}>
-                                            {product.name}
+                                        <div className="font-bold text-sm text-slate-800 leading-tight mb-auto line-clamp-2" title={reversed ? product.sku : product.name}>
+                                            {reversed ? product.sku : product.name}
                                         </div>
                                         <div className="flex justify-between items-end mt-2">
                                             <div className="text-xs text-slate-400 font-mono">{product.originalSku}</div>
