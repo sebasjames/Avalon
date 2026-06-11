@@ -149,7 +149,11 @@ function createProduct(row, suffix, variantDesc, unitOverride, customCode = null
     }
     uniqueProductsMap.set(codigo, true);
 
-    const brand = String(row['Marca / Proveedor']).trim() || 'Desconocido';
+    let brand = String(row['Marca / Proveedor']).trim() || 'Desconocido';
+    
+    if (/^(?:D-101|D-103)/.test(codigo)) {
+        brand = 'PROCOQUINAL';
+    }
     
     let sku = codigo;
     if (brand.toUpperCase() === 'ILVA' && !sku.startsWith('IL-')) {

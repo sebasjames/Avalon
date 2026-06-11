@@ -22,12 +22,16 @@ import {
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings } from '../types';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 export const Configuration: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
   const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas'>('inventario');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  const { tintometricRules, updateTintometricRules } = useEnterprise();
+  const [newRule, setNewRule] = useState('');
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -275,6 +279,57 @@ export const Configuration: React.FC = () => {
                         onChange={(v) => updateSetting('inventory', 'abcThresholdB', parseInt(v))}
                       />
                     </div>
+                  </section>
+
+                  <div className="h-px bg-slate-100" />
+
+                  <section className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                      <ShoppingCart size={18} className="text-indigo-600" />
+                      Reglas de Facturación Especial (POS)
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Define qué familias, SKUs o descripciones requerirán que el cajero ingrese una fórmula de color en el punto de venta.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {tintometricRules.map((rule, idx) => (
+                        <div key={idx} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2">
+                          {rule}
+                          <button 
+                            onClick={() => updateTintometricRules(tintometricRules.filter(r => r !== rule))}
+                            className="hover:text-rose-300 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (newRule.trim() && !tintometricRules.includes(newRule.trim().toUpperCase())) {
+                          updateTintometricRules([...tintometricRules, newRule.trim().toUpperCase()]);
+                          setNewRule('');
+                        }
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <input 
+                        type="text" 
+                        value={newRule}
+                        onChange={(e) => setNewRule(e.target.value)}
+                        placeholder="Ej: PL 900 o TINTILLA" 
+                        className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
+                      />
+                      <button 
+                        type="submit" 
+                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors"
+                      >
+                        <Plus size={16} /> Añadir Regla
+                      </button>
+                    </form>
                   </section>
                 </div>
               )}

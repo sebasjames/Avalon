@@ -7,22 +7,14 @@ import {
 } from 'lucide-react';
 import { Product, CrmContact, CustomerTier } from '../types';
 
-const TINTOMETRIC_TRIGGERS = [
-    'PL 800', 'PM 800', 'TP 60', 'PL 720/10', 'TO 800', 'TO 840/10',
-    'TINTILLA DE COLORES DESARROLADOS',
-    'TINTILLA HIDROSOLUBLES',
-    'TINTILLA COLORES BASE BLANCA',
-    'TINTILLA SEMIPIGMENTARIA'
-];
-
-const isTintometric = (product: Product) => {
-    const s = product.sku.toUpperCase();
-    const n = product.name.toUpperCase();
-    return TINTOMETRIC_TRIGGERS.some(trigger => s.includes(trigger) || n.includes(trigger));
-};
-
 export const SmartPosPanel: React.FC = () => {
-    const { inventory, contacts } = useEnterprise();
+    const { inventory, contacts, tintometricRules } = useEnterprise();
+
+    const isTintometric = (product: Product) => {
+        const s = product.sku.toUpperCase();
+        const n = product.name.toUpperCase();
+        return tintometricRules.some(trigger => s.includes(trigger) || n.includes(trigger));
+    };
     const [search, setSearch] = useState('');
     const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string }[]>([]);
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');

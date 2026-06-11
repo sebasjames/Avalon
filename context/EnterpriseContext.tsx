@@ -24,6 +24,8 @@ interface EnterpriseContextType {
     updateHealthThresholds: (redMax: number, yellowMax: number) => void;
     updateContact: (contactId: string, updates: Partial<CrmContact>) => void;
     updateInventoryProduct: (productId: string, updates: Partial<Product>) => void;
+    tintometricRules: string[];
+    updateTintometricRules: (rules: string[]) => void;
     assignmentLogs: CrmAssignmentLog[];
     cleanGarbageLeads: (daysInactive: number) => void;
     getActiveNotifications: () => CrmNotification[];
@@ -45,6 +47,16 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [crmSettings, setCrmSettings] = useState<CrmSettings>(MOCK_CRM_SETTINGS);
     const [receipts, setReceipts] = useState<InboundReceipt[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
+    
+    // Tintometric Rules
+    const [tintometricRules, setTintometricRules] = useState<string[]>([
+        'PL 800', 'PM 800', 'TP 60', 'PL 720/10', 'TO 800', 'TO 840/10',
+        'TINTILLA DE COLORES DESARROLADOS',
+        'TINTILLA HIDROSOLUBLES',
+        'TINTILLA COLORES BASE BLANCA',
+        'TINTILLA SEMIPIGMENTARIA'
+    ]);
+
     const [globalSelectedContactId, setGlobalSelectedContactId] = useState<string | null>(null);
     const [fullProfileContactId, setFullProfileContactId] = useState<string | null>(null);
 
@@ -60,6 +72,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const updateInventoryProduct = (productId: string, updates: Partial<Product>) => {
         setInventory(prev => prev.map(p => p.id === productId ? { ...p, ...updates } : p));
+    };
+
+    const updateTintometricRules = (rules: string[]) => {
+        setTintometricRules(rules);
     };
 
     const getContactHealthScore = (contactId: string): 'GREEN' | 'YELLOW' | 'RED' => {
@@ -337,6 +353,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateHealthThresholds,
             updateContact,
             updateInventoryProduct,
+            tintometricRules,
+            updateTintometricRules,
             assignmentLogs,
             cleanGarbageLeads,
             getActiveNotifications,
