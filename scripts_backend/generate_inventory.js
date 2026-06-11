@@ -128,9 +128,19 @@ data.forEach(row => {
 let generatedProducts = [];
 let idCounter = 1000;
 
+const BASES_TO_EXCLUDE = new Set([
+    "2716", "2717", "2718", "2719", "2782", "2786", "2801", "2811", "2832", "2871", "2905", "2918", "2951",
+    "IPT1062B", "A4638", "A2726", "DA", "DE", "D-101", "DIL91"
+]);
+
 function createProduct(row, suffix, variantDesc, unitOverride, customCode = null, customName = null) {
     let codigo = customCode || String(row['CODIGO']).trim().toUpperCase();
     let name = customName || String(row['DESCRIPCIÓN']).trim().toUpperCase();
+    
+    // Extirpar bases específicas para que solo existan sus variantes (GL, QT, etc)
+    if (!suffix && BASES_TO_EXCLUDE.has(codigo)) {
+        return;
+    }
     
     // Check golden rule
     if (suffix) {
