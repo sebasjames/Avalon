@@ -35,7 +35,7 @@ export const getSourceBadge = (source: string | CrmLeadSource) => {
 };
 
 export const CrmFull: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<CrmTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<CrmTab>('contactos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSource, setSelectedSource] = useState<CrmLeadSource | 'ALL'>('ALL');
 
@@ -241,10 +241,10 @@ export const CrmFull: React.FC = () => {
 
       <div className="flex items-center gap-1 bg-slate-100/50 p-1 rounded-xl mb-6 w-fit border border-slate-200/60 flex-wrap">
         {[
+          { id: 'contactos', label: 'Directorio', icon: Users }, 
           { id: 'dashboard', label: 'Informes', icon: PieChart }, 
           { id: 'embudo', label: 'Pipeline Ventas', icon: Target }, 
           { id: 'postventa', label: 'Post-Venta', icon: Heart }, 
-          { id: 'contactos', label: 'Directorio', icon: Users }, 
           { id: 'rentabilidad', label: 'Rentabilidad', icon: BarChart3 },
           { id: 'equipo', label: 'Equipo Comercial', icon: Briefcase },
           { id: 'configuracion', label: 'Configuración', icon: Settings }
