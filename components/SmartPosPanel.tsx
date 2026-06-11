@@ -3,7 +3,7 @@ import { useEnterprise } from '../context/EnterpriseContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
     Search, ShoppingCart, Users, Tag, AlertTriangle, ShieldCheck, 
-    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight
+    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X
 } from 'lucide-react';
 import { Product, CrmContact, CustomerTier } from '../types';
 
