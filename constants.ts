@@ -19345,26 +19345,6 @@ export const MOCK_INVENTORY: Product[] = [
     batches: []
   },
   {
-    id: "1916",
-    sku: "2801",
-    originalSku: "2801",
-    name: "BARPIDECOR AL AGUA INCOLORO",
-    category: Category.FINISHED_GOOD,
-    family: "Exteriores",
-    brand: "Barpimo",
-    baseUnit: "TBD",
-    density: 0.75,
-    unitCost: 0,
-    price: 0,
-    totalStock: 0,
-    reservedStock: 0,
-    status: InventoryStatus.ACTIVE,
-    abc: ABCClass.A,
-    xyz: XYZClass.X,
-    agingDays: 0,
-    batches: []
-  },
-  {
     id: "1917",
     sku: "2951",
     originalSku: "2951",
