@@ -39,7 +39,7 @@ for (let i = 0; i < lines.length; i++) {
             insideProduct = false;
 
             // Process product logic
-            if (currentBrand === 'PROCOQUINAL' && currentName.toUpperCase().includes('TINTILLA')) {
+            if (currentBrand.toUpperCase() === 'PROCOQUINAL' && currentName.toUpperCase().includes('TINTILLA')) {
                 const targetUnit = 'LT';
                 let modified = false;
 
