@@ -8,7 +8,8 @@ const filePaths = [
     'C:\\Users\\sebas\\Downloads\\Vetro.xlsx',
     'C:\\Users\\sebas\\Downloads\\Procoquinal.xlsx',
     'C:\\Users\\sebas\\Downloads\\Materias Primas.xlsx',
-    'C:\\Users\\sebas\\Downloads\\Ferreteria.xlsx'
+    'C:\\Users\\sebas\\Downloads\\Ferreteria.xlsx',
+    'C:\\Users\\sebas\\Desktop\\Vetro_Faltantes.xlsx'
 ];
 let data = [];
 for (const fp of filePaths) {
@@ -23,6 +24,25 @@ for (const fp of filePaths) {
             'Marca / Proveedor': String(row[2] || 'PROCOQUINAL').trim(),
             'Tipología Producto': String(row[1] || 'Ferretería').trim()
         }));
+        data = data.concat(mappedRows);
+    } else if (fp.includes('Vetro_Faltantes')) {
+        const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+        const mappedRows = rows.map(row => {
+            const desc = String(row['NOMBRE O DESCRIPCION'] || '').trim().toUpperCase();
+            let unit = '';
+            if (desc.includes('1/4 GALON') || desc.includes('1/4 GALÓN')) unit = '1/4 Galón';
+            else if (desc.includes('1/2 GALON') || desc.includes('1/2 GALÓN')) unit = '1/2 Galón';
+            else if (desc.includes('CUÑETE')) unit = 'Cuñete';
+            else if (desc.includes('GALON') || desc.includes('GALÓN') || desc.includes('GLS')) unit = 'Galón';
+            
+            return {
+                'CODIGO': String(row['CODIGO PRODUCTO'] || '').trim(),
+                'DESCRIPCIÓN': desc,
+                'U.Medida Original': unit,
+                'Marca / Proveedor': String(row['MARCAS (GRUPO 2)'] || 'VETRO').trim(),
+                'Tipología Producto': String(row['MARCA (PERSONALIZADO 1)'] || 'Pinturas Vetro').trim()
+            };
+        });
         data = data.concat(mappedRows);
     } else {
         data = data.concat(xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' }));
