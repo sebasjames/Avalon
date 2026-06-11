@@ -58,7 +58,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'TINTILLA DE COLORES DESARROLADOS',
         'TINTILLA HIDROSOLUBLES',
         'TINTILLA COLORES BASE BLANCA',
-        'TINTILLA SEMIPIGMENTARIA'
+        'TINTILLA SEMIPIGMENTARIA',
+        'HNS 2A02', 'TS 364'
     ]);
     
     // Reverse Display Rules
