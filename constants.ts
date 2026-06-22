@@ -4214,7 +4214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "sku": 'ILM1007 - ACABADO PU TRANSP. BRILLANTE LATA X 20',
     "originalSku": 'ILM1007',
     "barcode": "",
-    "name": 'ILM1007 - ACABADO PU TRANSP. BRILLANTE LATA X 20',
+    "name": 'ILM1007 - ACABADO PU TRANSP. BRILLANTE LATA X 20 LITROS',
     "category": Category.RAW_MATERIAL,
     "family": 'PU Fondos y Acabados',
     "brand": 'Carpoly / ProcoPremium',
