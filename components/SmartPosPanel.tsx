@@ -12,30 +12,30 @@ export const SmartPosPanel: React.FC = () => {
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const isReversedDisplay = (product: Product) => {
-        const s = product.sku.toUpperCase();
-        const n = product.name.toUpperCase();
+        const s = (product.sku || '').toUpperCase();
+        const n = (product.name || '').toUpperCase();
         const b = (product.brand || '').toUpperCase();
         const f = (product.family || '').toUpperCase();
         return reverseDisplayRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
     };
 
     const isTintometric = (product: Product) => {
-        const s = product.sku.toUpperCase();
-        const n = product.name.toUpperCase();
+        const s = (product.sku || '').toUpperCase();
+        const n = (product.name || '').toUpperCase();
         return tintometricRules.some(trigger => s.includes(trigger) || n.includes(trigger));
     };
 
     const isCuneteEligible = (product: Product) => {
-        const s = product.sku.toUpperCase();
-        const n = product.name.toUpperCase();
+        const s = (product.sku || '').toUpperCase();
+        const n = (product.name || '').toUpperCase();
         const b = (product.brand || '').toUpperCase();
         const f = (product.family || '').toUpperCase();
         return litersToCunetesRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
     };
 
     const isFractionalEligible = (product: Product) => {
-        const s = product.sku.toUpperCase();
-        const n = product.name.toUpperCase();
+        const s = (product.sku || '').toUpperCase();
+        const n = (product.name || '').toUpperCase();
         const b = (product.brand || '').toUpperCase();
         const f = (product.family || '').toUpperCase();
         return fractionalRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
@@ -94,9 +94,9 @@ export const SmartPosPanel: React.FC = () => {
         const s = search.toLowerCase();
         
         return inventory.filter(item => {
-            if ((s === 'albaran' || s === 'albarran') && item.sku.startsWith('ALB-')) return true;
-            return item.name.toLowerCase().includes(s) || 
-                   item.sku.toLowerCase().includes(s) || 
+            if ((s === 'albaran' || s === 'albarran') && (item.sku || '').startsWith('ALB-')) return true;
+            return (item.name || '').toLowerCase().includes(s) || 
+                   (item.sku || '').toLowerCase().includes(s) || 
                    (item.originalSku && item.originalSku.toLowerCase().includes(s));
         });
     }, [inventory, search]);
@@ -353,8 +353,8 @@ export const SmartPosPanel: React.FC = () => {
                                         <div className={`absolute top-0 left-0 w-full h-1 ${atp > 0 ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
 
                                         <div className="flex justify-between items-start mb-2 gap-2">
-                                            <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider line-clamp-1 ${reversed ? 'bg-indigo-100 text-indigo-700 max-w-[70%]' : 'bg-slate-100 text-slate-600'}`} title={reversed ? product.name : product.sku.split('-')[0]}>
-                                                {reversed ? product.name : product.sku.split('-')[0]}
+                                            <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider line-clamp-1 ${reversed ? 'bg-indigo-100 text-indigo-700 max-w-[70%]' : 'bg-slate-100 text-slate-600'}`} title={reversed ? product.name : (product.sku || '').split('-')[0]}>
+                                                {reversed ? product.name : (product.sku || '').split('-')[0]}
                                             </div>
                                             <div className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors shrink-0">
                                                 ${(price / 1000).toFixed(1)}k

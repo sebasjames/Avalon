@@ -531,6 +531,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateHealthThresholds,
             updateContact,
             updateInventoryProduct,
+            updateInventoryStock,
             tintometricRules,
             updateTintometricRules,
             reverseDisplayRules,
