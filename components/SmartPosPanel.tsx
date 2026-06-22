@@ -56,18 +56,15 @@ export const SmartPosPanel: React.FC = () => {
             (c.documentNumber && c.documentNumber.includes(term))
         );
     }, [contacts, customerSearch]);
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('Tarjeta');
-    const [selectedPointOfSale, setSelectedPointOfSale] = useState<string>('');
     
-    useEffect(() => {
-        if (!selectedPaymentMethod && paymentMethods?.length > 0) {
-            const card = paymentMethods.find(p => p.toLowerCase().includes('tarjeta'));
-            setSelectedPaymentMethod(card || paymentMethods[0]);
-        }
-        if (!selectedPointOfSale && pointsOfSale?.length > 0) {
-            setSelectedPointOfSale(pointsOfSale[0]);
-        }
-    }, [paymentMethods, pointsOfSale, selectedPaymentMethod, selectedPointOfSale]);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(() => {
+        const card = paymentMethods?.find(p => p.toLowerCase().includes('tarjeta'));
+        return card || (paymentMethods?.length > 0 ? paymentMethods[0] : 'Tarjeta');
+    });
+    
+    const [selectedPointOfSale, setSelectedPointOfSale] = useState<string>(() => {
+        return pointsOfSale?.length > 0 ? pointsOfSale[0] : '';
+    });
 
     const [isMarginMode, setIsMarginMode] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -291,7 +288,7 @@ export const SmartPosPanel: React.FC = () => {
     };
 
     return (
-        <div className="absolute inset-0 bg-slate-50 flex flex-col md:flex-row overflow-hidden font-sans">
+        <div className="absolute inset-0 bg-slate-50 flex flex-col md:flex-row overflow-hidden font-sans z-10">
             {/* Background elements */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-50/50 to-transparent pointer-events-none z-0"></div>
 
@@ -484,6 +481,7 @@ export const SmartPosPanel: React.FC = () => {
                                 const totalItem = price * item.qty * multiplier;
                                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
                                 const isExpanded = expandedItems.includes(item.id);
+                                const isService = item.product.sku.toUpperCase().includes('SERV-');
 
                                 const toggleExpand = () => {
                                     if (isExpanded) setExpandedItems(expandedItems.filter(id => id !== item.id));
@@ -497,7 +495,7 @@ export const SmartPosPanel: React.FC = () => {
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-                                        className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex items-start gap-3 relative overflow-hidden group hover:border-slate-300 transition-colors"
+                                        className={`${isService ? 'bg-emerald-50/60 border-emerald-200' : 'bg-white border-slate-100'} border rounded-2xl p-3 shadow-sm flex items-start gap-3 relative overflow-hidden group hover:border-slate-300 transition-colors`}
                                     >
                                         <div className="flex-1">
                                             <div className="text-xs font-bold text-slate-400 font-mono mb-0.5">{item.product.sku}</div>

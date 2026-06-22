@@ -464,15 +464,24 @@ export const SmartInventoryView: React.FC = () => {
     }, [inventory, selectedBrands, selectedSizes]);
 
     useEffect(() => {
-        setSelectedBrands(prev => prev.filter(id => availableBrands.some(a => a.id === id)));
+        setSelectedBrands(prev => {
+            const filtered = prev.filter(id => availableBrands.some(a => a.id === id));
+            return filtered.length !== prev.length ? filtered : prev;
+        });
     }, [availableBrands]);
 
     useEffect(() => {
-        setSelectedFamilies(prev => prev.filter(id => availableFamilies.some(a => a.id === id)));
+        setSelectedFamilies(prev => {
+            const filtered = prev.filter(id => availableFamilies.some(a => a.id === id));
+            return filtered.length !== prev.length ? filtered : prev;
+        });
     }, [availableFamilies]);
 
     useEffect(() => {
-        setSelectedSizes(prev => prev.filter(id => availableSizes.some(a => a.id === id)));
+        setSelectedSizes(prev => {
+            const filtered = prev.filter(id => availableSizes.some(a => a.id === id));
+            return filtered.length !== prev.length ? filtered : prev;
+        });
     }, [availableSizes]);
 
     useEffect(() => {
