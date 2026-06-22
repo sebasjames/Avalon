@@ -291,7 +291,7 @@ export const SmartPosPanel: React.FC = () => {
     };
 
     return (
-        <div className="h-screen bg-slate-50 flex flex-col md:flex-row overflow-hidden font-sans relative">
+        <div className="absolute inset-0 bg-slate-50 flex flex-col md:flex-row overflow-hidden font-sans">
             {/* Background elements */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-50/50 to-transparent pointer-events-none z-0"></div>
 
