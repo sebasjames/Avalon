@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileSpreadsheet, Download } from 'lucide-react';
 
@@ -69,7 +70,48 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
 
     if (!isOpen) return null;
 
-    const [isExportingXLSX, setIsExportingXLSX] = React.useState(false);
+    const [isExportingXLSX, setIsExportingXLSX] = useState(false);
+
+    // Resizable columns logic
+    const [colWidths, setColWidths] = useState<Record<string, number>>({
+        'product': 400, // Make product column wider by default
+    });
+    const [resizingCol, setResizingCol] = useState<string | null>(null);
+    const [startX, setStartX] = useState(0);
+    const [startWidth, setStartWidth] = useState(0);
+
+    const handleMouseDown = (e: React.MouseEvent, colId: string) => {
+        e.preventDefault();
+        setResizingCol(colId);
+        setStartX(e.clientX);
+        const currentWidth = colWidths[colId] || 150;
+        setStartWidth(currentWidth);
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!resizingCol) return;
+            const diffX = e.clientX - startX;
+            setColWidths(prev => ({
+                ...prev,
+                [resizingCol]: Math.max(50, startWidth + diffX) // min width 50px
+            }));
+        };
+        
+        const handleMouseUp = () => {
+            setResizingCol(null);
+        };
+
+        if (resizingCol) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [resizingCol, startX, startWidth]);
 
     const handleExportXLSX = async () => {
         try {
@@ -128,7 +170,7 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
         document.body.removeChild(link);
     };
 
-    return (
+    return createPortal(
         <AnimatePresence>
             <motion.div 
                 initial={{ opacity: 0 }} 
@@ -171,19 +213,29 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                     </div>
 
                     <div className="flex-1 overflow-auto bg-slate-50 relative custom-scrollbar">
-                        <table className="w-max min-w-full text-left border-collapse bg-white">
+                        <table className="w-max text-left border-collapse bg-white" style={{ tableLayout: 'fixed' }}>
                             <thead className="sticky top-0 z-30 bg-slate-100 shadow-sm">
                                 <tr>
-                                    {columns.map((col, idx) => (
-                                        <th 
-                                            key={col.id} 
-                                            className={`px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500 border-b border-r border-slate-200 whitespace-nowrap ${
-                                                col.fixed ? 'sticky left-0 bg-slate-200 z-40 shadow-[1px_0_0_0_#cbd5e1]' : ''
-                                            }`}
-                                        >
-                                            {col.label}
-                                        </th>
-                                    ))}
+                                    {columns.map((col, idx) => {
+                                        const width = colWidths[col.id] || 150;
+                                        return (
+                                            <th 
+                                                key={col.id} 
+                                                className={`px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500 border-b border-r border-slate-200 whitespace-nowrap relative select-none group ${
+                                                    col.fixed ? 'sticky left-0 bg-slate-200 z-40 shadow-[1px_0_0_0_#cbd5e1]' : ''
+                                                }`}
+                                                style={{ width, minWidth: width, maxWidth: width }}
+                                            >
+                                                <div className="overflow-hidden text-ellipsis">{col.label}</div>
+                                                <div 
+                                                    onMouseDown={(e) => handleMouseDown(e, col.id)}
+                                                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-emerald-500/50 z-50 flex items-center justify-center transition-colors"
+                                                >
+                                                    <div className="h-4 w-px bg-slate-300 group-hover:bg-emerald-500"></div>
+                                                </div>
+                                            </th>
+                                        );
+                                    })}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -193,17 +245,19 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                                         <tr key={item.id} className="hover:bg-emerald-50/40 transition-colors group">
                                             {columns.map((col, idx) => {
                                                 const val = row[col.id as keyof typeof row];
+                                                const width = colWidths[col.id] || 150;
                                                 return (
                                                     <td 
                                                         key={col.id} 
-                                                        className={`px-4 py-2.5 text-sm font-medium border-r border-slate-100 whitespace-nowrap ${
+                                                        className={`px-4 py-2.5 text-sm font-medium border-r border-slate-100 whitespace-nowrap overflow-hidden text-ellipsis ${
                                                             col.fixed ? 'sticky left-0 bg-slate-50 group-hover:bg-emerald-50 z-20 shadow-[1px_0_0_0_#e2e8f0]' : 'text-slate-600'
                                                         } ${
                                                             val === 'N/A' ? 'text-slate-300 italic' : 
                                                             val === 'Sí' ? 'text-emerald-600 font-black' : ''
                                                         }`}
+                                                        style={{ width, minWidth: width, maxWidth: width }}
                                                     >
-                                                        {val || <span className="text-rose-300 italic text-[11px] uppercase tracking-wider font-bold">Vacio</span>}
+                                                        <div className="overflow-hidden text-ellipsis" title={val.toString()}>{val || <span className="text-rose-300 italic text-[11px] uppercase tracking-wider font-bold">Vacio</span>}</div>
                                                     </td>
                                                 );
                                             })}
@@ -215,6 +269,7 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                     </div>
                 </motion.div>
             </motion.div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };
