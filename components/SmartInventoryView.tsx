@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -504,6 +504,47 @@ export const SmartInventoryView: React.FC = () => {
         }
     }, [globalInventorySearch]);
 
+    const setSearchInputRef = useRef(setSearchInput);
+    const setGlobalSearchRef = useRef(setGlobalInventorySearch);
+
+    useEffect(() => {
+        setSearchInputRef.current = setSearchInput;
+        setGlobalSearchRef.current = setGlobalInventorySearch;
+    }, [setSearchInput, setGlobalInventorySearch]);
+
+    // --- GLOBAL BARCODE SCANNER LISTENER ---
+    useEffect(() => {
+        let barcodeBuffer = '';
+        let lastKeyTime = 0;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                if (e.target.type !== 'text') return;
+            }
+
+            const now = Date.now();
+            if (now - lastKeyTime > 60) {
+                barcodeBuffer = '';
+            }
+
+            if (e.key === 'Enter' && barcodeBuffer.length > 5) {
+                const found = inventory.find(p => p.barcode === barcodeBuffer);
+                if (found) {
+                    setSearchInputRef.current(barcodeBuffer);
+                    setGlobalSearchRef.current(barcodeBuffer);
+                    e.preventDefault();
+                }
+                barcodeBuffer = '';
+            } else if (e.key.length === 1) {
+                barcodeBuffer += e.key;
+            }
+            lastKeyTime = now;
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [inventory]);
+
     const handleLocalSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setSearchInput(val);
@@ -543,7 +584,8 @@ export const SmartInventoryView: React.FC = () => {
             if ((s.includes('albaran') || s.includes('albarran')) && item.sku.startsWith('ALB-')) return true;
             return item.name.toLowerCase().includes(s) || 
                    item.sku.toLowerCase().includes(s) ||
-                   (item.originalSku && item.originalSku.toLowerCase().includes(s));
+                   (item.originalSku && item.originalSku.toLowerCase().includes(s)) ||
+                   (item.barcode && item.barcode.toLowerCase().includes(s));
         };
         result = result.filter(matchesSearch);
 
