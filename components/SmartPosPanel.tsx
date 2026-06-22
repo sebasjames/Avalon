@@ -8,7 +8,7 @@ import {
 import { Product, CrmContact, CustomerTier } from '../types';
 
 export const SmartPosPanel: React.FC = () => {
-    const { inventory, contacts, tintometricRules, reverseDisplayRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes } = useEnterprise();
+    const { inventory, contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes } = useEnterprise();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const isReversedDisplay = (product: Product) => {
@@ -24,8 +24,17 @@ export const SmartPosPanel: React.FC = () => {
         const n = product.name.toUpperCase();
         return tintometricRules.some(trigger => s.includes(trigger) || n.includes(trigger));
     };
+
+    const isCuneteEligible = (product: Product) => {
+        const s = product.sku.toUpperCase();
+        const n = product.name.toUpperCase();
+        const b = (product.brand || '').toUpperCase();
+        const f = (product.family || '').toUpperCase();
+        return litersToCunetesRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+    };
+
     const [search, setSearch] = useState('');
-    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string }[]>([]);
+    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string; isCunete?: boolean }[]>([]);
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
     const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
     const [customerSearch, setCustomerSearch] = useState('');
@@ -107,13 +116,13 @@ export const SmartPosPanel: React.FC = () => {
         const isBase = isTintometric(product);
         setCart(prev => {
             if (isBase) {
-                return [...prev, { id: Math.random().toString(36).substring(7), product, qty: 1, colorNote: '' }];
+                return [...prev, { id: Math.random().toString(36).substring(7), product, qty: 1, colorNote: '', isCunete: false }];
             }
-            const existing = prev.find(item => item.product.id === product.id && !item.colorNote);
+            const existing = prev.find(item => item.product.id === product.id && !item.colorNote && !item.isCunete);
             if (existing) {
                 return prev.map(item => item.id === existing.id ? { ...item, qty: item.qty + 1 } : item);
             }
-            return [...prev, { id: Math.random().toString(36).substring(7), product, qty: 1 }];
+            return [...prev, { id: Math.random().toString(36).substring(7), product, qty: 1, isCunete: false }];
         });
         setSearch(''); // Auto clear search for fast scanning
     };
@@ -132,11 +141,16 @@ export const SmartPosPanel: React.FC = () => {
         setCart(prev => prev.map(item => item.id === cartId ? { ...item, colorNote: color } : item));
     };
 
+    const toggleCunete = (cartId: string) => {
+        setCart(prev => prev.map(item => item.id === cartId ? { ...item, isCunete: !item.isCunete } : item));
+    };
+
     // Financials
     const subtotal = useMemo(() => {
         return cart.reduce((acc, item) => {
             const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
-            return acc + (price * item.qty);
+            const multiplier = item.isCunete ? 20 : 1;
+            return acc + (price * item.qty * multiplier);
         }, 0);
     }, [cart]);
 
@@ -151,7 +165,8 @@ export const SmartPosPanel: React.FC = () => {
 
         cart.forEach(item => {
             const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
-            const lineTotal = price * item.qty;
+            const multiplier = item.isCunete ? 20 : 1;
+            const lineTotal = price * item.qty * multiplier;
             const discountRatio = discountPercent > 0 ? (1 - discountPercent / 100) : 1;
             const finalLineTotal = lineTotal * discountRatio;
             
@@ -170,7 +185,10 @@ export const SmartPosPanel: React.FC = () => {
     const total = (subtotal - discountAmount) + taxes;
 
     const totalCost = useMemo(() => {
-        return cart.reduce((acc, item) => acc + (item.product.unitCost * item.qty), 0);
+        return cart.reduce((acc, item) => {
+            const multiplier = item.isCunete ? 20 : 1;
+            return acc + (item.product.unitCost * item.qty * multiplier);
+        }, 0);
     }, [cart]);
 
     const grossMargin = (subtotal - discountAmount) - totalCost;
@@ -202,6 +220,7 @@ export const SmartPosPanel: React.FC = () => {
         
         cart.forEach(item => {
             const recipe = recipes.find(r => r.finalProductId === item.product.id);
+            const multiplier = item.isCunete ? 20 : 1;
 
             // Descontar inventario real (solo si no es un servicio)
             if (item.product.category !== 'Servicio') {
@@ -209,34 +228,37 @@ export const SmartPosPanel: React.FC = () => {
                     recipe.ingredients.forEach(ing => {
                         const ingProduct = inventory.find(p => p.id === ing.productId);
                         if (ingProduct && ingProduct.category !== 'Servicio') {
-                            updateInventoryStock(ing.productId, -(ing.quantity * item.qty));
+                            updateInventoryStock(ing.productId, -(ing.quantity * item.qty * multiplier));
                         }
                     });
                 } else {
-                    updateInventoryStock(item.id, -item.qty);
+                    updateInventoryStock(item.product.id, -(item.qty * multiplier));
                 }
             }
 
             // Calcular valores
             const price = isMarginMode ? (item.product.unitCost * 1.3) : (item.product.price || item.product.unitCost * 1.3);
             const appliedPrice = activeCustomer ? price * (1 - discountPercent / 100) : price;
-            const subtotalLine = appliedPrice * item.qty;
+            const subtotalLine = appliedPrice * item.qty * multiplier;
             
             const defaultTax = taxRates?.find(t => t.isDefault) || { percentage: 19 };
             const rate = item.product.taxRate ?? defaultTax.percentage;
             const iva = subtotalLine * (rate / 100);
 
             // Registrar transacción en Sábana General
+            let prodName = item.product.name + (item.colorNote ? ` [${item.colorNote}]` : '');
+            if (item.isCunete) prodName += ' (Facturado en Cuñetes 20L)';
+
             addTransaction({
                 id: invoiceId,
                 date: dateStr,
                 type: 'VENTA',
                 client: activeCustomer ? activeCustomer.name : 'Consumidor Final',
                 document: activeCustomer ? `${activeCustomer.documentType || 'NIT'} ${activeCustomer.documentNumber}` : '222222222',
-                productName: item.product.name + (item.colorNote ? ` [${item.colorNote}]` : ''),
+                productName: prodName,
                 sku: item.product.sku,
-                qty: item.qty,
-                total: subtotal,
+                qty: item.qty * multiplier,
+                total: subtotalLine,
                 iva: iva,
                 paymentMethod: selectedPaymentMethod,
                 posLocation: selectedPointOfSale
@@ -441,7 +463,8 @@ export const SmartPosPanel: React.FC = () => {
                         ) : (
                             cart.map((item) => {
                                 const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
-                                const totalItem = price * item.qty;
+                                const multiplier = item.isCunete ? 20 : 1;
+                                const totalItem = price * item.qty * multiplier;
                                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
                                 const isExpanded = expandedItems.includes(item.id);
 
@@ -479,6 +502,21 @@ export const SmartPosPanel: React.FC = () => {
                                                 </div>
                                             )}
 
+                                            {isCuneteEligible(item.product) && (
+                                                <div className="mb-3">
+                                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                                        <div className="relative">
+                                                            <input type="checkbox" className="sr-only" checked={item.isCunete} onChange={() => toggleCunete(item.id)} />
+                                                            <div className={`block w-10 h-6 rounded-full transition-colors ${item.isCunete ? 'bg-indigo-500' : 'bg-slate-300'}`}></div>
+                                                            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${item.isCunete ? 'transform translate-x-4' : ''}`}></div>
+                                                        </div>
+                                                        <div className="text-xs font-bold text-slate-600 select-none group-hover:text-indigo-600 transition-colors">
+                                                            Facturar en Cuñetes (20L)
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            )}
+
                                             <div className="flex items-center gap-3 mt-1">
                                                 {/* Qty Controls */}
                                                 <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
@@ -511,7 +549,7 @@ export const SmartPosPanel: React.FC = () => {
                                                                 <li key={ing.productId} className="flex justify-between items-center text-xs">
                                                                     <div className="flex items-center gap-2">
                                                                         <span className="font-bold text-slate-700">{ingProd?.name || 'Desconocido'}</span>
-                                                                        <span className="text-slate-400">x{(ing.quantity * item.qty).toFixed(2)}</span>
+                                                                        <span className="text-slate-400">x{(ing.quantity * item.qty * multiplier).toFixed(2)}</span>
                                                                     </div>
                                                                     <span className="font-medium text-slate-500">${ingCost.toLocaleString('es-CO')}</span>
                                                                 </li>

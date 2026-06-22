@@ -32,9 +32,10 @@ export const Configuration: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules, inventory } = useEnterprise();
+  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules, litersToCunetesRules, updateLitersToCunetesRules, inventory } = useEnterprise();
   const [newRule, setNewRule] = useState('');
   const [newReverseRule, setNewReverseRule] = useState('');
+  const [newCuneteRule, setNewCuneteRule] = useState('');
 
   const getSuggestions = (input: string) => {
     if (input.length < 2) return [];
@@ -53,6 +54,7 @@ export const Configuration: React.FC = () => {
 
   const ruleSuggestions = useMemo(() => getSuggestions(newRule), [newRule, inventory]);
   const reverseRuleSuggestions = useMemo(() => getSuggestions(newReverseRule), [newReverseRule, inventory]);
+  const cuneteRuleSuggestions = useMemo(() => getSuggestions(newCuneteRule), [newCuneteRule, inventory]);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -427,6 +429,77 @@ export const Configuration: React.FC = () => {
                                     updateReverseDisplayRules([...reverseDisplayRules, suggestion]);
                                   }
                                   setNewReverseRule('');
+                                }}
+                                className="px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer font-medium border-b border-slate-50 last:border-0"
+                              >
+                                {suggestion}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <button 
+                        type="submit" 
+                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors h-[38px]"
+                      >
+                        <Plus size={16} /> Añadir Regla
+                      </button>
+                    </form>
+                  </section>
+
+                  <div className="h-px bg-slate-100 my-8" />
+
+                  <section className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                      <Scale size={18} className="text-indigo-600" />
+                      Reglas de Conversión a Cuñetes (POS)
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Define qué familias, SKUs o descripciones habilitarán el modo de facturación en cuñetes (20 Litros) en el punto de venta.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {litersToCunetesRules.map((rule, idx) => (
+                        <div key={idx} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2">
+                          {rule}
+                          <button 
+                            onClick={() => updateLitersToCunetesRules(litersToCunetesRules.filter(r => r !== rule))}
+                            className="hover:text-rose-300 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (newCuneteRule.trim() && !litersToCunetesRules.includes(newCuneteRule.trim().toUpperCase())) {
+                          updateLitersToCunetesRules([...litersToCunetesRules, newCuneteRule.trim().toUpperCase()]);
+                          setNewCuneteRule('');
+                        }
+                      }}
+                      className="flex items-start gap-2 relative"
+                    >
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          value={newCuneteRule}
+                          onChange={(e) => setNewCuneteRule(e.target.value)}
+                          placeholder="Ej: TZ o PINTURA" 
+                          className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-indigo-500 outline-none uppercase"
+                        />
+                        {cuneteRuleSuggestions.length > 0 && (
+                          <ul className="absolute z-50 left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+                            {cuneteRuleSuggestions.map((suggestion, idx) => (
+                              <li 
+                                key={idx}
+                                onClick={() => {
+                                  if (!litersToCunetesRules.includes(suggestion)) {
+                                    updateLitersToCunetesRules([...litersToCunetesRules, suggestion]);
+                                  }
+                                  setNewCuneteRule('');
                                 }}
                                 className="px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 cursor-pointer font-medium border-b border-slate-50 last:border-0"
                               >

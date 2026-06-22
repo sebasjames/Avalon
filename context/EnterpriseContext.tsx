@@ -30,6 +30,8 @@ interface EnterpriseContextType {
     reverseDisplayRules: string[];
     updateReverseDisplayRules: (rules: string[]) => void;
     setReverseDisplayRules: (rules: string[]) => void;
+    litersToCunetesRules: string[];
+    updateLitersToCunetesRules: (rules: string[]) => void;
     transactions: AccountingTransaction[];
     addTransaction: (t: AccountingTransaction) => void;
     assignmentLogs: CrmAssignmentLog[];
@@ -105,6 +107,11 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'LACA CATALIZA',
         'PROCOQUINAL',
         'PF 45'
+    ]);
+    
+    // Liters to Cuñetes Rules
+    const [litersToCunetesRules, setLitersToCunetesRules] = useState<string[]>([
+        'TZ'
     ]);
     
     // Tax Rates
@@ -226,6 +233,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const updateTintometricRules = (rules: string[]) => {
         setTintometricRules(rules);
+    };
+
+    const updateLitersToCunetesRules = (rules: string[]) => {
+        setLitersToCunetesRules(rules);
     };
 
     const getContactHealthScore = (contactId: string): 'GREEN' | 'YELLOW' | 'RED' => {
@@ -508,6 +519,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             reverseDisplayRules,
             setReverseDisplayRules,
             updateReverseDisplayRules: setReverseDisplayRules,
+            litersToCunetesRules,
+            updateLitersToCunetesRules,
             assignmentLogs,
             cleanGarbageLeads,
             getActiveNotifications,
