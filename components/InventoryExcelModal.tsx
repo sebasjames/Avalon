@@ -113,11 +113,36 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
         };
     }, [resizingCol, startX, startWidth]);
 
+    const downloadBlob = async (blob: Blob, filename: string, extension: string, mimeType: string, description: string) => {
+        try {
+            if ('showSaveFilePicker' in window) {
+                const handle = await (window as any).showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description,
+                        accept: { [mimeType]: [extension] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return;
+            }
+        } catch (err: any) {
+            if (err.name === 'AbortError') return; // User cancelled the dialog
+            console.warn('showSaveFilePicker API failed, falling back to file-saver:', err);
+        }
+        
+        // Fallback for browsers that don't support showSaveFilePicker
+        const { saveAs } = await import('file-saver');
+        saveAs(blob, filename);
+    };
+
     const handleExportXLSX = async () => {
         try {
             setIsExportingXLSX(true);
             
-            // 1. Lazy load the xlsx library (Code Splitting)
+            // 1. Lazy load the xlsx library
             const XLSX = await import('xlsx');
             
             // 2. Format the data
@@ -130,13 +155,18 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                 return rowObj;
             });
             
-            // 3. Create workbook and worksheet
+            // 3. Create workbook
             const ws = XLSX.utils.json_to_sheet(wsData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Auditoria");
             
-            // 4. Download file
-            XLSX.writeFile(wb, `Auditoria_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`);
+            // 4. Download file using native picker
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const filename = `Auditoria_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`;
+            
+            await downloadBlob(blob, filename, '.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Excel Document');
+            
         } catch (error) {
             console.error("Error exporting XLSX:", error);
             alert("Hubo un error al exportar el archivo Excel.");
@@ -145,7 +175,7 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
         }
     };
 
-    const handleExportCSV = () => {
+    const handleExportCSV = async () => {
         const header = columns.map(col => `"${col.label}"`).join(',');
         const rows = data.map(item => {
             const row = getRowData(item);
@@ -160,14 +190,9 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
         // Add BOM for Excel UTF-8 support
         const csvContent = [header, ...rows].join('\n');
         const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
+        const filename = `Auditoria_Inventario_${new Date().toISOString().split('T')[0]}.csv`;
         
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `Auditoria_Inventario_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        await downloadBlob(blob, filename, '.csv', 'text/csv', 'CSV File');
     };
 
     return createPortal(

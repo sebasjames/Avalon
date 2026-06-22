@@ -75,6 +75,83 @@ export const DEFAULT_SETTINGS: SystemSettings = {
         { id: '1', regexTags: ['GL', 'GALON', 'GALONES'], std: 'GL', factorToLiter: 3.785 },
         { id: '2', regexTags: ['LT', 'LITRO', 'LITROS'], std: 'LT', factorToLiter: 1 },
         { id: '3', regexTags: ['1\\/4', 'QT', 'CUARTO'], std: 'QT', factorToLiter: 0.946 },
+import { Product, InventoryStatus, Category, ABCClass, XYZClass, SalesRecord, Transfer, ProductionBatch, BatchStatus, Customer, SalesOrder, CustomerTier, ForecastDataPoint, DemandAlert, ActionOpportunity, Vendor, PurchaseSuggestion, SystemEvent, SystemSettings, CrmContact, CrmDeal, CrmActivity, CrmUser, CrmSettings } from './types';
+
+export const DEFAULT_SETTINGS: SystemSettings = {
+  inventory: {
+    slowAgingDays: 60,
+    silentAgingDays: 120,
+    deadAgingDays: 365,
+    abcThresholdA: 80,
+    abcThresholdB: 15,
+  },
+  production: {
+    wasteTolerancePercent: 5,
+    standardLaborCostPerHour: 25,
+    overheadRate: 15,
+  },
+  sales: {
+    defaultTargetMargin: 30,
+    strategicCustomerDiscount: 10,
+    priorityWeights: {
+      margin: 0.4,
+      customerTier: 0.4,
+      urgency: 0.2,
+    },
+  },
+  purchasing: {
+    safetyStockBufferDays: 15,
+    minVendorReliability: 80,
+    autoApproveThreshold: 10000,
+  },
+  finance: {
+    currency: 'COP',
+    taxRate: 19,
+    annualHoldingCostPercent: 25,
+  },
+  formulation: {
+    vendorRules: [
+        { 
+            id: '1', 
+            brand: 'ILVA', 
+            categoryName: 'Materia Prima (ILVA)',
+            prefixRules: [
+                { id: 'il1', prefix: 'TZ', meaning: 'Disolvente' },
+                { id: 'il2', prefix: 'TV', meaning: 'Catalizador' },
+                { id: 'il3', prefix: 'TX', meaning: 'Laca/Barniz' },
+                { id: 'il4', prefix: 'TG', meaning: 'Fondo/Primario' },
+                { id: 'il5', prefix: 'PM', meaning: 'Acabado' },
+                { id: 'il6', prefix: 'TO', meaning: 'Especial' },
+                { id: 'il7', prefix: 'TS', meaning: 'Especial' }
+            ]
+        },
+        { 
+            id: '2', 
+            brand: 'Carpoly', 
+            categoryName: 'Materia Prima (Carpoly)',
+            prefixRules: [
+                { id: 'ca1', prefix: 'IME', meaning: 'Resina/Base' },
+                { id: 'ca2', prefix: 'IRPE', meaning: 'Resina Especial' },
+                { id: 'ca3', prefix: 'ITD', meaning: 'Tinte' },
+                { id: 'ca4', prefix: 'IGH', meaning: 'Endurecedor' }
+            ]
+        },
+        { 
+            id: '3', 
+            brand: 'BARPIMO', 
+            categoryName: 'Materia Prima (Barpimo)',
+            prefixRules: [
+                { id: 'ba1', prefix: 'A-', meaning: 'Tinte General' },
+                { id: 'ba2', prefix: 'J-', meaning: 'Tinte' },
+                { id: 'ba3', prefix: 'F-', meaning: 'Fondo' },
+                { id: 'ba4', prefix: '\\d{5,}', meaning: 'Químico Estándar' }
+            ]
+        }
+    ],
+    uomRules: [
+        { id: '1', regexTags: ['GL', 'GALON', 'GALONES'], std: 'GL', factorToLiter: 3.785 },
+        { id: '2', regexTags: ['LT', 'LITRO', 'LITROS'], std: 'LT', factorToLiter: 1 },
+        { id: '3', regexTags: ['1\\/4', 'QT', 'CUARTO'], std: 'QT', factorToLiter: 0.946 },
         { id: '4', regexTags: ['CUÑETE', 'CUNETE'], std: 'CUNETE', factorToLiter: 18.925 },
         { id: '5', regexTags: ['KG', 'KILO', 'KILOGRAMO'], std: 'KG', factorToLiter: 1 }
     ],
@@ -84,6 +161,66 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 };
 
 export const MOCK_INVENTORY: Product[] = [
+  {
+    "id": "PROD-IL-TG-25",
+    "sku": "IL-TG 25",
+    "originalSku": "IL-TG 25",
+    "barcode": "7503050941345",
+    "name": "FONDO POLIACRILICO ALTA TRANSPARENCIA",
+    "category": Category.RAW_MATERIAL,
+    "family": "Madera",
+    "brand": "Procoquinal",
+    "baseUnit": "GL",
+    "density": 1,
+    "unitCost": 45000,
+    "price": 60000,
+    "totalStock": 100,
+    "reservedStock": 0,
+    "status": InventoryStatus.ACTIVE,
+    "abc": ABCClass.A,
+    "xyz": XYZClass.X,
+    "agingDays": 10,
+    "mixingInstructions": "",
+    "batches": [
+      {
+        "id": "BATCH-IL-TG-1",
+        "quantity": 100,
+        "reserved": 0,
+        "dateIn": "2024-03-01",
+        "expiryDate": "2026-03-01"
+      }
+    ]
+  },
+  {
+    "id": "PROD-IL-TG-25-KG",
+    "sku": "IL-TG 25 KILO",
+    "originalSku": "IL-TG 25",
+    "barcode": "7503050941345",
+    "name": "FONDO POLIACRILICO ALTA TRANSPARENCIA - KILO",
+    "category": Category.RAW_MATERIAL,
+    "family": "Madera",
+    "brand": "Procoquinal",
+    "baseUnit": "KG",
+    "density": 1,
+    "unitCost": 15000,
+    "price": 22000,
+    "totalStock": 50,
+    "reservedStock": 0,
+    "status": InventoryStatus.ACTIVE,
+    "abc": ABCClass.B,
+    "xyz": XYZClass.Y,
+    "agingDays": 10,
+    "mixingInstructions": "",
+    "batches": [
+      {
+        "id": "BATCH-IL-TG-2",
+        "quantity": 50,
+        "reserved": 0,
+        "dateIn": "2024-03-01",
+        "expiryDate": "2026-03-01"
+      }
+    ]
+  },
   {
     "id": "SERV-MANO-OBRA",
     "sku": "SERV-MANO-OBRA",
