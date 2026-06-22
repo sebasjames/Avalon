@@ -29,7 +29,7 @@ export const GlobalHeader: React.FC = () => {
         return (
             c.name.toLowerCase().includes(q) ||
             c.company.toLowerCase().includes(q) ||
-            (c.nit && c.nit.includes(q)) ||
+            (c.documentNumber && c.documentNumber.includes(q)) ||
             (c.decisionMakers && c.decisionMakers.some(dm => dm.name.toLowerCase().includes(q)))
         );
     }).slice(0, 5);
@@ -72,7 +72,7 @@ export const GlobalHeader: React.FC = () => {
                         {filteredContacts.length > 0 ? filteredContacts.map(c => (
                             <button key={c.id} onClick={() => handleSelectResult(c.id)} className="w-full text-left px-4 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors">
                                 <div className="font-bold text-sm text-slate-900">{c.name}</div>
-                                <div className="text-xs text-slate-500">{c.company} {c.nit ? `• NIT: ${c.nit}` : ''}</div>
+                                <div className="text-xs text-slate-500">{c.company} {c.documentNumber ? `• ${c.documentType || 'NIT'}: ${c.documentNumber}` : ''}</div>
                             </button>
                         )) : (
                             <div className="px-4 py-3 text-sm text-slate-500 text-center">No se encontraron resultados para "{searchTerm}"</div>

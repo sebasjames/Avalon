@@ -6,8 +6,10 @@ import { Box, ScanBarcode, ShoppingCart, LayoutGrid } from 'lucide-react';
 import { SmartInventoryView } from './SmartInventoryView';
 import { InventoryControlDeep } from './InventoryControlDeep';
 import { PurchasingIntelligence } from './PurchasingIntelligence';
+import { RecipeModule } from './RecipeModule';
+import { FlaskConical } from 'lucide-react';
 
-type InventoryTab = 'catalog' | 'logistics' | 'purchasing';
+type InventoryTab = 'catalog' | 'logistics' | 'purchasing' | 'formulas';
 
 export const InventoryHub: React.FC = () => {
     const [activeTab, setActiveTab] = useState<InventoryTab>('catalog');
@@ -32,7 +34,8 @@ export const InventoryHub: React.FC = () => {
                         {[
                           { id: 'catalog', label: 'Catálogo & ATP', icon: LayoutGrid },
                           { id: 'logistics', label: 'Kardex Deep & Lotes', icon: ScanBarcode },
-                          { id: 'purchasing', label: 'Abastecimiento', icon: ShoppingCart }
+                          { id: 'purchasing', label: 'Abastecimiento', icon: ShoppingCart },
+                          { id: 'formulas', label: 'Fórmulas y Recetas', icon: FlaskConical }
                         ].map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -64,6 +67,7 @@ export const InventoryHub: React.FC = () => {
                             {activeTab === 'catalog' && <SmartInventoryView />}
                             {activeTab === 'logistics' && <InventoryControlDeep />}
                             {activeTab === 'purchasing' && <PurchasingIntelligence />}
+                            {activeTab === 'formulas' && <RecipeModule />}
                         </motion.div>
                     </AnimatePresence>
                 </div>

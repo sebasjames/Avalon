@@ -10,6 +10,7 @@ export enum Category {
   RAW_MATERIAL = 'Materia Prima',
   WIP = 'En Proceso (WIP)',
   FINISHED_GOOD = 'Producto Terminado',
+  SERVICE = 'Servicio',
 }
 
 export enum ABCClass {
@@ -71,6 +72,7 @@ export interface Product {
   id: string;
   sku: string;
   originalSku: string;
+  barcode?: string; // For POS scanning
   name: string;
   category: Category;
   family?: string; // e.g. DISOLVENTES, IGNIFUGOS
@@ -88,6 +90,7 @@ export interface Product {
   batches: Batch[];
   mixingInstructions?: string; // e.g. "CAT 82 AL 50% DIS 7771 AL 25%"
   informationalNote?: string; // High-visibility note for the user
+  taxRate?: number; // Impuesto aplicado al producto (ej. 19, 5, 0)
 }
 
 export interface Transfer {
@@ -117,6 +120,17 @@ export interface InboundReceipt {
     dateIn: string;
     items: InboundReceiptItem[];
     status: 'PENDING' | 'PROCESSED';
+}
+
+export interface RecipeIngredient {
+    productId: string; // The raw material / component ID
+    quantity: number; // The amount required for 1 unit of final product
+}
+
+export interface Recipe {
+    id: string;
+    finalProductId: string; // The resulting product ID
+    ingredients: RecipeIngredient[];
 }
 
 export interface FormulaItem {
@@ -290,7 +304,8 @@ export interface CrmContact {
   lastContactDate: string;
   ownerId: string;
   postSaleStage?: CrmPostSaleStage;
-  nit?: string;
+  documentType?: 'NIT' | 'CC' | 'CE' | 'PASAPORTE';
+  documentNumber?: string;
   decisionMakers?: { name: string; position: string; hobby?: string; birthday?: string }[];
   purchaseHistory?: CrmPurchaseHistory;
 }
@@ -425,3 +440,27 @@ export interface CrmSettings {
     yellowMax: number;
   };
 }
+
+export interface AccountingTransaction {
+  id: string;
+  date: string;
+  type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA';
+  client: string;
+  document: string;
+  sku: string;
+  productName: string;
+  qty: number;
+  total: number;
+  iva: number;
+  paymentMethod: string;
+  posLocation: string;
+}
+
+export interface TaxRate {
+  id: string;
+  name: string;
+  percentage: number;
+  isActive: boolean;
+  isDefault: boolean;
+}
+

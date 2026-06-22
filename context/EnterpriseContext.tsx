@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
 import { MOCK_INVENTORY, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_CONTACTS, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification } from '../types';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe } from '../types';
 
 interface EnterpriseContextType {
     inventory: Product[];
@@ -24,10 +24,14 @@ interface EnterpriseContextType {
     updateHealthThresholds: (redMax: number, yellowMax: number) => void;
     updateContact: (contactId: string, updates: Partial<CrmContact>) => void;
     updateInventoryProduct: (productId: string, updates: Partial<Product>) => void;
+    updateInventoryStock: (productId: string, quantityChange: number) => void;
     tintometricRules: string[];
     updateTintometricRules: (rules: string[]) => void;
     reverseDisplayRules: string[];
     updateReverseDisplayRules: (rules: string[]) => void;
+    setReverseDisplayRules: (rules: string[]) => void;
+    transactions: AccountingTransaction[];
+    addTransaction: (t: AccountingTransaction) => void;
     assignmentLogs: CrmAssignmentLog[];
     cleanGarbageLeads: (daysInactive: number) => void;
     getActiveNotifications: () => CrmNotification[];
@@ -37,6 +41,22 @@ interface EnterpriseContextType {
     setFullProfileContactId: (id: string | null) => void;
     globalInventorySearch: string;
     setGlobalInventorySearch: (s: string) => void;
+    
+    // --- Configuración POS ---
+    paymentMethods: string[];
+    setPaymentMethods: (methods: string[]) => void;
+    pointsOfSale: string[];
+    setPointsOfSale: (pos: string[]) => void;
+    
+    // --- Configuración Impuestos ---
+    // --- Configuración Impuestos ---
+    taxRates: TaxRate[];
+    setTaxRates: (rates: TaxRate[]) => void;
+
+    // --- Fórmulas y Recetas ---
+    recipes: Recipe[];
+    addRecipe: (recipe: Recipe) => void;
+    deleteRecipe: (id: string) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -51,6 +71,22 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [crmSettings, setCrmSettings] = useState<CrmSettings>(MOCK_CRM_SETTINGS);
     const [receipts, setReceipts] = useState<InboundReceipt[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
+    
+    // --- POS Configurations ---
+    const [paymentMethods, setPaymentMethods] = useState<string[]>([
+        'Efectivo', 
+        'Tarjeta', 
+        'Transferencia', 
+        'Nequi', 
+        'Crédito 30 días', 
+        'Crédito 60 días', 
+        'Crédito 90 días'
+    ]);
+    const [pointsOfSale, setPointsOfSale] = useState<string[]>([
+        'Sede Principal Centro', 
+        'Bodega Norte', 
+        'Ventas Online'
+    ]);
     
     // Tintometric Rules
     const [tintometricRules, setTintometricRules] = useState<string[]>([
@@ -70,10 +106,109 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'PROCOQUINAL',
         'PF 45'
     ]);
+    
+    // Tax Rates
+    // Tax Rates
+    const [taxRates, setTaxRates] = useState<TaxRate[]>([
+        { id: 't1', name: 'IVA General', percentage: 19, isActive: true, isDefault: true },
+        { id: 't2', name: 'IVA Reducido', percentage: 5, isActive: true, isDefault: false },
+        { id: 't3', name: 'Exento', percentage: 0, isActive: true, isDefault: false }
+    ]);
+
+    // Fórmulas y Recetas
+    const [recipes, setRecipes] = useState<Recipe[]>([
+        {
+            id: 'REC-1',
+            finalProductId: '4191', // MOCK_INVENTORY id for 'IL-PL 800' just as an example
+            ingredients: [
+                { productId: '202401', quantity: 0.8 }, // Needs to match real IDs, but just an example
+                { productId: '202402', quantity: 0.2 },
+                { productId: 'SERV-MANO-OBRA', quantity: 1 } // Adding 1 hour of labor
+            ]
+        }
+    ]);
+
+    const addRecipe = (recipe: Recipe) => setRecipes(prev => [...prev, recipe]);
+    const deleteRecipe = (id: string) => setRecipes(prev => prev.filter(r => r.id !== id));
 
     const [globalSelectedContactId, setGlobalSelectedContactId] = useState<string | null>(null);
     const [fullProfileContactId, setFullProfileContactId] = useState<string | null>(null);
     const [globalInventorySearch, setGlobalInventorySearch] = useState<string>('');
+    
+    // --- Transactions (Mock Data Init) ---
+    const [transactions, setTransactions] = useState<AccountingTransaction[]>(() => {
+        if (!MOCK_INVENTORY.length || !MOCK_CRM_CONTACTS.length) return [];
+        const generated: AccountingTransaction[] = [];
+        const types = ['VENTA', 'COMPRA', 'AJUSTE_MERMA'] as const;
+        const methods = ['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'CREDITO'];
+        
+        let ventaCounter = 1;
+        let compraCounter = 1;
+        let ajusteCounter = 1;
+
+        for (let i = 0; i < 300; i++) {
+            const rand = Math.random();
+            let type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' = 'VENTA';
+            if (rand > 0.7 && rand <= 0.9) type = 'COMPRA';
+            else if (rand > 0.9) type = 'AJUSTE_MERMA';
+
+            const contact = MOCK_CRM_CONTACTS[Math.floor(Math.random() * MOCK_CRM_CONTACTS.length)];
+            const product = MOCK_INVENTORY[Math.floor(Math.random() * MOCK_INVENTORY.length)];
+            const method = methods[Math.floor(Math.random() * methods.length)];
+            
+            const date = new Date(Date.now() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000));
+            const dateStr = date.toISOString().split('T')[0];
+            
+            const qty = Math.floor(Math.random() * 20) + 1;
+            let id = '';
+            let total = 0;
+            let iva = 0;
+            
+            if (type === 'VENTA') {
+                id = `FV-${ventaCounter.toString().padStart(4, '0')}`;
+                ventaCounter++;
+                total = (product.price || (product.unitCost * 1.4)) * qty;
+                const rate = product.taxRate ?? 19;
+                iva = total * (rate / 100);
+            } else if (type === 'COMPRA') {
+                id = `ALB-${compraCounter.toString().padStart(4, '0')}`;
+                compraCounter++;
+                total = product.unitCost * qty;
+                iva = 0;
+            } else {
+                id = `AJM-${ajusteCounter.toString().padStart(4, '0')}`;
+                ajusteCounter++;
+                total = product.unitCost * qty;
+                iva = 0;
+            }
+
+            generated.push({
+                id,
+                date: dateStr,
+                type,
+                client: contact.name,
+                document: `${contact.documentType || 'NIT'} ${contact.documentNumber}`,
+                productName: product.name,
+                sku: product.sku,
+                qty,
+                total: Math.round(total),
+                iva: Math.round(iva),
+                paymentMethod: type === 'VENTA' ? method : '-',
+                posLocation: type === 'VENTA' ? 'Sede Principal' : 'Bodega Central'
+            });
+        }
+        return generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    });
+
+    const addTransaction = (t: AccountingTransaction) => {
+        setTransactions(prev => [t, ...prev]);
+    };
+
+    const updateInventoryStock = (productId: string, quantityChange: number) => {
+        setInventory(prev => prev.map(p => 
+            p.id === productId ? { ...p, totalStock: p.totalStock + quantityChange } : p
+        ));
+    };
 
     const addEvent = (event: SystemEvent) => setEvents(prev => [event, ...prev]);
     const addContact = (contact: CrmContact) => setContacts(prev => [contact, ...prev]);
@@ -381,7 +516,19 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             fullProfileContactId,
             setFullProfileContactId,
             globalInventorySearch,
-            setGlobalInventorySearch
+            setGlobalInventorySearch,
+            
+            paymentMethods,
+            setPaymentMethods,
+            pointsOfSale,
+            setPointsOfSale,
+            transactions,
+            addTransaction,
+            taxRates,
+            setTaxRates,
+            recipes,
+            addRecipe,
+            deleteRecipe
         }}>
             {children}
         </EnterpriseContext.Provider>

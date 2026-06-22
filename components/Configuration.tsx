@@ -18,15 +18,17 @@ import {
   Plus,
   Trash2,
   ArrowRightLeft,
-  Database
+  Database,
+  Receipt
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
 
 export const Configuration: React.FC = () => {
+  const { paymentMethods, setPaymentMethods, pointsOfSale, setPointsOfSale, taxRates, setTaxRates } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas'>('inventario');
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos'>('inventario');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
@@ -166,6 +168,7 @@ export const Configuration: React.FC = () => {
     { id: 'ventas', label: 'Ventas', icon: TrendingUp },
     { id: 'compras', label: 'Compras', icon: ShoppingCart },
     { id: 'finanzas', label: 'Finanzas', icon: DollarSign },
+    { id: 'impuestos', label: 'Impuestos', icon: Receipt },
   ];
 
   return (
@@ -867,6 +870,115 @@ export const Configuration: React.FC = () => {
                         suffix="%"
                         onChange={(v) => updateSetting('finance', 'annualHoldingCostPercent', parseFloat(v))}
                       />
+                    </div>
+                  </section>
+                  
+                  <section>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                      <TrendingUp size={18} className="text-indigo-500" />
+                      Puntos de Venta (POS)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ConfigInput 
+                        label="Puntos de Venta (Separados por coma)" 
+                        description="Sucursales o bodegas disponibles en caja"
+                        value={pointsOfSale.join(', ')}
+                        onChange={(v) => setPointsOfSale(v.split(',').map(s => s.trim()).filter(Boolean))}
+                      />
+                      <ConfigInput 
+                        label="Formas de Pago (Separados por coma)" 
+                        description="Efectivo, Tarjeta, Créditos, etc."
+                        value={paymentMethods.join(', ')}
+                        onChange={(v) => setPaymentMethods(v.split(',').map(s => s.trim()).filter(Boolean))}
+                      />
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === 'impuestos' && (
+                <div className="space-y-8">
+                  <section>
+                    <header className="mb-6 flex justify-between items-center">
+                        <div>
+                            <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <Receipt size={18} className="text-indigo-500" />
+                            Impuestos y Retenciones (Globales)
+                            </h3>
+                            <p className="text-sm text-slate-500 mt-1">Configura las tasas impositivas que el sistema usar por defecto.</p>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const newId = `t${Date.now()}`;
+                                setTaxRates([...taxRates, { id: newId, name: 'Nuevo Impuesto', percentage: 0, isActive: true, isDefault: false }]);
+                            }}
+                            className="text-sm bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-100 flex items-center gap-1"
+                        >
+                            <Plus size={16} /> Añadir Tasa
+                        </button>
+                    </header>
+                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-bold">
+                                    <th className="p-4 border-b border-slate-200">Nombre del Impuesto</th>
+                                    <th className="p-4 border-b border-slate-200 w-32">Porcentaje (%)</th>
+                                    <th className="p-4 border-b border-slate-200 w-32 text-center">Tasa por Defecto</th>
+                                    <th className="p-4 border-b border-slate-200 w-24 text-center">Estado</th>
+                                    <th className="p-4 border-b border-slate-200 w-16"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {taxRates.map((tax) => (
+                                    <tr key={tax.id} className="hover:bg-slate-50/50">
+                                        <td className="p-4">
+                                            <input 
+                                                className="w-full bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 font-medium py-1 transition-colors"
+                                                value={tax.name}
+                                                onChange={(e) => setTaxRates(taxRates.map(t => t.id === tax.id ? { ...t, name: e.target.value } : t))}
+                                            />
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="relative">
+                                                <input 
+                                                    type="number"
+                                                    className="w-full bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 font-bold py-1 pr-6 transition-colors"
+                                                    value={tax.percentage}
+                                                    onChange={(e) => setTaxRates(taxRates.map(t => t.id === tax.id ? { ...t, percentage: parseFloat(e.target.value) || 0 } : t))}
+                                                />
+                                                <span className="absolute right-2 top-1.5 text-slate-400 font-bold">%</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <button 
+                                                onClick={() => {
+                                                    setTaxRates(taxRates.map(t => ({ ...t, isDefault: t.id === tax.id })));
+                                                }}
+                                                className={`px-3 py-1 text-xs font-bold rounded-full ${tax.isDefault ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                                            >
+                                                {tax.isDefault ? 'Por Defecto' : 'Marcar'}
+                                            </button>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <button 
+                                                onClick={() => setTaxRates(taxRates.map(t => t.id === tax.id ? { ...t, isActive: !t.isActive } : t))}
+                                                className={`w-10 h-5 rounded-full relative transition-colors ${tax.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                            >
+                                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${tax.isActive ? 'right-0.5' : 'left-0.5'}`} />
+                                            </button>
+                                        </td>
+                                        <td className="p-4">
+                                            <button 
+                                                onClick={() => setTaxRates(taxRates.filter(t => t.id !== tax.id))}
+                                                className="text-slate-400 hover:text-red-500 transition-colors p-2"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                   </section>
                 </div>

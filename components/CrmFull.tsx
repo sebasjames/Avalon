@@ -116,7 +116,8 @@ export const CrmFull: React.FC = () => {
         company: newPayload.company || 'Sin Empresa',
         email: newPayload.email || '',
         phone: newPayload.phone || '',
-        nit: newPayload.nit || '',
+        documentType: newPayload.documentType || 'NIT',
+        documentNumber: newPayload.documentNumber || '',
         tier: CustomerTier.REGULAR,
         status: newPayload.status || 'LEAD',
         source: 'MANUAL',
@@ -393,8 +394,20 @@ export const CrmFull: React.FC = () => {
                             <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Razón Social" onChange={(e) => setNewPayload({...newPayload, company: e.target.value})} />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">NIT o Cédula *</label>
-                            <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="123456789-0" onChange={(e) => setNewPayload({...newPayload, nit: e.target.value})} />
+                            <label className="text-xs font-bold text-slate-500 mb-1 block">Tipo y No. Documento (DIAN)</label>
+                            <div className="flex gap-2">
+                                <select 
+                                    className="border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none w-28 bg-white"
+                                    value={newPayload.documentType || 'NIT'}
+                                    onChange={(e) => setNewPayload({...newPayload, documentType: e.target.value as any})}
+                                >
+                                    <option value="NIT">NIT</option>
+                                    <option value="CC">CC</option>
+                                    <option value="CE">CE</option>
+                                    <option value="PASAPORTE">PASAPORTE</option>
+                                </select>
+                                <input className="flex-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="123456789-0" onChange={(e) => setNewPayload({...newPayload, documentNumber: e.target.value})} />
+                            </div>
                         </div>
                     </div>
                     

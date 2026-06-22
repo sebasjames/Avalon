@@ -2,11 +2,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { InventoryExcelModal } from './InventoryExcelModal';
 import { InventoryStatus } from '../types';
 import { 
     Search, Layers, Box, Cpu, Activity, Droplet, Ghost,
     LayoutGrid, List, X, History, TrendingUp, TrendingDown, RefreshCw, AlertCircle,
-    TestTube, Shield, BoxSelect, PaintBucket, Sparkles, Palette, Grid3x3, Waves, Tent, Wand2, Flame, Hexagon, Armchair, Hammer, Zap, Timer, Brush, Crown, Edit3, Save, Check
+    TestTube, Shield, BoxSelect, PaintBucket, Sparkles, Palette, Grid3x3, Waves, Tent, Wand2, Flame, Hexagon, Armchair, Hammer, Zap, Timer, Brush, Crown, Edit3, Save, Check, FileSpreadsheet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react'; // if not installed, use framer-motion approach, but I see motion is imported in CrmFull
 
@@ -381,8 +382,9 @@ export const SmartInventoryView: React.FC = () => {
     const { inventory, updateInventoryProduct, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
-    const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number }>>({});
+    const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number; barcode?: string; taxRate?: number }>>({});
     const [showReviewModal, setShowReviewModal] = useState(false);
+    const [showExcelModal, setShowExcelModal] = useState(false);
     const [selectedChanges, setSelectedChanges] = useState<string[]>([]);
     const [authSignature, setAuthSignature] = useState('');
     const [filter, setFilter] = useState('ALL');
@@ -540,7 +542,9 @@ export const SmartInventoryView: React.FC = () => {
             if (!product) return false;
             const updates = editedRows[id];
             return (updates.totalStock !== undefined && updates.totalStock !== product.totalStock) ||
-                   (updates.price !== undefined && updates.price !== product.price);
+                   (updates.price !== undefined && updates.price !== product.price) ||
+                   (updates.barcode !== undefined && updates.barcode !== product.barcode) ||
+                   (updates.taxRate !== undefined && updates.taxRate !== product.taxRate);
         });
 
         if (hasChanges) {
@@ -658,9 +662,14 @@ export const SmartInventoryView: React.FC = () => {
                                         </button>
                                     </>
                                 ) : (
-                                    <button onClick={() => setIsEditing(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold rounded-lg border border-indigo-200 shadow-sm transition-colors h-[42px]">
-                                        <Edit3 className="w-4 h-4" /> Editar Precios/Stock
-                                    </button>
+                                    <>
+                                        <button onClick={() => setShowExcelModal(true)} className="flex items-center justify-center w-[42px] h-[42px] bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg border border-emerald-200 shadow-sm transition-colors" title="Auditoría Excel">
+                                            <FileSpreadsheet className="w-5 h-5" />
+                                        </button>
+                                        <button onClick={() => setIsEditing(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold rounded-lg border border-indigo-200 shadow-sm transition-colors h-[42px]">
+                                            <Edit3 className="w-4 h-4" /> Editar Precios/Stock
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         )}
@@ -712,9 +721,11 @@ export const SmartInventoryView: React.FC = () => {
                                         <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase tracking-wider font-bold text-slate-400">
                                             <th className="p-4 w-4"></th>
                                             <th className="p-4">SKU / Producto</th>
+                                            <th className="p-4 text-center">Barcode</th>
                                             <th className="p-4 text-center">Clase</th>
                                             <th className="p-4 text-center">Físico</th>
                                             <th className="p-4 text-center text-indigo-600">Precio Unit.</th>
+                                            <th className="p-4 text-center">IVA %</th>
                                             <th className="p-4 text-center">Reservado</th>
                                             <th className="p-4 text-center text-indigo-600">ATP (Disp)</th>
                                             <th className="p-4 text-right">Valor Total</th>
@@ -724,7 +735,7 @@ export const SmartInventoryView: React.FC = () => {
                                         {isLoading ? (
                                             Array.from({ length: 15 }).map((_, i) => (
                                                 <tr key={i} className="animate-pulse">
-                                                    <td colSpan={8} className="p-4 h-16 bg-slate-50/50"></td>
+                                                    <td colSpan={9} className="p-4 h-16 bg-slate-50/50"></td>
                                                 </tr>
                                             ))
                                         ) : (
@@ -743,6 +754,20 @@ export const SmartInventoryView: React.FC = () => {
                                                         <td className="p-4">
                                                             <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{product.name}</div>
                                                             <div className="text-xs font-mono text-slate-400">{product.sku}</div>
+                                                        </td>
+                                                        <td className="p-4 text-center">
+                                                            {isEditing ? (
+                                                                <input 
+                                                                    type="text" 
+                                                                    className="w-24 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-xs"
+                                                                    placeholder="Escanear..."
+                                                                    value={editedRows[product.id]?.barcode ?? product.barcode ?? ''}
+                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], barcode: e.target.value } }))}
+                                                                    onClick={e => e.stopPropagation()}
+                                                                />
+                                                            ) : (
+                                                                <span className="text-xs font-mono text-slate-500">{product.barcode || '-'}</span>
+                                                            )}
                                                         </td>
                                                         <td className="p-4 text-center">
                                                             <span className="text-[10px] bg-slate-100 font-bold px-2 py-1 rounded text-slate-600">
@@ -775,6 +800,22 @@ export const SmartInventoryView: React.FC = () => {
                                                                 `$${(product.price || 0).toLocaleString('es-CO')}`
                                                             )}
                                                         </td>
+                                                        <td className="p-4 text-center font-semibold text-slate-600">
+                                                            {isEditing ? (
+                                                                <select 
+                                                                    className="w-16 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                                                    value={editedRows[product.id]?.taxRate ?? product.taxRate ?? 19}
+                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], taxRate: Number(e.target.value) } }))}
+                                                                    onClick={e => e.stopPropagation()}
+                                                                >
+                                                                    <option value={19}>19%</option>
+                                                                    <option value={5}>5%</option>
+                                                                    <option value={0}>0%</option>
+                                                                </select>
+                                                            ) : (
+                                                                `${product.taxRate ?? 19}%`
+                                                            )}
+                                                        </td>
                                                         <td className="p-4 text-center font-semibold text-amber-600">{product.reservedStock}</td>
                                                         <td className="p-4 text-center font-black text-indigo-600 bg-indigo-50/30">{atp}</td>
                                                         <td className="p-4 text-right font-bold text-slate-700">${val.toLocaleString('es-CO')} COP</td>
@@ -800,6 +841,11 @@ export const SmartInventoryView: React.FC = () => {
                 </div>
             </div>
             <AnimatePresence>
+                <InventoryExcelModal 
+                    isOpen={showExcelModal} 
+                    onClose={() => setShowExcelModal(false)} 
+                    data={filteredData} 
+                />
                 {selectedProduct && (
                     <ProductDrawer product={selectedProduct} onClose={() => setSelectedProduct(null)} />
                 )}
@@ -862,8 +908,10 @@ export const SmartInventoryView: React.FC = () => {
                                                 
                                                 const hasStockChange = updates.totalStock !== undefined && updates.totalStock !== product.totalStock;
                                                 const hasPriceChange = updates.price !== undefined && updates.price !== product.price;
+                                                const hasBarcodeChange = updates.barcode !== undefined && updates.barcode !== product.barcode;
+                                                const hasTaxChange = updates.taxRate !== undefined && updates.taxRate !== product.taxRate;
                                                 
-                                                if (!hasStockChange && !hasPriceChange) return null;
+                                                if (!hasStockChange && !hasPriceChange && !hasBarcodeChange && !hasTaxChange) return null;
                                                 
                                                 const isSelected = selectedChanges.includes(id);
                                                 
@@ -887,10 +935,12 @@ export const SmartInventoryView: React.FC = () => {
                                                         <td className="p-3 text-center text-rose-500 font-medium">
                                                             {hasStockChange && <div>{product.totalStock} ud.</div>}
                                                             {hasPriceChange && <div>${(product.price||0).toLocaleString('es-CO')}</div>}
+                                                            {hasBarcodeChange && <div className="text-xs text-slate-500">{product.barcode || 'Sin Barcode'}</div>}
                                                         </td>
                                                         <td className="p-3 text-center text-emerald-600 font-bold">
                                                             {hasStockChange && <div>{updates.totalStock} ud.</div>}
                                                             {hasPriceChange && <div>${(updates.price||0).toLocaleString('es-CO')}</div>}
+                                                            {hasBarcodeChange && <div className="text-xs text-indigo-600">{updates.barcode || 'Sin Barcode'}</div>}
                                                         </td>
                                                     </tr>
                                                 );

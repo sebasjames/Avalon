@@ -3,12 +3,13 @@ import { useEnterprise } from '../context/EnterpriseContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
     Search, ShoppingCart, Users, Tag, AlertTriangle, ShieldCheck, 
-    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X
+    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown
 } from 'lucide-react';
 import { Product, CrmContact, CustomerTier } from '../types';
 
 export const SmartPosPanel: React.FC = () => {
-    const { inventory, contacts, tintometricRules, reverseDisplayRules } = useEnterprise();
+    const { inventory, contacts, tintometricRules, reverseDisplayRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes } = useEnterprise();
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const isReversedDisplay = (product: Product) => {
         const s = product.sku.toUpperCase();
@@ -26,6 +27,31 @@ export const SmartPosPanel: React.FC = () => {
     const [search, setSearch] = useState('');
     const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string }[]>([]);
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+    const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+    const [customerSearch, setCustomerSearch] = useState('');
+    
+    const filteredContacts = useMemo(() => {
+        if (!customerSearch) return contacts;
+        const term = customerSearch.toLowerCase();
+        return contacts.filter(c => 
+            c.name.toLowerCase().includes(term) || 
+            c.company.toLowerCase().includes(term) || 
+            (c.documentNumber && c.documentNumber.includes(term))
+        );
+    }, [contacts, customerSearch]);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('Tarjeta');
+    const [selectedPointOfSale, setSelectedPointOfSale] = useState<string>('');
+    
+    useEffect(() => {
+        if (!selectedPaymentMethod && paymentMethods?.length > 0) {
+            const card = paymentMethods.find(p => p.toLowerCase().includes('tarjeta'));
+            setSelectedPaymentMethod(card || paymentMethods[0]);
+        }
+        if (!selectedPointOfSale && pointsOfSale?.length > 0) {
+            setSelectedPointOfSale(pointsOfSale[0]);
+        }
+    }, [paymentMethods, pointsOfSale, selectedPaymentMethod, selectedPointOfSale]);
+
     const [isMarginMode, setIsMarginMode] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [recentColors, setRecentColors] = useState<string[]>(() => {
@@ -47,7 +73,7 @@ export const SmartPosPanel: React.FC = () => {
     }, [activeCustomer]);
 
     const filteredCatalog = useMemo(() => {
-        if (!search) return inventory.slice(0, 24); // Show top 24 by default
+        if (!search) return inventory;
         const s = search.toLowerCase();
         
         return inventory.filter(item => {
@@ -55,7 +81,7 @@ export const SmartPosPanel: React.FC = () => {
             return item.name.toLowerCase().includes(s) || 
                    item.sku.toLowerCase().includes(s) || 
                    (item.originalSku && item.originalSku.toLowerCase().includes(s));
-        }).slice(0, 24);
+        });
     }, [inventory, search]);
 
     // Smart Cross-Selling Alerts
@@ -115,7 +141,32 @@ export const SmartPosPanel: React.FC = () => {
     }, [cart]);
 
     const discountAmount = subtotal * (discountPercent / 100);
-    const taxes = (subtotal - discountAmount) * 0.19; // 19% IVA
+    
+    // Taxes Breakdown
+    const taxesBreakdown = useMemo(() => {
+        const breakdown: Record<number, number> = {};
+        
+        // Find default rate if product doesn't have one
+        const defaultTax = taxRates?.find(t => t.isDefault) || { percentage: 19 };
+
+        cart.forEach(item => {
+            const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
+            const lineTotal = price * item.qty;
+            const discountRatio = discountPercent > 0 ? (1 - discountPercent / 100) : 1;
+            const finalLineTotal = lineTotal * discountRatio;
+            
+            // Apply product rate or default rate
+            const rate = item.product.taxRate ?? defaultTax.percentage;
+            
+            if (!breakdown[rate]) breakdown[rate] = 0;
+            breakdown[rate] += finalLineTotal * (rate / 100);
+        });
+        
+        return breakdown;
+    }, [cart, discountPercent, taxRates]);
+
+    const taxes = Object.values(taxesBreakdown).reduce((acc, val) => acc + val, 0);
+
     const total = (subtotal - discountAmount) + taxes;
 
     const totalCost = useMemo(() => {
@@ -144,6 +195,53 @@ export const SmartPosPanel: React.FC = () => {
             setRecentColors(newColors);
             localStorage.setItem('avalon_recent_colors', JSON.stringify(newColors));
         }
+
+        // --- CONECTAR CON INVENTARIO Y CONTABILIDAD ---
+        const invoiceId = `FV-${Math.floor(Math.random() * 9000) + 1000}`;
+        const dateStr = new Date().toISOString().split('T')[0];
+        
+        cart.forEach(item => {
+            const recipe = recipes.find(r => r.finalProductId === item.product.id);
+
+            // Descontar inventario real (solo si no es un servicio)
+            if (item.product.category !== 'Servicio') {
+                if (recipe) {
+                    recipe.ingredients.forEach(ing => {
+                        const ingProduct = inventory.find(p => p.id === ing.productId);
+                        if (ingProduct && ingProduct.category !== 'Servicio') {
+                            updateInventoryStock(ing.productId, -(ing.quantity * item.qty));
+                        }
+                    });
+                } else {
+                    updateInventoryStock(item.id, -item.qty);
+                }
+            }
+
+            // Calcular valores
+            const price = isMarginMode ? (item.product.unitCost * 1.3) : (item.product.price || item.product.unitCost * 1.3);
+            const appliedPrice = activeCustomer ? price * (1 - discountPercent / 100) : price;
+            const subtotalLine = appliedPrice * item.qty;
+            
+            const defaultTax = taxRates?.find(t => t.isDefault) || { percentage: 19 };
+            const rate = item.product.taxRate ?? defaultTax.percentage;
+            const iva = subtotalLine * (rate / 100);
+
+            // Registrar transacción en Sábana General
+            addTransaction({
+                id: invoiceId,
+                date: dateStr,
+                type: 'VENTA',
+                client: activeCustomer ? activeCustomer.name : 'Consumidor Final',
+                document: activeCustomer ? `${activeCustomer.documentType || 'NIT'} ${activeCustomer.documentNumber}` : '222222222',
+                productName: item.product.name + (item.colorNote ? ` [${item.colorNote}]` : ''),
+                sku: item.product.sku,
+                qty: item.qty,
+                total: subtotal,
+                iva: iva,
+                paymentMethod: selectedPaymentMethod,
+                posLocation: selectedPointOfSale
+            });
+        });
 
         setShowSuccess(true);
         setTimeout(() => {
@@ -250,18 +348,85 @@ export const SmartPosPanel: React.FC = () => {
             <div className="w-full md:w-[400px] lg:w-[480px] bg-white border-l border-slate-200 flex flex-col shadow-2xl z-20">
                 
                 {/* Header: Customer Selection */}
-                <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                <div className="p-4 border-b border-slate-100 bg-slate-50/50 relative">
                     <label className="text-xs font-bold uppercase text-slate-500 mb-1 flex items-center gap-1"><Users className="w-3 h-3" /> Cliente (CRM)</label>
-                    <select 
-                        value={selectedCustomerId}
-                        onChange={(e) => setSelectedCustomerId(e.target.value)}
-                        className="w-full bg-white border border-slate-200 text-slate-800 text-sm font-bold py-3 px-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none shadow-sm cursor-pointer"
-                    >
-                        <option value="">Consumidor Final (Mostrador)</option>
-                        {contacts.map(c => (
-                            <option key={c.id} value={c.id}>{c.name} - {c.company} ({c.tier})</option>
-                        ))}
-                    </select>
+                    <div className="relative">
+                        <div 
+                            onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}
+                            className="w-full bg-white border border-slate-200 text-slate-800 text-sm font-bold py-3 px-4 rounded-xl shadow-sm cursor-pointer flex justify-between items-center hover:border-indigo-300 transition-colors"
+                        >
+                            <span className="truncate">
+                                {selectedCustomerId === '' 
+                                    ? 'Consumidor Final (Mostrador)' 
+                                    : (() => {
+                                        const c = contacts.find(c => c.id === selectedCustomerId);
+                                        return c ? `${c.name} - ${c.company}` : 'Cliente Desconocido';
+                                    })()}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                        </div>
+                        
+                        <AnimatePresence>
+                            {isCustomerDropdownOpen && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden"
+                                >
+                                    <div className="p-2 border-b border-slate-100">
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Buscar por nombre, empresa, o NIT..."
+                                                value={customerSearch}
+                                                onChange={e => setCustomerSearch(e.target.value)}
+                                                className="w-full bg-slate-50 border-none rounded-lg py-2 pl-9 pr-3 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-100"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                                        <div 
+                                            className="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-slate-50 transition-colors"
+                                            onClick={() => { setSelectedCustomerId(''); setIsCustomerDropdownOpen(false); }}
+                                        >
+                                            <div className="text-sm font-bold text-slate-800">Consumidor Final (Mostrador)</div>
+                                            <div className="text-xs text-slate-500">Sin registro en CRM</div>
+                                        </div>
+                                        {filteredContacts.map(c => (
+                                            <div 
+                                                key={c.id} 
+                                                onClick={() => { setSelectedCustomerId(c.id); setIsCustomerDropdownOpen(false); }}
+                                                className="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-slate-50 transition-colors"
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div className="text-sm font-bold text-slate-800 truncate pr-2">{c.name}</div>
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${
+                                                        c.tier === 'PLATINUM' ? 'bg-purple-100 text-purple-700' :
+                                                        c.tier === 'GOLD' ? 'bg-amber-100 text-amber-700' :
+                                                        c.tier === 'SILVER' ? 'bg-slate-200 text-slate-700' :
+                                                        'bg-emerald-100 text-emerald-700'
+                                                    }`}>
+                                                        {c.tier}
+                                                    </span>
+                                                </div>
+                                                <div className="text-xs font-medium text-slate-500 mt-0.5 flex gap-2">
+                                                    <span>{c.company}</span>
+                                                    {c.documentNumber && <span className="text-slate-400">| NIT: {c.documentNumber}</span>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {filteredContacts.length === 0 && (
+                                            <div className="px-4 py-6 text-center text-sm text-slate-400">
+                                                No se encontraron clientes
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
 
                 {/* Cart Items */}
@@ -277,6 +442,14 @@ export const SmartPosPanel: React.FC = () => {
                             cart.map((item) => {
                                 const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
                                 const totalItem = price * item.qty;
+                                const recipe = recipes.find(r => r.finalProductId === item.product.id);
+                                const isExpanded = expandedItems.includes(item.id);
+
+                                const toggleExpand = () => {
+                                    if (isExpanded) setExpandedItems(expandedItems.filter(id => id !== item.id));
+                                    else setExpandedItems([...expandedItems, item.id]);
+                                };
+
                                 return (
                                     <motion.div 
                                         key={item.id}
@@ -316,7 +489,37 @@ export const SmartPosPanel: React.FC = () => {
                                                 <div className="text-sm font-bold text-indigo-600">
                                                     ${totalItem.toLocaleString('es-CO')} COP
                                                 </div>
+                                                {recipe && (
+                                                    <button 
+                                                        onClick={toggleExpand}
+                                                        className="ml-auto text-[10px] uppercase font-bold text-slate-400 hover:text-indigo-600 flex items-center gap-1 transition-colors"
+                                                    >
+                                                        {isExpanded ? 'Ocultar Receta' : 'Ver Receta'} <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                )}
                                             </div>
+
+                                            {/* BOM Explosion Advanced View */}
+                                            {recipe && isExpanded && (
+                                                <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                                                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Explosión de Materiales (BOM)</div>
+                                                    <ul className="space-y-1">
+                                                        {recipe.ingredients.map(ing => {
+                                                            const ingProd = inventory.find(p => p.id === ing.productId);
+                                                            const ingCost = (ingProd?.unitCost || 0) * (ing.quantity * item.qty);
+                                                            return (
+                                                                <li key={ing.productId} className="flex justify-between items-center text-xs">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-bold text-slate-700">{ingProd?.name || 'Desconocido'}</span>
+                                                                        <span className="text-slate-400">x{(ing.quantity * item.qty).toFixed(2)}</span>
+                                                                    </div>
+                                                                    <span className="font-medium text-slate-500">${ingCost.toLocaleString('es-CO')}</span>
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                </div>
+                                            )}
                                         </div>
                                         <button 
                                             onClick={() => updateQty(item.id, -item.qty)} 
@@ -371,9 +574,42 @@ export const SmartPosPanel: React.FC = () => {
                                 <span>-${discountAmount.toLocaleString('es-CO')} COP COP</span>
                             </div>
                         )}
-                        <div className="flex justify-between text-slate-400 text-sm font-medium">
-                            <span>Impuestos (IVA 19%)</span>
-                            <span>${taxes.toLocaleString('es-CO')} COP COP</span>
+                        
+                        {Object.entries(taxesBreakdown).map(([rate, amount]) => {
+                            if (amount === 0) return null;
+                            return (
+                                <div key={rate} className="flex justify-between text-slate-400 text-sm font-medium">
+                                    <span>IVA ({rate}%)</span>
+                                    <span>${amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })} COP</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-700">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <MapPin className="w-3 h-3" /> Punto de Venta
+                            </label>
+                            <select 
+                                value={selectedPointOfSale} 
+                                onChange={e => setSelectedPointOfSale(e.target.value)}
+                                className="w-full text-sm font-semibold text-white bg-slate-800 border border-slate-700 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                                {pointsOfSale?.map(pos => <option key={pos} value={pos}>{pos}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <CreditCard className="w-3 h-3" /> Forma de Pago
+                            </label>
+                            <select 
+                                value={selectedPaymentMethod} 
+                                onChange={e => setSelectedPaymentMethod(e.target.value)}
+                                className="w-full text-sm font-semibold text-white bg-slate-800 border border-slate-700 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                                {paymentMethods?.map(pm => <option key={pm} value={pm}>{pm}</option>)}
+                            </select>
                         </div>
                     </div>
 

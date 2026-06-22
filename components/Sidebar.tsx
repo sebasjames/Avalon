@@ -4,7 +4,8 @@ import {
     LayoutDashboard, PackageSearch, BrainCircuit, FlaskConical, LineChart, 
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
-    PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart
+    PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
+    TableProperties, DollarSign, PackageOpen, UserCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,6 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
     const financePaths = ['/financial', '/governance', '/intelligence', '/analytics', '/event-log'];
     const salesPaths = ['/crm', '/sales-performance', '/atp', '/pos'];
     const staffPaths = ['/staff/sales-profiles', '/staff/gestion-comercial'];
+    const accountingPaths = ['/accounting'];
 
     setOpenGroups(prev => {
         const newGroups = [...prev];
@@ -40,6 +42,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         }
         if (staffPaths.includes(location.pathname) && !newGroups.includes('Staff & Talento')) {
             newGroups.push('Staff & Talento');
+        }
+        if (accountingPaths.includes(location.pathname) && !newGroups.includes('Contabilidad & Interfaces')) {
+            newGroups.push('Contabilidad & Interfaces');
         }
         return newGroups;
     });
@@ -105,6 +110,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
             { to: "/analytics", icon: LineChart, label: "Analítica Avanzada" },
             { to: "/governance", icon: ShieldCheck, label: "Data Governance" },
             { to: "/event-log", icon: GitCommit, label: "Bitácora de Eventos" },
+        ]
+    },
+
+    // Group: Accounting & Interfaces
+    {
+        type: 'group',
+        label: "Contabilidad & Interfaces",
+        icon: FileSpreadsheet,
+        children: [
+            { to: "/accounting/sabana", icon: TableProperties, label: "Sábana General" },
+            { to: "/accounting/cierres", icon: Calculator, label: "Cierres de Caja" },
+            { to: "/accounting/ventas", icon: DollarSign, label: "Facturación (Ventas)" },
+            { to: "/accounting/auditoria", icon: UserCheck, label: "Auditoría Terceros" },
+            { to: "/accounting/inventario", icon: PackageOpen, label: "Inventario Valorizado" },
+            { to: "/accounting/exportacion", icon: FileSpreadsheet, label: "Exportación SIIGO" },
+            { to: "/accounting/importaciones", icon: FileSpreadsheet, label: "Carga de Facturas (EDI)" },
         ]
     },
 

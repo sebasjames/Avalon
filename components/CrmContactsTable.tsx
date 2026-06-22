@@ -314,7 +314,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   ))}
 
                   {renderCell('company', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.company}</span>)}
-                  {renderCell('nit', <span className="text-sm text-slate-600 font-mono text-xs">{contact.nit || 'N/A'}</span>)}
+                  {renderCell('document', <span className="text-sm text-slate-600 font-mono text-xs">{contact.documentType || 'NIT'} {contact.documentNumber || 'N/A'}</span>)}
                   
                   {renderCell('phone', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Phone className="w-3 h-3" /> {contact.phone}</div>)}
                   

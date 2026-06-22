@@ -28,6 +28,7 @@ import { CrmFull } from './components/CrmFull';
 import { HobbiesPanel } from './components/HobbiesPanel';
 import { AlbaranIngestion } from './components/AlbaranIngestion';
 import { SmartPosPanel } from './components/SmartPosPanel';
+import { AccountingModule } from './components/AccountingModule';
 import { EnterpriseProvider } from './context/EnterpriseContext';
 
 const App: React.FC = () => {
@@ -90,6 +91,7 @@ const App: React.FC = () => {
             <Route path="/staff/comisiones" element={<ComisionesLogros />} />
             <Route path="/staff/matrix" element={<MatrixComisiones />} />
             <Route path="/config" element={<Configuration />} />
+            <Route path="/accounting/:tabId" element={<AccountingModule />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </div>
