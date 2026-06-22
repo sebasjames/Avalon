@@ -32,10 +32,11 @@ export const Configuration: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules, litersToCunetesRules, updateLitersToCunetesRules, inventory } = useEnterprise();
+  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules, litersToCunetesRules, updateLitersToCunetesRules, fractionalRules, updateFractionalRules, inventory } = useEnterprise();
   const [newRule, setNewRule] = useState('');
   const [newReverseRule, setNewReverseRule] = useState('');
   const [newCuneteRule, setNewCuneteRule] = useState('');
+  const [newFractionalRule, setNewFractionalRule] = useState('');
 
   const getSuggestions = (input: string) => {
     if (input.length < 2) return [];
@@ -55,6 +56,7 @@ export const Configuration: React.FC = () => {
   const ruleSuggestions = useMemo(() => getSuggestions(newRule), [newRule, inventory]);
   const reverseRuleSuggestions = useMemo(() => getSuggestions(newReverseRule), [newReverseRule, inventory]);
   const cuneteRuleSuggestions = useMemo(() => getSuggestions(newCuneteRule), [newCuneteRule, inventory]);
+  const fractionalRuleSuggestions = useMemo(() => getSuggestions(newFractionalRule), [newFractionalRule, inventory]);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -512,6 +514,77 @@ export const Configuration: React.FC = () => {
                       <button 
                         type="submit" 
                         className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors h-[38px]"
+                      >
+                        <Plus size={16} /> Añadir Regla
+                      </button>
+                    </form>
+                  </section>
+
+                  <div className="h-px bg-slate-100 my-8" />
+
+                  <section className="bg-emerald-50/50 p-6 rounded-xl border border-emerald-100">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                      <Scale size={18} className="text-emerald-600" />
+                      Reglas de Venta Fraccionada (POS)
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Define qué familias, marcas, SKUs o nombres de productos están permitidos para venderse en cantidades decimales (ej: 2.5 Litros). Los demás serán forzados a enteros.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {fractionalRules.map((rule, idx) => (
+                        <div key={idx} className="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2">
+                          {rule}
+                          <button 
+                            onClick={() => updateFractionalRules(fractionalRules.filter(r => r !== rule))}
+                            className="hover:text-rose-300 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (newFractionalRule.trim() && !fractionalRules.includes(newFractionalRule.trim().toUpperCase())) {
+                          updateFractionalRules([...fractionalRules, newFractionalRule.trim().toUpperCase()]);
+                          setNewFractionalRule('');
+                        }
+                      }}
+                      className="flex items-start gap-2 relative"
+                    >
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          value={newFractionalRule}
+                          onChange={(e) => setNewFractionalRule(e.target.value)}
+                          placeholder="Ej: KILO, LITRO, PL 800" 
+                          className="bg-white border border-slate-200 text-sm rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-emerald-500 outline-none uppercase"
+                        />
+                        {fractionalRuleSuggestions.length > 0 && (
+                          <ul className="absolute z-50 left-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+                            {fractionalRuleSuggestions.map((suggestion, idx) => (
+                              <li 
+                                key={idx}
+                                onClick={() => {
+                                  if (!fractionalRules.includes(suggestion)) {
+                                    updateFractionalRules([...fractionalRules, suggestion]);
+                                  }
+                                  setNewFractionalRule('');
+                                }}
+                                className="px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 cursor-pointer font-medium border-b border-slate-50 last:border-0"
+                              >
+                                {suggestion}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <button 
+                        type="submit" 
+                        className="bg-emerald-600 text-white hover:bg-emerald-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2 transition-colors h-[38px]"
                       >
                         <Plus size={16} /> Añadir Regla
                       </button>

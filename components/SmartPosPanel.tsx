@@ -8,7 +8,7 @@ import {
 import { Product, CrmContact, CustomerTier } from '../types';
 
 export const SmartPosPanel: React.FC = () => {
-    const { inventory, contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes } = useEnterprise();
+    const { inventory, contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, fractionalRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes } = useEnterprise();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const isReversedDisplay = (product: Product) => {
@@ -31,6 +31,14 @@ export const SmartPosPanel: React.FC = () => {
         const b = (product.brand || '').toUpperCase();
         const f = (product.family || '').toUpperCase();
         return litersToCunetesRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+    };
+
+    const isFractionalEligible = (product: Product) => {
+        const s = product.sku.toUpperCase();
+        const n = product.name.toUpperCase();
+        const b = (product.brand || '').toUpperCase();
+        const f = (product.family || '').toUpperCase();
+        return fractionalRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
     };
 
     const [search, setSearch] = useState('');
@@ -533,11 +541,16 @@ export const SmartPosPanel: React.FC = () => {
                                                     <input 
                                                         type="number" 
                                                         min="0"
-                                                        step="any"
+                                                        step={isFractionalEligible(item.product) ? "any" : "1"}
                                                         value={item.qty === 0 ? '' : item.qty}
                                                         onChange={(e) => {
-                                                            const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                                            if (!isNaN(val)) setExactQty(item.id, val);
+                                                            let val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                                            if (!isNaN(val)) {
+                                                                if (!isFractionalEligible(item.product)) {
+                                                                    val = Math.floor(val);
+                                                                }
+                                                                setExactQty(item.id, val);
+                                                            }
                                                         }}
                                                         className="w-12 text-center text-sm font-black text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                     />

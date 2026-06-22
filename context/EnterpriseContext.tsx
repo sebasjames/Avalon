@@ -32,6 +32,8 @@ interface EnterpriseContextType {
     setReverseDisplayRules: (rules: string[]) => void;
     litersToCunetesRules: string[];
     updateLitersToCunetesRules: (rules: string[]) => void;
+    fractionalRules: string[];
+    updateFractionalRules: (rules: string[]) => void;
     transactions: AccountingTransaction[];
     addTransaction: (t: AccountingTransaction) => void;
     assignmentLogs: CrmAssignmentLog[];
@@ -111,7 +113,18 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     
     // Liters to Cuñetes Rules
     const [litersToCunetesRules, setLitersToCunetesRules] = useState<string[]>([
-        'TZ'
+        'TZ 13', 'TZ 29', 'TZ 35', 'TZ 66', 'TZ 99', 'TM 893', 'TM 047',
+        'TE 12', 'TE 34', 'TF 25', 'TF 45'
+    ]);
+
+    // Fractional Sales Rules
+    const [fractionalRules, setFractionalRules] = useState<string[]>([
+        'PL 800', 'PM 800', 'TP 60', 'PL 720/10', 'TO 800', 'TO 840/10',
+        'TINTILLA DE COLORES DESARROLADOS',
+        'TINTILLA HIDROSOLUBLES',
+        'TINTILLA COLORES BASE BLANCA',
+        'TINTILLA SEMIPIGMENTARIA',
+        'HNS 2A02', 'TS 364', 'COLOR'
     ]);
     
     // Tax Rates
@@ -237,6 +250,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const updateLitersToCunetesRules = (rules: string[]) => {
         setLitersToCunetesRules(rules);
+    };
+
+    const updateFractionalRules = (rules: string[]) => {
+        setFractionalRules(rules);
     };
 
     const getContactHealthScore = (contactId: string): 'GREEN' | 'YELLOW' | 'RED' => {
@@ -521,6 +538,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateReverseDisplayRules: setReverseDisplayRules,
             litersToCunetesRules,
             updateLitersToCunetesRules,
+            fractionalRules,
+            updateFractionalRules,
             assignmentLogs,
             cleanGarbageLeads,
             getActiveNotifications,
