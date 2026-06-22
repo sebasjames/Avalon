@@ -86,36 +86,6 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 
 export const MOCK_INVENTORY: Product[] = [
   {
-    "id": "PROD-IL-TG-25",
-    "sku": "IL-TG 25",
-    "originalSku": "IL-TG 25",
-    "barcode": "7503050941345",
-    "name": "FONDO POLIACRILICO ALTA TRANSPARENCIA",
-    "category": Category.RAW_MATERIAL,
-    "family": "Madera",
-    "brand": "Procoquinal",
-    "baseUnit": "GL",
-    "density": 1,
-    "unitCost": 45000,
-    "price": 60000,
-    "totalStock": 100,
-    "reservedStock": 0,
-    "status": InventoryStatus.ACTIVE,
-    "abc": ABCClass.A,
-    "xyz": XYZClass.X,
-    "agingDays": 10,
-    "mixingInstructions": "",
-    "batches": [
-      {
-        "id": "BATCH-IL-TG-1",
-        "quantity": 100,
-        "reserved": 0,
-        "dateIn": "2024-03-01",
-        "expiryDate": "2026-03-01"
-      }
-    ]
-  },
-  {
     "id": "PROD-IL-TG-25-KG",
     "sku": "IL-TG 25 KILO",
     "originalSku": "IL-TG 25",

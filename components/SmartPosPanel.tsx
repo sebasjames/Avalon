@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -132,6 +132,49 @@ export const SmartPosPanel: React.FC = () => {
         });
         setSearch(''); // Auto clear search for fast scanning
     };
+
+    // --- GLOBAL BARCODE SCANNER LISTENER ---
+    const addToCartRef = useRef(addToCart);
+    useEffect(() => {
+        addToCartRef.current = addToCart;
+    }, [addToCart]);
+
+    useEffect(() => {
+        let barcodeBuffer = '';
+        let lastKeyTime = 0;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check if user is typing manually into a specific input (like discount, notes)
+            // We allow the 'search' input to receive the events because 'addToCart' clears it automatically.
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                if (e.target.type !== 'text') return; 
+            }
+
+            const now = Date.now();
+            
+            // Scanners type very fast. If > 60ms delay between keys, reset buffer.
+            if (now - lastKeyTime > 60) {
+                barcodeBuffer = '';
+            }
+            
+            // Scanners usually append 'Enter' at the end of the barcode sequence
+            if (e.key === 'Enter' && barcodeBuffer.length > 5) {
+                const product = inventory.find(p => p.barcode === barcodeBuffer);
+                if (product) {
+                    addToCartRef.current(product);
+                    e.preventDefault();
+                }
+                barcodeBuffer = '';
+            } else if (e.key.length === 1) { // Accumulate printable characters
+                barcodeBuffer += e.key;
+            }
+            
+            lastKeyTime = now;
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [inventory]);
 
     const updateQty = (cartId: string, delta: number) => {
         setCart(prev => prev.map(item => {
