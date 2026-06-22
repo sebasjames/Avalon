@@ -4190,7 +4190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "sku": 'ILM1007 GL - ACABADO PU TRANSP. BRILLANTE GL X 4',
     "originalSku": 'ILM1007 GL',
     "barcode": "",
-    "name": 'ILM1007 GL - ACABADO PU TRANSP. BRILLANTE GL X 4',
+    "name": 'ILM1007 GL - ACABADO PU TRANSP. BRILLANTE GL X 4 LITROS',
     "category": Category.RAW_MATERIAL,
     "family": 'PU Fondos y Acabados',
     "brand": 'Carpoly / ProcoPremium',
