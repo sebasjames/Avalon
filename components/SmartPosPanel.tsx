@@ -94,7 +94,8 @@ export const SmartPosPanel: React.FC = () => {
             if ((s === 'albaran' || s === 'albarran') && (item.sku || '').startsWith('ALB-')) return true;
             return (item.name || '').toLowerCase().includes(s) || 
                    (item.sku || '').toLowerCase().includes(s) || 
-                   (item.originalSku && item.originalSku.toLowerCase().includes(s));
+                   (item.originalSku && item.originalSku.toLowerCase().includes(s)) ||
+                   (item.barcode && item.barcode.toLowerCase().includes(s));
         });
     }, [inventory, search]);
 
