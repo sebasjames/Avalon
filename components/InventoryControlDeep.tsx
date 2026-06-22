@@ -35,6 +35,7 @@ interface FlattenedBatch extends Batch {
     daysToExpiry: number;
     totalValue: number;
     freeStock: number;
+    barcode?: string;
 }
 
 const FlagBadge = ({ type }: { type: 'SILENT' | 'EXPIRING' | 'OVERSTOCK' }) => {
@@ -84,7 +85,8 @@ export const InventoryControlDeep: React.FC = () => {
                     aging,
                     daysToExpiry,
                     totalValue: isService ? 0 : batch.quantity * (product.unitCost || 0),
-                    freeStock: batch.quantity - batch.reserved
+                    freeStock: batch.quantity - batch.reserved,
+                    barcode: product.barcode
                 };
             });
         });
@@ -95,7 +97,8 @@ export const InventoryControlDeep: React.FC = () => {
             const searchLower = search.toLowerCase();
             const matchesSearch = batch.productName.toLowerCase().includes(searchLower) || 
                                   (batch.skuId && batch.skuId.toLowerCase().includes(searchLower)) ||
-                                  (batch.lotNumber && batch.lotNumber.toLowerCase().includes(searchLower));
+                                  (batch.lotNumber && batch.lotNumber.toLowerCase().includes(searchLower)) ||
+                                  (batch.barcode && batch.barcode.toLowerCase().includes(searchLower));
             
             if (!matchesSearch) return false;
 
