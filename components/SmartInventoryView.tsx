@@ -402,7 +402,7 @@ export const SmartInventoryView: React.FC = () => {
     const [displayLimit, setDisplayLimit] = useState(12);
     
     // UI State
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
     
     // Checkbox Filters
