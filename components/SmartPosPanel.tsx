@@ -137,6 +137,15 @@ export const SmartPosPanel: React.FC = () => {
         }).filter(item => item.qty > 0));
     };
 
+    const setExactQty = (cartId: string, qty: number) => {
+        setCart(prev => prev.map(item => {
+            if (item.id === cartId) {
+                return { ...item, qty: Math.max(0, qty) };
+            }
+            return item;
+        }).filter(item => item.qty > 0));
+    };
+
     const updateColor = (cartId: string, color: string) => {
         setCart(prev => prev.map(item => item.id === cartId ? { ...item, colorNote: color } : item));
     };
@@ -519,9 +528,19 @@ export const SmartPosPanel: React.FC = () => {
 
                                             <div className="flex items-center gap-3 mt-1">
                                                 {/* Qty Controls */}
-                                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5 focus-within:ring-2 focus-within:border-indigo-500 focus-within:ring-indigo-200">
                                                     <button onClick={() => updateQty(item.id, -1)} className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-md transition-colors"><Minus className="w-3 h-3" /></button>
-                                                    <div className="w-8 text-center text-sm font-black text-slate-800">{item.qty}</div>
+                                                    <input 
+                                                        type="number" 
+                                                        min="0"
+                                                        step="any"
+                                                        value={item.qty === 0 ? '' : item.qty}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                                            if (!isNaN(val)) setExactQty(item.id, val);
+                                                        }}
+                                                        className="w-12 text-center text-sm font-black text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    />
                                                     <button onClick={() => updateQty(item.id, 1)} className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-md transition-colors"><Plus className="w-3 h-3" /></button>
                                                 </div>
                                                 <div className="text-sm font-bold text-indigo-600">
