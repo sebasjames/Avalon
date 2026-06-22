@@ -57,22 +57,37 @@ export const InventoryControlDeep: React.FC = () => {
 
     // 1. Flatten Data Structure for Table
     const rawBatches: FlattenedBatch[] = useMemo(() => {
-        return MOCK_INVENTORY.flatMap(product => 
-            product.batches.map(batch => {
+        return MOCK_INVENTORY.flatMap(product => {
+            const batches = product.batches && product.batches.length > 0 
+                ? product.batches 
+                : [{
+                    id: `${product.id}-default`,
+                    skuId: product.sku,
+                    lotNumber: 'N/A',
+                    dateIn: MOCK_TODAY.toISOString().split('T')[0],
+                    expiryDate: new Date(MOCK_TODAY.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    quantity: product.totalStock || 0,
+                    reserved: product.reservedStock || 0,
+                    location: 'Principal'
+                }];
+
+            return batches.map(batch => {
                 const aging = getAging(batch.dateIn);
                 const daysToExpiry = getDaysToExpiry(batch.expiryDate);
+                const isService = product.sku.toUpperCase().includes('SERV-');
+                
                 return {
                     ...batch,
-                    productName: product.name,
-                    unitCost: product.unitCost,
-                    category: product.category,
+                    productName: product.name || product.sku,
+                    unitCost: product.unitCost || 0,
+                    category: product.category || 'General',
                     aging,
                     daysToExpiry,
-                    totalValue: batch.quantity * product.unitCost,
+                    totalValue: isService ? 0 : batch.quantity * (product.unitCost || 0),
                     freeStock: batch.quantity - batch.reserved
                 };
-            })
-        );
+            });
+        });
     }, []);
 
     const flattenedBatches = useMemo(() => {
