@@ -378,6 +378,13 @@ const CheckboxDropdown = ({ title, options, selected, onChange }: any) => {
     );
 };
 
+const normalizeBrand = (b?: string) => {
+    if (!b) return '';
+    const trimmed = b.trim();
+    if (trimmed.toUpperCase() === 'PROCOQUINAL') return 'Procoquinal';
+    return trimmed;
+};
+
 export const SmartInventoryView: React.FC = () => {
     const { inventory, updateInventoryProduct, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
     const navigate = useNavigate();
@@ -406,7 +413,14 @@ export const SmartInventoryView: React.FC = () => {
     const availableBrands = useMemo(() => {
         const brandSet = new Set<string>();
         inventory.forEach(item => {
-            if (item.brand) brandSet.add(item.brand);
+            const parts = item.sku.split('-');
+            const size = parts[parts.length - 1];
+            const sizeMatches = selectedSizes.length === 0 || selectedSizes.includes(size);
+            const familyMatches = selectedFamilies.length === 0 || selectedFamilies.includes(item.family);
+            
+            if (sizeMatches && familyMatches && item.brand) {
+                brandSet.add(normalizeBrand(item.brand));
+            }
         });
         return Array.from(brandSet).sort().map(b => {
             let colorClass = '';
@@ -415,41 +429,51 @@ export const SmartInventoryView: React.FC = () => {
             else if (b.toUpperCase().includes('SAYERLACK')) colorClass = 'text-sky-700 bg-sky-50 border border-sky-200/60 rounded-md px-1.5 py-0.5 shadow-sm';
             return { id: b, label: b, colorClass };
         });
-    }, [inventory]);
+    }, [inventory, selectedFamilies, selectedSizes]);
 
     const availableSizes = useMemo(() => {
         const sizeSet = new Set<string>();
         inventory.forEach(item => {
-            if (selectedBrands.length > 0) {
-                if (!selectedBrands.includes(item.brand)) return;
+            const nBrand = normalizeBrand(item.brand);
+            const brandMatches = selectedBrands.length === 0 || selectedBrands.includes(nBrand);
+            const familyMatches = selectedFamilies.length === 0 || selectedFamilies.includes(item.family);
+            
+            if (brandMatches && familyMatches) {
+                const parts = item.sku.split('-');
+                const size = parts[parts.length - 1];
+                if (size && !size.includes('IL')) sizeSet.add(size);
             }
-            const parts = item.sku.split('-');
-            const size = parts[parts.length - 1];
-            if (size && !size.includes('IL')) sizeSet.add(size);
         });
         return Array.from(sizeSet).sort().map(s => ({ id: s, label: s }));
-    }, [inventory, selectedBrands]);
+    }, [inventory, selectedBrands, selectedFamilies]);
 
     const availableFamilies = useMemo(() => {
         const familySet = new Set<string>();
         inventory.forEach(item => {
-            if (selectedBrands.length > 0) {
-                if (!selectedBrands.includes(item.brand)) return;
-            }
-            if (item.family && item.family.trim() !== '') {
+            const nBrand = normalizeBrand(item.brand);
+            const brandMatches = selectedBrands.length === 0 || selectedBrands.includes(nBrand);
+            const parts = item.sku.split('-');
+            const size = parts[parts.length - 1];
+            const sizeMatches = selectedSizes.length === 0 || selectedSizes.includes(size);
+            
+            if (brandMatches && sizeMatches && item.family && item.family.trim() !== '') {
                 familySet.add(item.family.trim());
             }
         });
         return Array.from(familySet).sort().map(f => ({ id: f, label: f }));
-    }, [inventory, selectedBrands]);
+    }, [inventory, selectedBrands, selectedSizes]);
 
     useEffect(() => {
-        if (selectedBrands.length > 0) {
-            setSelectedFamilies(prev => prev.filter(famId => {
-                return inventory.some(i => i.family === famId && selectedBrands.includes(i.brand));
-            }));
-        }
-    }, [selectedBrands, inventory]);
+        setSelectedBrands(prev => prev.filter(id => availableBrands.some(a => a.id === id)));
+    }, [availableBrands]);
+
+    useEffect(() => {
+        setSelectedFamilies(prev => prev.filter(id => availableFamilies.some(a => a.id === id)));
+    }, [availableFamilies]);
+
+    useEffect(() => {
+        setSelectedSizes(prev => prev.filter(id => availableSizes.some(a => a.id === id)));
+    }, [availableSizes]);
 
     useEffect(() => {
         const loadTimer = setTimeout(() => setIsLoading(false), 800);
@@ -492,7 +516,8 @@ export const SmartInventoryView: React.FC = () => {
             }
 
             if (selectedBrands.length > 0) {
-                if (!selectedBrands.includes(item.brand)) return false;
+                const nBrand = normalizeBrand(item.brand);
+                if (!selectedBrands.includes(nBrand)) return false;
             }
 
             if (selectedSizes.length > 0) {
