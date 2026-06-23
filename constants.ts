@@ -34,50 +34,50 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   },
   formulation: {
     vendorRules: [
-        { 
-            id: '1', 
-            brand: 'ILVA', 
-            categoryName: 'Materia Prima (ILVA)',
-            prefixRules: [
-                { id: 'il1', prefix: 'TZ', meaning: 'Disolvente' },
-                { id: 'il2', prefix: 'TV', meaning: 'Catalizador' },
-                { id: 'il3', prefix: 'TX', meaning: 'Laca/Barniz' },
-                { id: 'il4', prefix: 'TG', meaning: 'Fondo/Primario' },
-                { id: 'il5', prefix: 'PM', meaning: 'Acabado' },
-                { id: 'il6', prefix: 'TO', meaning: 'Especial' },
-                { id: 'il7', prefix: 'TS', meaning: 'Especial' }
-            ]
-        },
-        { 
-            id: '2', 
-            brand: 'Carpoly', 
-            categoryName: 'Materia Prima (Carpoly)',
-            prefixRules: [
-                { id: 'ca1', prefix: 'IME', meaning: 'Resina/Base' },
-                { id: 'ca2', prefix: 'IRPE', meaning: 'Resina Especial' },
-                { id: 'ca3', prefix: 'ITD', meaning: 'Tinte' },
-                { id: 'ca4', prefix: 'IGH', meaning: 'Endurecedor' }
-            ]
-        },
-        { 
-            id: '3', 
-            brand: 'BARPIMO', 
-            categoryName: 'Materia Prima (Barpimo)',
-            prefixRules: [
-                { id: 'ba1', prefix: 'A-', meaning: 'Tinte General' },
-                { id: 'ba2', prefix: 'J-', meaning: 'Tinte' },
-                { id: 'ba3', prefix: 'F-', meaning: 'Fondo' },
-                { id: 'ba4', prefix: '\\d{5,}', meaning: 'Químico Estándar' }
-            ]
-        }
+      {
+        id: '1',
+        brand: 'ILVA',
+        categoryName: 'Materia Prima (ILVA)',
+        prefixRules: [
+          { id: 'il1', prefix: 'TZ', meaning: 'Disolvente' },
+          { id: 'il2', prefix: 'TV', meaning: 'Catalizador' },
+          { id: 'il3', prefix: 'TX', meaning: 'Laca/Barniz' },
+          { id: 'il4', prefix: 'TG', meaning: 'Fondo/Primario' },
+          { id: 'il5', prefix: 'PM', meaning: 'Acabado' },
+          { id: 'il6', prefix: 'TO', meaning: 'Especial' },
+          { id: 'il7', prefix: 'TS', meaning: 'Especial' }
+        ]
+      },
+      {
+        id: '2',
+        brand: 'Carpoly',
+        categoryName: 'Materia Prima (Carpoly)',
+        prefixRules: [
+          { id: 'ca1', prefix: 'IME', meaning: 'Resina/Base' },
+          { id: 'ca2', prefix: 'IRPE', meaning: 'Resina Especial' },
+          { id: 'ca3', prefix: 'ITD', meaning: 'Tinte' },
+          { id: 'ca4', prefix: 'IGH', meaning: 'Endurecedor' }
+        ]
+      },
+      {
+        id: '3',
+        brand: 'BARPIMO',
+        categoryName: 'Materia Prima (Barpimo)',
+        prefixRules: [
+          { id: 'ba1', prefix: 'A-', meaning: 'Tinte General' },
+          { id: 'ba2', prefix: 'J-', meaning: 'Tinte' },
+          { id: 'ba3', prefix: 'F-', meaning: 'Fondo' },
+          { id: 'ba4', prefix: '\\d{5,}', meaning: 'Químico Estándar' }
+        ]
+      }
     ],
     uomRules: [
-        { id: '1', regexTags: ['GL', 'GALON', 'GALONES'], std: 'GL', factorToLiter: 3.785 },
-        { id: '2', regexTags: ['LT', 'LITRO', 'LITROS'], std: 'LT', factorToLiter: 1 },
-        { id: '3', regexTags: ['1\\/4', 'QT', 'CUARTO'], std: 'QT', factorToLiter: 0.946 },
+      { id: '1', regexTags: ['GL', 'GALON', 'GALONES'], std: 'GL', factorToLiter: 3.785 },
+      { id: '2', regexTags: ['LT', 'LITRO', 'LITROS'], std: 'LT', factorToLiter: 1 },
+      { id: '3', regexTags: ['1\\/4', 'QT', 'CUARTO'], std: 'QT', factorToLiter: 0.946 },
 
-        { id: '4', regexTags: ['CUÑETE', 'CUNETE'], std: 'CUNETE', factorToLiter: 18.925 },
-        { id: '5', regexTags: ['KG', 'KILO', 'KILOGRAMO'], std: 'KG', factorToLiter: 1 }
+      { id: '4', regexTags: ['CUÑETE', 'CUNETE'], std: 'CUNETE', factorToLiter: 18.925 },
+      { id: '5', regexTags: ['KG', 'KILO', 'KILOGRAMO'], std: 'KG', factorToLiter: 1 }
     ],
     globalSkuPattern: '[BRAND][ORIGINAL]',
     skuSeparator: '-'
@@ -158,7 +158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9001",
@@ -182,7 +182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9002",
@@ -206,7 +206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9003",
@@ -230,7 +230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9004",
@@ -254,7 +254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9005",
@@ -278,7 +278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9006",
@@ -302,7 +302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9007",
@@ -326,7 +326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9008",
@@ -350,7 +350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9009",
@@ -374,7 +374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9010",
@@ -398,7 +398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9011",
@@ -422,7 +422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9012",
@@ -446,7 +446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9013",
@@ -470,7 +470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9014",
@@ -494,7 +494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9015",
@@ -518,7 +518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9016",
@@ -542,7 +542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9017",
@@ -566,7 +566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9018",
@@ -590,7 +590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9019",
@@ -614,7 +614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9020",
@@ -638,7 +638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9021",
@@ -662,7 +662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9022",
@@ -686,7 +686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9023",
@@ -710,7 +710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9024",
@@ -734,7 +734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9025",
@@ -758,7 +758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9026",
@@ -782,7 +782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9027",
@@ -806,7 +806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9028",
@@ -830,7 +830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9029",
@@ -854,7 +854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9030",
@@ -878,7 +878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9031",
@@ -902,7 +902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9032",
@@ -926,7 +926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9033",
@@ -950,7 +950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9034",
@@ -974,7 +974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9035",
@@ -998,7 +998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9036",
@@ -1022,7 +1022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9037",
@@ -1046,7 +1046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9038",
@@ -1070,7 +1070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9039",
@@ -1094,7 +1094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9040",
@@ -1118,7 +1118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9041",
@@ -1142,7 +1142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9042",
@@ -1166,7 +1166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9043",
@@ -1190,7 +1190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9044",
@@ -1214,7 +1214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9045",
@@ -1238,7 +1238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9046",
@@ -1262,7 +1262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9047",
@@ -1286,7 +1286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9048",
@@ -1310,7 +1310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9049",
@@ -1334,7 +1334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9050",
@@ -1358,7 +1358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9051",
@@ -1382,7 +1382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9052",
@@ -1406,7 +1406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9053",
@@ -1430,7 +1430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9054",
@@ -1454,7 +1454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9055",
@@ -1478,7 +1478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9056",
@@ -1502,7 +1502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9057",
@@ -1526,7 +1526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9058",
@@ -1550,7 +1550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9059",
@@ -1574,7 +1574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9060",
@@ -1598,7 +1598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9061",
@@ -1622,7 +1622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9062",
@@ -1646,7 +1646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9063",
@@ -1670,7 +1670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9064",
@@ -1694,7 +1694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9065",
@@ -1718,7 +1718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9066",
@@ -1742,7 +1742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9067",
@@ -1766,7 +1766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9068",
@@ -1790,7 +1790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9069",
@@ -1814,7 +1814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9070",
@@ -1838,7 +1838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9071",
@@ -1862,7 +1862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9072",
@@ -1886,7 +1886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9073",
@@ -1910,7 +1910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9074",
@@ -1934,7 +1934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9075",
@@ -1958,7 +1958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9076",
@@ -1982,7 +1982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9077",
@@ -2006,7 +2006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9078",
@@ -2030,7 +2030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9079",
@@ -2054,7 +2054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9080",
@@ -2078,7 +2078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9081",
@@ -2102,7 +2102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9082",
@@ -2126,7 +2126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9083",
@@ -2150,7 +2150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9084",
@@ -2174,7 +2174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9085",
@@ -2198,7 +2198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9086",
@@ -2222,7 +2222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9087",
@@ -2246,7 +2246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9088",
@@ -2270,7 +2270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9089",
@@ -2294,7 +2294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9090",
@@ -2318,7 +2318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9091",
@@ -2342,7 +2342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9092",
@@ -2366,7 +2366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9093",
@@ -2390,7 +2390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9094",
@@ -2414,7 +2414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9095",
@@ -2438,7 +2438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9096",
@@ -2462,7 +2462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9097",
@@ -2486,7 +2486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9098",
@@ -2510,7 +2510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9099",
@@ -2534,7 +2534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9100",
@@ -2558,7 +2558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9101",
@@ -2582,7 +2582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9102",
@@ -2606,7 +2606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9103",
@@ -2630,7 +2630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9104",
@@ -2654,7 +2654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9105",
@@ -2678,7 +2678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9106",
@@ -2702,7 +2702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9107",
@@ -2726,7 +2726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9108",
@@ -2750,7 +2750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9109",
@@ -2774,7 +2774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9110",
@@ -2798,7 +2798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9111",
@@ -2822,7 +2822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9112",
@@ -2846,7 +2846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9113",
@@ -2870,7 +2870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9114",
@@ -2894,7 +2894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9115",
@@ -2918,7 +2918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9116",
@@ -2942,7 +2942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9117",
@@ -2966,7 +2966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9118",
@@ -2990,7 +2990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9119",
@@ -3014,7 +3014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9120",
@@ -3038,7 +3038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9121",
@@ -3062,7 +3062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9122",
@@ -3086,7 +3086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9123",
@@ -3110,7 +3110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9124",
@@ -3134,7 +3134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9125",
@@ -3158,7 +3158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9126",
@@ -3182,7 +3182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9127",
@@ -3206,7 +3206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9128",
@@ -3230,7 +3230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9129",
@@ -3254,7 +3254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9130",
@@ -3278,7 +3278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9131",
@@ -3302,7 +3302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9132",
@@ -3326,7 +3326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9133",
@@ -3350,7 +3350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9134",
@@ -3374,7 +3374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9135",
@@ -3398,7 +3398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9136",
@@ -3422,7 +3422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9137",
@@ -3446,7 +3446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9138",
@@ -3470,7 +3470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9139",
@@ -3494,7 +3494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9140",
@@ -3518,7 +3518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9141",
@@ -3542,7 +3542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9142",
@@ -3566,7 +3566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9143",
@@ -3590,7 +3590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9144",
@@ -3614,7 +3614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9145",
@@ -3638,7 +3638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9146",
@@ -3662,7 +3662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9147",
@@ -3686,7 +3686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9148",
@@ -3710,7 +3710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9149",
@@ -3734,7 +3734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9150",
@@ -3758,7 +3758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9151",
@@ -3782,7 +3782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9152",
@@ -3806,7 +3806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9153",
@@ -3830,7 +3830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9154",
@@ -3854,7 +3854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9155",
@@ -3878,7 +3878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9156",
@@ -3902,7 +3902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9157",
@@ -3926,7 +3926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9158",
@@ -3950,7 +3950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9159",
@@ -3974,7 +3974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9160",
@@ -3998,7 +3998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9161",
@@ -4022,7 +4022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9162",
@@ -4046,7 +4046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9163",
@@ -4070,7 +4070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9164",
@@ -4094,7 +4094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9165",
@@ -4118,7 +4118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9166",
@@ -4142,7 +4142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9167",
@@ -4166,7 +4166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9168",
@@ -4190,7 +4190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9169",
@@ -4214,7 +4214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9170",
@@ -4238,7 +4238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9171",
@@ -4262,7 +4262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9172",
@@ -4286,7 +4286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9173",
@@ -4310,7 +4310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9174",
@@ -4334,7 +4334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9175",
@@ -4358,7 +4358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9176",
@@ -4382,7 +4382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9177",
@@ -4406,7 +4406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9178",
@@ -4430,7 +4430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9179",
@@ -4454,7 +4454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9180",
@@ -4478,7 +4478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9181",
@@ -4502,7 +4502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9182",
@@ -4526,7 +4526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9183",
@@ -4550,7 +4550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9184",
@@ -4574,7 +4574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9185",
@@ -4598,7 +4598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9186",
@@ -4622,7 +4622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9187",
@@ -4646,7 +4646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9188",
@@ -4670,7 +4670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9189",
@@ -4694,7 +4694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9190",
@@ -4718,7 +4718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9191",
@@ -4742,7 +4742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9192",
@@ -4766,7 +4766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9193",
@@ -4790,7 +4790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9194",
@@ -4814,7 +4814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9195",
@@ -4838,7 +4838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9196",
@@ -4862,7 +4862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9197",
@@ -4886,7 +4886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9198",
@@ -4910,7 +4910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9199",
@@ -4934,7 +4934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9200",
@@ -4958,7 +4958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9201",
@@ -4982,7 +4982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9202",
@@ -5006,7 +5006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9203",
@@ -5030,7 +5030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9204",
@@ -5054,7 +5054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9205",
@@ -5078,7 +5078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9206",
@@ -5102,7 +5102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9207",
@@ -5126,7 +5126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9208",
@@ -5150,7 +5150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9209",
@@ -5174,7 +5174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9210",
@@ -5198,7 +5198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9211",
@@ -5222,7 +5222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9212",
@@ -5246,7 +5246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9213",
@@ -5270,7 +5270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9214",
@@ -5294,7 +5294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9215",
@@ -5318,7 +5318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9216",
@@ -5342,7 +5342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9217",
@@ -5366,7 +5366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9218",
@@ -5390,7 +5390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9219",
@@ -5414,7 +5414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9220",
@@ -5438,7 +5438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9221",
@@ -5462,7 +5462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9222",
@@ -5486,7 +5486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9223",
@@ -5510,7 +5510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9224",
@@ -5534,7 +5534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9225",
@@ -5558,7 +5558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9226",
@@ -5582,7 +5582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9227",
@@ -5606,7 +5606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9228",
@@ -5630,7 +5630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9229",
@@ -5654,7 +5654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9230",
@@ -5678,7 +5678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9231",
@@ -5702,7 +5702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9232",
@@ -5726,7 +5726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9233",
@@ -5750,7 +5750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9234",
@@ -5774,7 +5774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9235",
@@ -5798,7 +5798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9236",
@@ -5822,7 +5822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9237",
@@ -5846,7 +5846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9238",
@@ -5870,7 +5870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9239",
@@ -5894,7 +5894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9240",
@@ -5918,7 +5918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9241",
@@ -5942,7 +5942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9242",
@@ -5966,7 +5966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9243",
@@ -5990,7 +5990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9244",
@@ -6014,7 +6014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9245",
@@ -6038,7 +6038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9246",
@@ -6062,7 +6062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9247",
@@ -6086,7 +6086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9248",
@@ -6110,7 +6110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9249",
@@ -6134,7 +6134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9250",
@@ -6158,7 +6158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9251",
@@ -6182,7 +6182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9252",
@@ -6206,7 +6206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9253",
@@ -6230,7 +6230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9254",
@@ -6254,7 +6254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9255",
@@ -6278,7 +6278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9256",
@@ -6302,7 +6302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9257",
@@ -6326,7 +6326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9258",
@@ -6350,7 +6350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9259",
@@ -6374,7 +6374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9260",
@@ -6398,7 +6398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9261",
@@ -6422,7 +6422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9262",
@@ -6446,7 +6446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9263",
@@ -6470,7 +6470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9264",
@@ -6494,7 +6494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9265",
@@ -6518,7 +6518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9266",
@@ -6542,7 +6542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9267",
@@ -6566,7 +6566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9268",
@@ -6590,7 +6590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9269",
@@ -6614,7 +6614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9270",
@@ -6638,7 +6638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9271",
@@ -6662,7 +6662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9272",
@@ -6686,7 +6686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9273",
@@ -6710,7 +6710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9274",
@@ -6734,7 +6734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9275",
@@ -6758,7 +6758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9276",
@@ -6782,7 +6782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9277",
@@ -6806,7 +6806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9278",
@@ -6830,7 +6830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9279",
@@ -6854,7 +6854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9280",
@@ -6878,7 +6878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9281",
@@ -6902,7 +6902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9282",
@@ -6926,7 +6926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9283",
@@ -6950,7 +6950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9284",
@@ -6974,7 +6974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9285",
@@ -6998,7 +6998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9286",
@@ -7022,7 +7022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9287",
@@ -7046,7 +7046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9288",
@@ -7070,7 +7070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9289",
@@ -7094,7 +7094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9290",
@@ -7118,7 +7118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9291",
@@ -7142,7 +7142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9292",
@@ -7166,7 +7166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9293",
@@ -7190,7 +7190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9294",
@@ -7214,7 +7214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9295",
@@ -7238,7 +7238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9296",
@@ -7262,7 +7262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9297",
@@ -7286,7 +7286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9298",
@@ -7310,7 +7310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9299",
@@ -7334,7 +7334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9300",
@@ -7358,7 +7358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9301",
@@ -7382,7 +7382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9302",
@@ -7406,7 +7406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9303",
@@ -7430,7 +7430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9304",
@@ -7454,7 +7454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9305",
@@ -7478,7 +7478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9306",
@@ -7502,7 +7502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9307",
@@ -7526,7 +7526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9308",
@@ -7550,7 +7550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9309",
@@ -7574,7 +7574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9310",
@@ -7598,7 +7598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9311",
@@ -7622,7 +7622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9312",
@@ -7646,7 +7646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9313",
@@ -7670,7 +7670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9314",
@@ -7694,7 +7694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9315",
@@ -7718,7 +7718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9316",
@@ -7742,7 +7742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9317",
@@ -7766,7 +7766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9318",
@@ -7790,7 +7790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9319",
@@ -7814,7 +7814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9320",
@@ -7838,7 +7838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9321",
@@ -7862,7 +7862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9322",
@@ -7886,7 +7886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9323",
@@ -7910,7 +7910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9324",
@@ -7934,7 +7934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9325",
@@ -7958,7 +7958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9326",
@@ -7982,7 +7982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9327",
@@ -8006,7 +8006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9328",
@@ -8030,7 +8030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9329",
@@ -8054,7 +8054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9330",
@@ -8078,7 +8078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9331",
@@ -8102,7 +8102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9332",
@@ -8126,7 +8126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9333",
@@ -8150,7 +8150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9334",
@@ -8174,7 +8174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9335",
@@ -8198,7 +8198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9336",
@@ -8222,7 +8222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9337",
@@ -8246,7 +8246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9338",
@@ -8270,7 +8270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9339",
@@ -8294,7 +8294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9340",
@@ -8318,7 +8318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9341",
@@ -8342,7 +8342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9342",
@@ -8366,7 +8366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9343",
@@ -8390,7 +8390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9344",
@@ -8414,7 +8414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9345",
@@ -8438,7 +8438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9346",
@@ -8462,7 +8462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9347",
@@ -8486,7 +8486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9348",
@@ -8510,7 +8510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9349",
@@ -8534,7 +8534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9350",
@@ -8558,7 +8558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9351",
@@ -8582,7 +8582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9352",
@@ -8606,7 +8606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9353",
@@ -8630,7 +8630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9354",
@@ -8654,7 +8654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9355",
@@ -8678,7 +8678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9356",
@@ -8702,7 +8702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9357",
@@ -8726,7 +8726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9358",
@@ -8750,7 +8750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9359",
@@ -8774,7 +8774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9360",
@@ -8798,7 +8798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9361",
@@ -8822,7 +8822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9362",
@@ -8846,7 +8846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9363",
@@ -8870,7 +8870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9364",
@@ -8894,7 +8894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9365",
@@ -8918,7 +8918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9366",
@@ -8942,7 +8942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9367",
@@ -8966,7 +8966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9368",
@@ -8990,7 +8990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9369",
@@ -9014,7 +9014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9370",
@@ -9038,7 +9038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9371",
@@ -9062,7 +9062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9372",
@@ -9086,7 +9086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9373",
@@ -9110,7 +9110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9374",
@@ -9134,7 +9134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9375",
@@ -9158,7 +9158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9376",
@@ -9182,7 +9182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9377",
@@ -9206,7 +9206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9378",
@@ -9230,7 +9230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9379",
@@ -9254,7 +9254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9380",
@@ -9278,7 +9278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9381",
@@ -9302,7 +9302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9382",
@@ -9326,7 +9326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9383",
@@ -9350,7 +9350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9384",
@@ -9374,7 +9374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9385",
@@ -9398,7 +9398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9386",
@@ -9422,7 +9422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9387",
@@ -9446,7 +9446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9388",
@@ -9470,7 +9470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9389",
@@ -9494,7 +9494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9390",
@@ -9518,7 +9518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9391",
@@ -9542,7 +9542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9392",
@@ -9566,7 +9566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9393",
@@ -9590,7 +9590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9394",
@@ -9614,7 +9614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9395",
@@ -9638,7 +9638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9396",
@@ -9662,7 +9662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9397",
@@ -9686,7 +9686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9398",
@@ -9710,7 +9710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9399",
@@ -9734,7 +9734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9400",
@@ -9758,7 +9758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9401",
@@ -9782,7 +9782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9402",
@@ -9806,7 +9806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9403",
@@ -9830,7 +9830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9404",
@@ -9854,7 +9854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9405",
@@ -9878,7 +9878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9406",
@@ -9902,7 +9902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9407",
@@ -9926,7 +9926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9408",
@@ -9950,7 +9950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9409",
@@ -9974,7 +9974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9410",
@@ -9998,7 +9998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9411",
@@ -10022,7 +10022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9412",
@@ -10046,7 +10046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9413",
@@ -10070,7 +10070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9414",
@@ -10094,7 +10094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9415",
@@ -10118,7 +10118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9416",
@@ -10142,7 +10142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9417",
@@ -10166,7 +10166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9418",
@@ -10190,7 +10190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9419",
@@ -10214,7 +10214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9420",
@@ -10238,7 +10238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9421",
@@ -10262,7 +10262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9422",
@@ -10286,7 +10286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9423",
@@ -10310,7 +10310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9424",
@@ -10334,7 +10334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9425",
@@ -10358,7 +10358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9426",
@@ -10382,7 +10382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9427",
@@ -10406,7 +10406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9428",
@@ -10430,7 +10430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9429",
@@ -10454,7 +10454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9430",
@@ -10478,7 +10478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9431",
@@ -10502,7 +10502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9432",
@@ -10526,7 +10526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9433",
@@ -10550,7 +10550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9434",
@@ -10574,7 +10574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9435",
@@ -10598,7 +10598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9436",
@@ -10622,7 +10622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9437",
@@ -10646,7 +10646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9438",
@@ -10670,7 +10670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9439",
@@ -10694,7 +10694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9440",
@@ -10718,7 +10718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9441",
@@ -10742,7 +10742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9442",
@@ -10766,7 +10766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9443",
@@ -10790,7 +10790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9444",
@@ -10814,7 +10814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9445",
@@ -10838,7 +10838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9446",
@@ -10862,7 +10862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9447",
@@ -10886,7 +10886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9448",
@@ -10910,7 +10910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9449",
@@ -10934,7 +10934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9450",
@@ -10958,7 +10958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9451",
@@ -10982,7 +10982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9452",
@@ -11006,7 +11006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9453",
@@ -11030,7 +11030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9454",
@@ -11054,7 +11054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9455",
@@ -11078,7 +11078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9456",
@@ -11102,7 +11102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9457",
@@ -11126,7 +11126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9458",
@@ -11150,7 +11150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9459",
@@ -11174,7 +11174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9460",
@@ -11198,7 +11198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9461",
@@ -11222,7 +11222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9462",
@@ -11246,7 +11246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9463",
@@ -11270,7 +11270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9464",
@@ -11294,7 +11294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9465",
@@ -11318,7 +11318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9466",
@@ -11342,7 +11342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9467",
@@ -11366,7 +11366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9468",
@@ -11390,7 +11390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9469",
@@ -11414,7 +11414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9470",
@@ -11438,7 +11438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9471",
@@ -11462,7 +11462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9472",
@@ -11486,7 +11486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9473",
@@ -11510,7 +11510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9474",
@@ -11534,7 +11534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9475",
@@ -11558,7 +11558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9476",
@@ -11582,7 +11582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9477",
@@ -11606,7 +11606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9478",
@@ -11630,7 +11630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9479",
@@ -11654,7 +11654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9480",
@@ -11678,7 +11678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9481",
@@ -11702,7 +11702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9482",
@@ -11726,7 +11726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9483",
@@ -11750,7 +11750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9484",
@@ -11774,7 +11774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9485",
@@ -11798,7 +11798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9486",
@@ -11822,7 +11822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9487",
@@ -11846,7 +11846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9488",
@@ -11870,7 +11870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9489",
@@ -11894,7 +11894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9490",
@@ -11918,7 +11918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9491",
@@ -11942,7 +11942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9492",
@@ -11966,7 +11966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9493",
@@ -11990,7 +11990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9494",
@@ -12014,7 +12014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9495",
@@ -12038,7 +12038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9496",
@@ -12062,7 +12062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9497",
@@ -12086,7 +12086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9498",
@@ -12110,7 +12110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9499",
@@ -12134,7 +12134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9500",
@@ -12158,7 +12158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9501",
@@ -12182,7 +12182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9502",
@@ -12206,7 +12206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9503",
@@ -12230,7 +12230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9504",
@@ -12254,7 +12254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9505",
@@ -12278,7 +12278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9506",
@@ -12302,7 +12302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9507",
@@ -12326,7 +12326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9508",
@@ -12350,7 +12350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9509",
@@ -12374,7 +12374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9510",
@@ -12398,7 +12398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9511",
@@ -12422,7 +12422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9512",
@@ -12446,7 +12446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9513",
@@ -12470,7 +12470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9514",
@@ -12494,7 +12494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9515",
@@ -12518,7 +12518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9516",
@@ -12542,7 +12542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9517",
@@ -12566,7 +12566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9518",
@@ -12590,7 +12590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9519",
@@ -12614,7 +12614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9520",
@@ -12638,7 +12638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9521",
@@ -12662,7 +12662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9522",
@@ -12686,7 +12686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9523",
@@ -12710,7 +12710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9524",
@@ -12734,7 +12734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9525",
@@ -12758,7 +12758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9526",
@@ -12782,7 +12782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9527",
@@ -12806,7 +12806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9528",
@@ -12830,7 +12830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9529",
@@ -12854,7 +12854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9530",
@@ -12878,7 +12878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9531",
@@ -12902,7 +12902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9532",
@@ -12926,7 +12926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9533",
@@ -12950,7 +12950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9534",
@@ -12974,7 +12974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9535",
@@ -12998,7 +12998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9536",
@@ -13022,7 +13022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9537",
@@ -13046,7 +13046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9538",
@@ -13070,7 +13070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9539",
@@ -13094,7 +13094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9540",
@@ -13118,7 +13118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9541",
@@ -13142,7 +13142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9542",
@@ -13166,7 +13166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9543",
@@ -13190,7 +13190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9544",
@@ -13214,7 +13214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9545",
@@ -13238,7 +13238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9546",
@@ -13262,7 +13262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9547",
@@ -13286,7 +13286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9548",
@@ -13310,7 +13310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9549",
@@ -13334,7 +13334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9550",
@@ -13358,7 +13358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9551",
@@ -13382,7 +13382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9552",
@@ -13406,7 +13406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9553",
@@ -13430,7 +13430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9554",
@@ -13454,7 +13454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9555",
@@ -13478,7 +13478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9556",
@@ -13502,7 +13502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9557",
@@ -13526,7 +13526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9558",
@@ -13550,7 +13550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9559",
@@ -13574,7 +13574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9560",
@@ -13598,7 +13598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9561",
@@ -13622,7 +13622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9562",
@@ -13646,7 +13646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9563",
@@ -13670,7 +13670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9564",
@@ -13694,7 +13694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9565",
@@ -13718,7 +13718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9566",
@@ -13742,7 +13742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9567",
@@ -13766,7 +13766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9568",
@@ -13790,7 +13790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9569",
@@ -13814,7 +13814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9570",
@@ -13838,7 +13838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9571",
@@ -13862,7 +13862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9572",
@@ -13886,7 +13886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9573",
@@ -13910,7 +13910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9574",
@@ -13934,7 +13934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9575",
@@ -13958,7 +13958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9576",
@@ -13982,7 +13982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9577",
@@ -14006,7 +14006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9578",
@@ -14030,7 +14030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9579",
@@ -14054,7 +14054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9580",
@@ -14078,7 +14078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9581",
@@ -14102,7 +14102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9582",
@@ -14126,7 +14126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9583",
@@ -14150,7 +14150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9584",
@@ -14174,7 +14174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9585",
@@ -14198,7 +14198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9586",
@@ -14222,7 +14222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9587",
@@ -14246,7 +14246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9588",
@@ -14270,7 +14270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9589",
@@ -14294,7 +14294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9590",
@@ -14318,7 +14318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9591",
@@ -14342,7 +14342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9592",
@@ -14366,7 +14366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9593",
@@ -14390,7 +14390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9594",
@@ -14414,7 +14414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9595",
@@ -14438,7 +14438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9596",
@@ -14462,7 +14462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9597",
@@ -14486,7 +14486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9598",
@@ -14510,7 +14510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9599",
@@ -14534,7 +14534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9600",
@@ -14558,7 +14558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9601",
@@ -14582,7 +14582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9602",
@@ -14606,7 +14606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9603",
@@ -14630,7 +14630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9604",
@@ -14654,7 +14654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9605",
@@ -14678,7 +14678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9606",
@@ -14702,7 +14702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9607",
@@ -14726,7 +14726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9608",
@@ -14750,7 +14750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9609",
@@ -14774,7 +14774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9610",
@@ -14798,7 +14798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9611",
@@ -14822,7 +14822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9612",
@@ -14846,7 +14846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9613",
@@ -14870,7 +14870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9614",
@@ -14894,7 +14894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9615",
@@ -14918,7 +14918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9616",
@@ -14942,7 +14942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9617",
@@ -14966,7 +14966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9618",
@@ -14990,7 +14990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9619",
@@ -15014,7 +15014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9620",
@@ -15038,7 +15038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9621",
@@ -15062,7 +15062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9622",
@@ -15086,7 +15086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9623",
@@ -15110,7 +15110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9624",
@@ -15134,7 +15134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9625",
@@ -15158,7 +15158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9626",
@@ -15182,7 +15182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9627",
@@ -15206,7 +15206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9628",
@@ -15230,7 +15230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9629",
@@ -15254,7 +15254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9630",
@@ -15278,7 +15278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9631",
@@ -15302,7 +15302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9632",
@@ -15326,7 +15326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9633",
@@ -15350,7 +15350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9634",
@@ -15374,7 +15374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9635",
@@ -15398,7 +15398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9636",
@@ -15422,7 +15422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9637",
@@ -15446,7 +15446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9638",
@@ -15470,7 +15470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9639",
@@ -15494,7 +15494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9640",
@@ -15518,7 +15518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9641",
@@ -15542,7 +15542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9642",
@@ -15566,7 +15566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9643",
@@ -15590,7 +15590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9644",
@@ -15614,7 +15614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9645",
@@ -15638,7 +15638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9646",
@@ -15662,7 +15662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9647",
@@ -15686,7 +15686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9648",
@@ -15710,7 +15710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9649",
@@ -15734,7 +15734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9650",
@@ -15758,7 +15758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9651",
@@ -15782,7 +15782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9652",
@@ -15806,7 +15806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9653",
@@ -15830,7 +15830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9654",
@@ -15854,7 +15854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9655",
@@ -15878,7 +15878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9656",
@@ -15902,7 +15902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9657",
@@ -15926,7 +15926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9658",
@@ -15950,7 +15950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9659",
@@ -15974,7 +15974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9660",
@@ -15998,7 +15998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9661",
@@ -16022,7 +16022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9662",
@@ -16046,7 +16046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9663",
@@ -16070,7 +16070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9664",
@@ -16094,7 +16094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9665",
@@ -16118,7 +16118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9666",
@@ -16142,7 +16142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9667",
@@ -16166,7 +16166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9668",
@@ -16190,7 +16190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9669",
@@ -16214,7 +16214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9670",
@@ -16238,7 +16238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9671",
@@ -16262,7 +16262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9672",
@@ -16286,7 +16286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9673",
@@ -16310,7 +16310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9674",
@@ -16334,7 +16334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9675",
@@ -16358,7 +16358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9676",
@@ -16382,7 +16382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9677",
@@ -16406,7 +16406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9678",
@@ -16430,7 +16430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9679",
@@ -16454,7 +16454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9680",
@@ -16478,7 +16478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9681",
@@ -16502,7 +16502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9682",
@@ -16526,7 +16526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9683",
@@ -16550,7 +16550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9684",
@@ -16574,7 +16574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9685",
@@ -16598,7 +16598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9686",
@@ -16622,7 +16622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9687",
@@ -16646,7 +16646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9688",
@@ -16670,7 +16670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9689",
@@ -16694,7 +16694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9690",
@@ -16718,7 +16718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9691",
@@ -16742,7 +16742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9692",
@@ -16766,7 +16766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9693",
@@ -16790,7 +16790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9694",
@@ -16814,7 +16814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9695",
@@ -16838,7 +16838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9696",
@@ -16862,7 +16862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9697",
@@ -16886,7 +16886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9698",
@@ -16910,7 +16910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9699",
@@ -16934,7 +16934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9700",
@@ -16958,7 +16958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9701",
@@ -16982,7 +16982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9702",
@@ -17006,7 +17006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9703",
@@ -17030,7 +17030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9704",
@@ -17054,7 +17054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9705",
@@ -17078,7 +17078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9706",
@@ -17102,7 +17102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9707",
@@ -17126,7 +17126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9708",
@@ -17150,7 +17150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9709",
@@ -17174,7 +17174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9710",
@@ -17198,7 +17198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9711",
@@ -17222,7 +17222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9712",
@@ -17246,7 +17246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9713",
@@ -17270,7 +17270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9714",
@@ -17294,7 +17294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9715",
@@ -17318,7 +17318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9716",
@@ -17342,7 +17342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9717",
@@ -17366,7 +17366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9718",
@@ -17390,7 +17390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9719",
@@ -17414,7 +17414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9720",
@@ -17438,7 +17438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9721",
@@ -17462,7 +17462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9722",
@@ -17486,7 +17486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9723",
@@ -17510,7 +17510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9724",
@@ -17534,7 +17534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9725",
@@ -17558,7 +17558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9726",
@@ -17582,7 +17582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9727",
@@ -17606,7 +17606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9728",
@@ -17630,7 +17630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9729",
@@ -17654,7 +17654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9730",
@@ -17678,7 +17678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9731",
@@ -17702,7 +17702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9732",
@@ -17726,7 +17726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9733",
@@ -17750,7 +17750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9734",
@@ -17774,7 +17774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9735",
@@ -17798,7 +17798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9736",
@@ -17822,7 +17822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9737",
@@ -17846,7 +17846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9738",
@@ -17870,7 +17870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9739",
@@ -17894,7 +17894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9740",
@@ -17918,7 +17918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9741",
@@ -17942,7 +17942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9742",
@@ -17966,7 +17966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9743",
@@ -17990,7 +17990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9744",
@@ -18014,7 +18014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9745",
@@ -18038,7 +18038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9746",
@@ -18062,7 +18062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9747",
@@ -18086,7 +18086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9748",
@@ -18110,7 +18110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9749",
@@ -18134,7 +18134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9750",
@@ -18158,7 +18158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9751",
@@ -18182,7 +18182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9752",
@@ -18206,7 +18206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9753",
@@ -18230,7 +18230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9754",
@@ -18254,7 +18254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9755",
@@ -18278,7 +18278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9756",
@@ -18302,7 +18302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9757",
@@ -18326,7 +18326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9758",
@@ -18350,7 +18350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9759",
@@ -18374,7 +18374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9760",
@@ -18398,7 +18398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9761",
@@ -18422,7 +18422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9762",
@@ -18446,7 +18446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9763",
@@ -18470,7 +18470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9764",
@@ -18494,7 +18494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9765",
@@ -18518,7 +18518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9766",
@@ -18542,7 +18542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9767",
@@ -18566,7 +18566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9768",
@@ -18590,7 +18590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9769",
@@ -18614,7 +18614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9770",
@@ -18638,7 +18638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9771",
@@ -18662,7 +18662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9772",
@@ -18686,7 +18686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9773",
@@ -18710,7 +18710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9774",
@@ -18734,7 +18734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9775",
@@ -18758,7 +18758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9776",
@@ -18782,7 +18782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9777",
@@ -18806,7 +18806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9778",
@@ -18830,7 +18830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9779",
@@ -18854,7 +18854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9780",
@@ -18878,7 +18878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9781",
@@ -18902,7 +18902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9782",
@@ -18926,7 +18926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9783",
@@ -18950,7 +18950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9784",
@@ -18974,7 +18974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9785",
@@ -18998,7 +18998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9786",
@@ -19022,7 +19022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9787",
@@ -19046,7 +19046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9788",
@@ -19070,7 +19070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9789",
@@ -19094,7 +19094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9790",
@@ -19118,7 +19118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9791",
@@ -19142,7 +19142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9792",
@@ -19166,7 +19166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9793",
@@ -19190,7 +19190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9794",
@@ -19214,7 +19214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9795",
@@ -19238,7 +19238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9796",
@@ -19262,7 +19262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9797",
@@ -19286,7 +19286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9798",
@@ -19310,7 +19310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9799",
@@ -19334,7 +19334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9800",
@@ -19358,7 +19358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9801",
@@ -19382,7 +19382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9802",
@@ -19406,7 +19406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9803",
@@ -19430,7 +19430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9804",
@@ -19454,7 +19454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9805",
@@ -19478,7 +19478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9806",
@@ -19502,7 +19502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9807",
@@ -19526,7 +19526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9808",
@@ -19550,7 +19550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9809",
@@ -19574,7 +19574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9810",
@@ -19598,7 +19598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9811",
@@ -19622,7 +19622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9812",
@@ -19646,7 +19646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9813",
@@ -19670,7 +19670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9814",
@@ -19694,7 +19694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9815",
@@ -19718,7 +19718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9816",
@@ -19742,7 +19742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9817",
@@ -19766,7 +19766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9818",
@@ -19790,7 +19790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9819",
@@ -19814,7 +19814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9820",
@@ -19838,7 +19838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9821",
@@ -19862,7 +19862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9822",
@@ -19886,7 +19886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9823",
@@ -19910,7 +19910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9824",
@@ -19934,7 +19934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9825",
@@ -19958,7 +19958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9826",
@@ -19982,7 +19982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9827",
@@ -20006,7 +20006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9828",
@@ -20030,7 +20030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9829",
@@ -20054,7 +20054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9830",
@@ -20078,7 +20078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9831",
@@ -20102,7 +20102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9832",
@@ -20126,7 +20126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9833",
@@ -20150,7 +20150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9834",
@@ -20174,7 +20174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9835",
@@ -20198,7 +20198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9836",
@@ -20222,7 +20222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9837",
@@ -20246,7 +20246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9838",
@@ -20270,7 +20270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9839",
@@ -20294,7 +20294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9840",
@@ -20318,7 +20318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9841",
@@ -20342,7 +20342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9842",
@@ -20366,7 +20366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9843",
@@ -20390,7 +20390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9844",
@@ -20414,7 +20414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9845",
@@ -20438,7 +20438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9846",
@@ -20462,7 +20462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9847",
@@ -20486,7 +20486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9848",
@@ -20510,7 +20510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9849",
@@ -20534,7 +20534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9850",
@@ -20558,7 +20558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9851",
@@ -20582,7 +20582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9852",
@@ -20606,7 +20606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9853",
@@ -20630,7 +20630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9854",
@@ -20654,7 +20654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9855",
@@ -20678,7 +20678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9856",
@@ -20702,7 +20702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9857",
@@ -20726,7 +20726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9858",
@@ -20750,7 +20750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9859",
@@ -20774,7 +20774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9860",
@@ -20798,7 +20798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9861",
@@ -20822,7 +20822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9862",
@@ -20846,7 +20846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9863",
@@ -20870,7 +20870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9864",
@@ -20894,7 +20894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9865",
@@ -20918,7 +20918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9866",
@@ -20942,7 +20942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9867",
@@ -20966,7 +20966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9868",
@@ -20990,7 +20990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9869",
@@ -21014,7 +21014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9870",
@@ -21038,7 +21038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9871",
@@ -21062,7 +21062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9872",
@@ -21086,7 +21086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9873",
@@ -21110,7 +21110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9874",
@@ -21134,7 +21134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9875",
@@ -21158,7 +21158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9876",
@@ -21182,7 +21182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9877",
@@ -21206,7 +21206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9878",
@@ -21230,7 +21230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9879",
@@ -21254,7 +21254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9880",
@@ -21278,7 +21278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9881",
@@ -21302,7 +21302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9882",
@@ -21326,7 +21326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9883",
@@ -21350,7 +21350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9884",
@@ -21374,7 +21374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9885",
@@ -21398,7 +21398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9886",
@@ -21422,7 +21422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9887",
@@ -21446,7 +21446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9888",
@@ -21470,7 +21470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9889",
@@ -21494,7 +21494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9890",
@@ -21518,7 +21518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9891",
@@ -21542,7 +21542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9892",
@@ -21566,7 +21566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9893",
@@ -21590,7 +21590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9894",
@@ -21614,7 +21614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9895",
@@ -21638,7 +21638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9896",
@@ -21662,7 +21662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9897",
@@ -21686,7 +21686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9898",
@@ -21710,7 +21710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9899",
@@ -21734,7 +21734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9900",
@@ -21758,7 +21758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9901",
@@ -21782,7 +21782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9902",
@@ -21806,7 +21806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9903",
@@ -21830,7 +21830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9904",
@@ -21854,7 +21854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9905",
@@ -21878,7 +21878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9906",
@@ -21902,7 +21902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9907",
@@ -21926,7 +21926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9908",
@@ -21950,7 +21950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9909",
@@ -21974,7 +21974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9910",
@@ -21998,7 +21998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9911",
@@ -22022,7 +22022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9912",
@@ -22046,7 +22046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9913",
@@ -22070,7 +22070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9914",
@@ -22094,7 +22094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9915",
@@ -22118,7 +22118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9916",
@@ -22142,7 +22142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9917",
@@ -22166,7 +22166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9918",
@@ -22190,7 +22190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9919",
@@ -22214,7 +22214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9920",
@@ -22238,7 +22238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9921",
@@ -22262,7 +22262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9922",
@@ -22286,7 +22286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9923",
@@ -22310,7 +22310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9924",
@@ -22334,7 +22334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9925",
@@ -22358,7 +22358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9926",
@@ -22382,7 +22382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9927",
@@ -22406,7 +22406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9928",
@@ -22430,7 +22430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9929",
@@ -22454,7 +22454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9930",
@@ -22478,7 +22478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9931",
@@ -22502,7 +22502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9932",
@@ -22526,7 +22526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9933",
@@ -22550,7 +22550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9934",
@@ -22574,7 +22574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9935",
@@ -22598,7 +22598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9936",
@@ -22622,7 +22622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9937",
@@ -22646,7 +22646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9938",
@@ -22670,7 +22670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9939",
@@ -22694,7 +22694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9940",
@@ -22718,7 +22718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9941",
@@ -22742,7 +22742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9942",
@@ -22766,7 +22766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9943",
@@ -22790,7 +22790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9944",
@@ -22814,7 +22814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9945",
@@ -22838,7 +22838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9946",
@@ -22862,7 +22862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9947",
@@ -22886,7 +22886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9948",
@@ -22910,7 +22910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9949",
@@ -22934,7 +22934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9950",
@@ -22958,7 +22958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9951",
@@ -22982,7 +22982,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9952",
@@ -23006,7 +23006,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9953",
@@ -23030,7 +23030,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9954",
@@ -23054,7 +23054,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9955",
@@ -23078,7 +23078,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9956",
@@ -23102,7 +23102,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9957",
@@ -23126,7 +23126,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9958",
@@ -23150,7 +23150,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9959",
@@ -23174,7 +23174,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9960",
@@ -23198,7 +23198,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9961",
@@ -23222,7 +23222,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9962",
@@ -23246,7 +23246,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9963",
@@ -23270,7 +23270,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9964",
@@ -23294,7 +23294,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9965",
@@ -23318,7 +23318,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9966",
@@ -23342,7 +23342,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9967",
@@ -23366,7 +23366,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9968",
@@ -23390,7 +23390,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9969",
@@ -23414,7 +23414,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9970",
@@ -23438,7 +23438,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9971",
@@ -23462,7 +23462,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9972",
@@ -23486,7 +23486,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9973",
@@ -23510,7 +23510,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9974",
@@ -23534,7 +23534,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9975",
@@ -23558,7 +23558,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9976",
@@ -23582,7 +23582,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9977",
@@ -23606,7 +23606,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9978",
@@ -23630,7 +23630,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9979",
@@ -23654,7 +23654,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9980",
@@ -23678,7 +23678,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9981",
@@ -23702,7 +23702,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9982",
@@ -23726,7 +23726,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9983",
@@ -23750,7 +23750,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9984",
@@ -23774,7 +23774,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9985",
@@ -23798,7 +23798,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9986",
@@ -23822,7 +23822,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9987",
@@ -23846,7 +23846,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9988",
@@ -23870,7 +23870,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9989",
@@ -23894,7 +23894,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9990",
@@ -23918,7 +23918,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9991",
@@ -23942,7 +23942,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9992",
@@ -23966,7 +23966,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9993",
@@ -23990,7 +23990,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9994",
@@ -24014,7 +24014,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9995",
@@ -24038,7 +24038,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9996",
@@ -24062,7 +24062,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9997",
@@ -24086,7 +24086,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9998",
@@ -24110,7 +24110,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "9999",
@@ -24134,7 +24134,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10000",
@@ -24158,7 +24158,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10001",
@@ -24182,7 +24182,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10002",
@@ -24206,7 +24206,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10003",
@@ -24230,7 +24230,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10004",
@@ -24254,7 +24254,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10005",
@@ -24278,7 +24278,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10006",
@@ -24302,7 +24302,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10007",
@@ -24326,7 +24326,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10008",
@@ -24350,7 +24350,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10009",
@@ -24374,7 +24374,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10010",
@@ -24398,7 +24398,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10011",
@@ -24422,7 +24422,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10012",
@@ -24446,7 +24446,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10013",
@@ -24470,7 +24470,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10014",
@@ -24494,7 +24494,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10015",
@@ -24518,7 +24518,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10016",
@@ -24542,7 +24542,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10017",
@@ -24566,7 +24566,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10018",
@@ -24590,7 +24590,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10019",
@@ -24614,7 +24614,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10020",
@@ -24638,7 +24638,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10021",
@@ -24662,7 +24662,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10022",
@@ -24686,7 +24686,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10023",
@@ -24710,7 +24710,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10024",
@@ -24734,7 +24734,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10025",
@@ -24758,7 +24758,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10026",
@@ -24782,7 +24782,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10027",
@@ -24806,7 +24806,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10028",
@@ -24830,7 +24830,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10029",
@@ -24854,7 +24854,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10030",
@@ -24878,7 +24878,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10031",
@@ -24902,7 +24902,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10032",
@@ -24926,7 +24926,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10033",
@@ -24950,7 +24950,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10034",
@@ -24974,7 +24974,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10035",
@@ -24998,7 +24998,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10036",
@@ -25022,7 +25022,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10037",
@@ -25046,7 +25046,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10038",
@@ -25070,7 +25070,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10039",
@@ -25094,7 +25094,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10040",
@@ -25118,7 +25118,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10041",
@@ -25142,7 +25142,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10042",
@@ -25166,7 +25166,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10043",
@@ -25190,7 +25190,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10044",
@@ -25214,7 +25214,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10045",
@@ -25238,7 +25238,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10046",
@@ -25262,7 +25262,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10047",
@@ -25286,7 +25286,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10048",
@@ -25310,7 +25310,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10049",
@@ -25334,7 +25334,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10050",
@@ -25358,7 +25358,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10051",
@@ -25382,7 +25382,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10052",
@@ -25406,7 +25406,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10053",
@@ -25430,7 +25430,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10054",
@@ -25454,7 +25454,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10055",
@@ -25478,7 +25478,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10056",
@@ -25502,7 +25502,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10057",
@@ -25526,7 +25526,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10058",
@@ -25550,7 +25550,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10059",
@@ -25574,7 +25574,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10060",
@@ -25598,7 +25598,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10061",
@@ -25622,7 +25622,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10062",
@@ -25646,7 +25646,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10063",
@@ -25670,7 +25670,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10064",
@@ -25694,7 +25694,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10065",
@@ -25718,7 +25718,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10066",
@@ -25742,7 +25742,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10067",
@@ -25766,7 +25766,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10068",
@@ -25790,7 +25790,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10069",
@@ -25814,7 +25814,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10070",
@@ -25838,7 +25838,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10071",
@@ -25862,7 +25862,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10072",
@@ -25886,7 +25886,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10073",
@@ -25910,7 +25910,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10074",
@@ -25934,7 +25934,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   },
   {
     "id": "10075",
@@ -25958,7 +25958,7 @@ export const MOCK_INVENTORY: Product[] = [
     "mixingInstructions": '',
     "informationalNote": '',
     "batches": [],
-      "taxRate": 19
+    "taxRate": 19
   }
 ];
 
@@ -25983,247 +25983,247 @@ export const MOCK_CUSTOMERS: Customer[] = [
 ];
 
 export const MOCK_SALES_ORDERS: SalesOrder[] = [
-  { 
-    id: 'ORD-5001', customerId: 'CUST-001', skuId: '9000', qty: 200, 
-    orderDate: '2024-03-10', requiredDate: '2024-03-20', marginPercent: 35, status: 'Allocated', priorityScore: 95 
+  {
+    id: 'ORD-5001', customerId: 'CUST-001', skuId: '9000', qty: 200,
+    orderDate: '2024-03-10', requiredDate: '2024-03-20', marginPercent: 35, status: 'Allocated', priorityScore: 95
   },
-  { 
-    id: 'ORD-5002', customerId: 'CUST-003', skuId: '9000', qty: 150, 
-    orderDate: '2024-03-11', requiredDate: '2024-03-22', marginPercent: 30, status: 'Allocated', priorityScore: 90 
+  {
+    id: 'ORD-5002', customerId: 'CUST-003', skuId: '9000', qty: 150,
+    orderDate: '2024-03-11', requiredDate: '2024-03-22', marginPercent: 30, status: 'Allocated', priorityScore: 90
   },
-  { 
-    id: 'ORD-5003', customerId: 'CUST-002', skuId: '9000', qty: 100, 
-    orderDate: '2024-03-12', requiredDate: '2024-03-25', marginPercent: 15, status: 'Allocated', priorityScore: 60 
+  {
+    id: 'ORD-5003', customerId: 'CUST-002', skuId: '9000', qty: 100,
+    orderDate: '2024-03-12', requiredDate: '2024-03-25', marginPercent: 15, status: 'Allocated', priorityScore: 60
   },
-  { 
-    id: 'ORD-5004', customerId: 'CUST-004', skuId: '9000', qty: 300, 
-    orderDate: '2024-03-15', requiredDate: '2024-03-28', marginPercent: 12, status: 'Pending', priorityScore: 40 
+  {
+    id: 'ORD-5004', customerId: 'CUST-004', skuId: '9000', qty: 300,
+    orderDate: '2024-03-15', requiredDate: '2024-03-28', marginPercent: 12, status: 'Pending', priorityScore: 40
   }
 ];
 
 export const MOCK_FORECAST_DATA: ForecastDataPoint[] = [
-    { month: 'Oct 23', historical: 800, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
-    { month: 'Nov 23', historical: 920, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
-    { month: 'Dic 23', historical: 750, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
-    { month: 'Ene 24', historical: 850, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
-    { month: 'Feb 24', historical: 890, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
-    { month: 'Mar 24', historical: 950, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
-    // Projected
-    { month: 'Abr 24', historical: 0, conservative: 900, base: 1050, aggressive: 1300, pipelineWeighted: 1100 },
-    { month: 'May 24', historical: 0, conservative: 850, base: 1100, aggressive: 1450, pipelineWeighted: 1200 },
-    { month: 'Jun 24', historical: 0, conservative: 800, base: 1150, aggressive: 1600, pipelineWeighted: 1300 },
-    { month: 'Jul 24', historical: 0, conservative: 750, base: 1000, aggressive: 1400, pipelineWeighted: 1100 },
+  { month: 'Oct 23', historical: 800, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
+  { month: 'Nov 23', historical: 920, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
+  { month: 'Dic 23', historical: 750, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
+  { month: 'Ene 24', historical: 850, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
+  { month: 'Feb 24', historical: 890, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
+  { month: 'Mar 24', historical: 950, conservative: 0, base: 0, aggressive: 0, pipelineWeighted: 0 },
+  // Projected
+  { month: 'Abr 24', historical: 0, conservative: 900, base: 1050, aggressive: 1300, pipelineWeighted: 1100 },
+  { month: 'May 24', historical: 0, conservative: 850, base: 1100, aggressive: 1450, pipelineWeighted: 1200 },
+  { month: 'Jun 24', historical: 0, conservative: 800, base: 1150, aggressive: 1600, pipelineWeighted: 1300 },
+  { month: 'Jul 24', historical: 0, conservative: 750, base: 1000, aggressive: 1400, pipelineWeighted: 1100 },
 ];
 
 export const MOCK_DEMAND_ALERTS: DemandAlert[] = [
-    {
-        id: 'ALT-01',
-        sku: '9000',
-        productName: 'Sellador Industrial Pro 550',
-        type: 'STOCKOUT',
-        projectedDate: '2024-04-15',
-        gapQuantity: 250,
-        severity: 'HIGH'
-    },
-    {
-        id: 'ALT-02',
-        sku: '9002',
-        productName: 'Pigmento Rojo Óxido',
-        type: 'OVERSTOCK',
-        projectedDate: '2024-06-01',
-        gapQuantity: 3000,
-        severity: 'MEDIUM'
-    }
+  {
+    id: 'ALT-01',
+    sku: '9000',
+    productName: 'Sellador Industrial Pro 550',
+    type: 'STOCKOUT',
+    projectedDate: '2024-04-15',
+    gapQuantity: 250,
+    severity: 'HIGH'
+  },
+  {
+    id: 'ALT-02',
+    sku: '9002',
+    productName: 'Pigmento Rojo Óxido',
+    type: 'OVERSTOCK',
+    projectedDate: '2024-06-01',
+    gapQuantity: 3000,
+    severity: 'MEDIUM'
+  }
 ];
 
 export const MOCK_OPPORTUNITIES: ActionOpportunity[] = [
-    {
-        id: 'ACT-01',
-        type: 'LIQUIDATION',
-        skuId: '9001',
-        productName: 'Primer Universal Gris',
-        reason: 'Inventario Lento > 85 días. Exceso de 500u sobre forecast.',
-        suggestedAction: 'Campaña "Flash Sale" -20%',
-        quantityToMove: 500,
-        potentialCashRelease: 26000, // 500u * $65 * 0.8
-        marginImpactPercent: -15, // Significant margin hit
-        costOfAction: 0, // Digital campaign
-        status: 'PENDING'
-    },
-    {
-        id: 'ACT-02',
-        type: 'BUNDLE',
-        skuId: '9002',
-        productName: 'Pigmento Rojo Óxido',
-        reason: 'Inventario Silencioso (140 días). Sin consumo en producción.',
-        suggestedAction: 'Bundle con "Resina Polímero" para clientes Tier 2',
-        quantityToMove: 1000,
-        potentialCashRelease: 8000, 
-        marginImpactPercent: -5,
-        costOfAction: 200, // Packaging
-        status: 'PENDING'
-    },
-    {
-        id: 'ACT-03',
-        type: 'TRANSFER',
-        skuId: '9000',
-        productName: 'Sellador Industrial Pro 550',
-        reason: 'Stockout en Bodega C. Exceso en Bodega A.',
-        suggestedAction: 'Transferencia Interna Inmediata',
-        quantityToMove: 300,
-        potentialCashRelease: 36000, // Avoided lost sales
-        marginImpactPercent: 0,
-        costOfAction: 450, // Logistics cost
-        status: 'PENDING'
-    }
+  {
+    id: 'ACT-01',
+    type: 'LIQUIDATION',
+    skuId: '9001',
+    productName: 'Primer Universal Gris',
+    reason: 'Inventario Lento > 85 días. Exceso de 500u sobre forecast.',
+    suggestedAction: 'Campaña "Flash Sale" -20%',
+    quantityToMove: 500,
+    potentialCashRelease: 26000, // 500u * $65 * 0.8
+    marginImpactPercent: -15, // Significant margin hit
+    costOfAction: 0, // Digital campaign
+    status: 'PENDING'
+  },
+  {
+    id: 'ACT-02',
+    type: 'BUNDLE',
+    skuId: '9002',
+    productName: 'Pigmento Rojo Óxido',
+    reason: 'Inventario Silencioso (140 días). Sin consumo en producción.',
+    suggestedAction: 'Bundle con "Resina Polímero" para clientes Tier 2',
+    quantityToMove: 1000,
+    potentialCashRelease: 8000,
+    marginImpactPercent: -5,
+    costOfAction: 200, // Packaging
+    status: 'PENDING'
+  },
+  {
+    id: 'ACT-03',
+    type: 'TRANSFER',
+    skuId: '9000',
+    productName: 'Sellador Industrial Pro 550',
+    reason: 'Stockout en Bodega C. Exceso en Bodega A.',
+    suggestedAction: 'Transferencia Interna Inmediata',
+    quantityToMove: 300,
+    potentialCashRelease: 36000, // Avoided lost sales
+    marginImpactPercent: 0,
+    costOfAction: 450, // Logistics cost
+    status: 'PENDING'
+  }
 ];
 
 export const MOCK_VENDORS: Vendor[] = [
-    { id: 'V-001', name: 'Global Chem Corp', leadTimeDays: 45, reliabilityScore: 95, qualityScore: 98, priceIndex: 'Medium' },
-    { id: 'V-002', name: 'Suministros Locales S.A.', leadTimeDays: 5, reliabilityScore: 85, qualityScore: 90, priceIndex: 'High' },
-    { id: 'V-003', name: 'Asian Polymers Ltd', leadTimeDays: 90, reliabilityScore: 90, qualityScore: 95, priceIndex: 'Low' }
+  { id: 'V-001', name: 'Global Chem Corp', leadTimeDays: 45, reliabilityScore: 95, qualityScore: 98, priceIndex: 'Medium' },
+  { id: 'V-002', name: 'Suministros Locales S.A.', leadTimeDays: 5, reliabilityScore: 85, qualityScore: 90, priceIndex: 'High' },
+  { id: 'V-003', name: 'Asian Polymers Ltd', leadTimeDays: 90, reliabilityScore: 90, qualityScore: 95, priceIndex: 'Low' }
 ];
 
 export const MOCK_PURCHASE_SUGGESTIONS: PurchaseSuggestion[] = [
-    {
-        id: 'PS-1001',
-        skuId: '9003',
-        productName: 'Resina de Polímero X-200',
-        suggestedQty: 5000,
-        unitCost: 4600000,
-        totalCost: 5750000,
-        recommendedVendorId: 'V-003',
-        reason: 'Forecast Q3 requiere stock de seguridad por Lead Time largo (90 días).',
-        urgency: 'Medium',
-        forecastCoverageDays: 120,
-        riskOfOverstock: 'Low',
-        status: 'Proposed'
-    },
-    {
-        id: 'PS-1002',
-        skuId: '9004',
-        productName: 'Acetona Grado Técnico',
-        suggestedQty: 1000,
-        unitCost: 60000,
-        totalCost: 15000,
-        recommendedVendorId: 'V-002',
-        reason: 'Quiebre inminente en 10 días (Forecast > Stock Actual).',
-        urgency: 'High',
-        forecastCoverageDays: 30,
-        riskOfOverstock: 'Low',
-        status: 'Proposed'
-    },
-    {
-        id: 'PS-1003',
-        skuId: '9002',
-        productName: 'Pigmento Rojo Óxido',
-        suggestedQty: 500,
-        unitCost: 32000,
-        totalCost: 4000,
-        recommendedVendorId: 'V-001',
-        reason: 'Stock Mínimo Estático alcanzado.',
-        urgency: 'Low',
-        forecastCoverageDays: 180,
-        riskOfOverstock: 'High', // System warns against this because item is Silent in inventory module
-        status: 'Proposed'
-    }
+  {
+    id: 'PS-1001',
+    skuId: '9003',
+    productName: 'Resina de Polímero X-200',
+    suggestedQty: 5000,
+    unitCost: 4600000,
+    totalCost: 5750000,
+    recommendedVendorId: 'V-003',
+    reason: 'Forecast Q3 requiere stock de seguridad por Lead Time largo (90 días).',
+    urgency: 'Medium',
+    forecastCoverageDays: 120,
+    riskOfOverstock: 'Low',
+    status: 'Proposed'
+  },
+  {
+    id: 'PS-1002',
+    skuId: '9004',
+    productName: 'Acetona Grado Técnico',
+    suggestedQty: 1000,
+    unitCost: 60000,
+    totalCost: 15000,
+    recommendedVendorId: 'V-002',
+    reason: 'Quiebre inminente en 10 días (Forecast > Stock Actual).',
+    urgency: 'High',
+    forecastCoverageDays: 30,
+    riskOfOverstock: 'Low',
+    status: 'Proposed'
+  },
+  {
+    id: 'PS-1003',
+    skuId: '9002',
+    productName: 'Pigmento Rojo Óxido',
+    suggestedQty: 500,
+    unitCost: 32000,
+    totalCost: 4000,
+    recommendedVendorId: 'V-001',
+    reason: 'Stock Mínimo Estático alcanzado.',
+    urgency: 'Low',
+    forecastCoverageDays: 180,
+    riskOfOverstock: 'High', // System warns against this because item is Silent in inventory module
+    status: 'Proposed'
+  }
 ];
 
 // --- MOCK EVENT LOG DATA ---
 export const MOCK_EVENT_LOG: SystemEvent[] = [
-    {
-        event_id: 'EVT-9005',
-        event_type: 'ORDER_BLOCKED',
-        event_category: 'FINANCE',
-        entity_type: 'SALES_ORDER',
-        entity_id: 'ORD-5004',
-        actor_type: 'SYSTEM',
-        actor_id: 'credit-engine-v2',
-        timestamp: new Date().toISOString(),
-        previous_state: { status: 'Pending', block_reason: null },
-        new_state: { status: 'Blocked', block_reason: 'Credit Limit Exceeded' },
-        context: {
-            channel: 'SYSTEM',
-            reason: 'Credit check failed. Balance > Limit.',
-            meta: { credit_limit: 50000, current_balance: 52000 }
-        },
-        causal_chain_id: 'CHAIN-001',
-        confidence_level: 'AUTOMATIC'
+  {
+    event_id: 'EVT-9005',
+    event_type: 'ORDER_BLOCKED',
+    event_category: 'FINANCE',
+    entity_type: 'SALES_ORDER',
+    entity_id: 'ORD-5004',
+    actor_type: 'SYSTEM',
+    actor_id: 'credit-engine-v2',
+    timestamp: new Date().toISOString(),
+    previous_state: { status: 'Pending', block_reason: null },
+    new_state: { status: 'Blocked', block_reason: 'Credit Limit Exceeded' },
+    context: {
+      channel: 'SYSTEM',
+      reason: 'Credit check failed. Balance > Limit.',
+      meta: { credit_limit: 50000, current_balance: 52000 }
     },
-    {
-        event_id: 'EVT-9004',
-        event_type: 'STOCK_ADJUSTMENT',
-        event_category: 'OPERATIONS',
-        entity_type: 'BATCH',
-        entity_id: 'L-240315-A',
-        actor_type: 'HUMAN',
-        actor_id: 'j.perez@procoquinal.com',
-        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        previous_state: { quantity: 1000 },
-        new_state: { quantity: 980 },
-        context: {
-            channel: 'WEB',
-            location: 'BOD-A-01',
-            reason: 'Merma reportada en envasado',
-        },
-        causal_chain_id: 'CHAIN-002',
-        confidence_level: 'MANUAL'
+    causal_chain_id: 'CHAIN-001',
+    confidence_level: 'AUTOMATIC'
+  },
+  {
+    event_id: 'EVT-9004',
+    event_type: 'STOCK_ADJUSTMENT',
+    event_category: 'OPERATIONS',
+    entity_type: 'BATCH',
+    entity_id: 'L-240315-A',
+    actor_type: 'HUMAN',
+    actor_id: 'j.perez@procoquinal.com',
+    timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+    previous_state: { quantity: 1000 },
+    new_state: { quantity: 980 },
+    context: {
+      channel: 'WEB',
+      location: 'BOD-A-01',
+      reason: 'Merma reportada en envasado',
     },
-    {
-        event_id: 'EVT-9003',
-        event_type: 'PURCHASE_RECOMMENDATION',
-        event_category: 'INTELLIGENCE',
-        entity_type: 'SKU',
-        entity_id: '9004',
-        actor_type: 'AI',
-        actor_id: 'gemini-pro-forecast',
-        timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        previous_state: null,
-        new_state: { suggestion_id: 'PS-1002', quantity: 1000 },
-        context: {
-            channel: 'SYSTEM',
-            reason: 'Forecast Spike predicted for Week 12',
-        },
-        causal_chain_id: 'CHAIN-003',
-        confidence_level: 'ASSISTED'
+    causal_chain_id: 'CHAIN-002',
+    confidence_level: 'MANUAL'
+  },
+  {
+    event_id: 'EVT-9003',
+    event_type: 'PURCHASE_RECOMMENDATION',
+    event_category: 'INTELLIGENCE',
+    entity_type: 'SKU',
+    entity_id: '9004',
+    actor_type: 'AI',
+    actor_id: 'gemini-pro-forecast',
+    timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
+    previous_state: null,
+    new_state: { suggestion_id: 'PS-1002', quantity: 1000 },
+    context: {
+      channel: 'SYSTEM',
+      reason: 'Forecast Spike predicted for Week 12',
     },
-    {
-        event_id: 'EVT-9002',
-        event_type: 'DATA_SYNC_ERROR',
-        event_category: 'ERROR',
-        entity_type: 'SYSTEM_SYNC',
-        entity_id: 'SAP-CONNECTOR',
-        actor_type: 'SYSTEM',
-        actor_id: 'sync-daemon',
-        timestamp: new Date(Date.now() - 10800000).toISOString(), // 3 hours ago
-        previous_state: { status: 'Healthy' },
-        new_state: { status: 'Error', error_code: 'TIMEOUT_504' },
-        context: {
-            channel: 'API',
-            meta: { endpoint: '/sap/inventory/v1' }
-        },
-        causal_chain_id: 'CHAIN-004',
-        confidence_level: 'AUTOMATIC'
+    causal_chain_id: 'CHAIN-003',
+    confidence_level: 'ASSISTED'
+  },
+  {
+    event_id: 'EVT-9002',
+    event_type: 'DATA_SYNC_ERROR',
+    event_category: 'ERROR',
+    entity_type: 'SYSTEM_SYNC',
+    entity_id: 'SAP-CONNECTOR',
+    actor_type: 'SYSTEM',
+    actor_id: 'sync-daemon',
+    timestamp: new Date(Date.now() - 10800000).toISOString(), // 3 hours ago
+    previous_state: { status: 'Healthy' },
+    new_state: { status: 'Error', error_code: 'TIMEOUT_504' },
+    context: {
+      channel: 'API',
+      meta: { endpoint: '/sap/inventory/v1' }
     },
-    {
-        event_id: 'EVT-9001',
-        event_type: 'BATCH_COMPLETED',
-        event_category: 'OPERATIONS',
-        entity_type: 'PRODUCTION_BATCH',
-        entity_id: 'PB-1001',
-        actor_type: 'SYSTEM',
-        actor_id: 'mes-connector',
-        timestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-        previous_state: { status: 'In Progress' },
-        new_state: { status: 'Completed', yield: 98.0 },
-        context: {
-            channel: 'API',
-            location: 'Plant-1',
-            meta: { operator: 'M. Rodriguez' }
-        },
-        causal_chain_id: 'CHAIN-002',
-        confidence_level: 'AUTOMATIC'
-    }
+    causal_chain_id: 'CHAIN-004',
+    confidence_level: 'AUTOMATIC'
+  },
+  {
+    event_id: 'EVT-9001',
+    event_type: 'BATCH_COMPLETED',
+    event_category: 'OPERATIONS',
+    entity_type: 'PRODUCTION_BATCH',
+    entity_id: 'PB-1001',
+    actor_type: 'SYSTEM',
+    actor_id: 'mes-connector',
+    timestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+    previous_state: { status: 'In Progress' },
+    new_state: { status: 'Completed', yield: 98.0 },
+    context: {
+      channel: 'API',
+      location: 'Plant-1',
+      meta: { operator: 'M. Rodriguez' }
+    },
+    causal_chain_id: 'CHAIN-002',
+    confidence_level: 'AUTOMATIC'
+  }
 ];
 
 // --- CRM MOCK DATA ---
