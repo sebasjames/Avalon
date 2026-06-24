@@ -1,5 +1,8 @@
-import { Product, InventoryStatus, Category, ABCClass, XYZClass, SalesRecord, Transfer, ProductionBatch, BatchStatus, Customer, SalesOrder, CustomerTier, ForecastDataPoint, DemandAlert, ActionOpportunity, Vendor, PurchaseSuggestion, SystemEvent, SystemSettings, CrmContact, CrmDeal, CrmActivity, CrmUser, CrmSettings } from './types';
+import { Product, InventoryStatus, Category, ABCClass, XYZClass, SalesRecord, Transfer, ProductionBatch, BatchStatus, Customer, SalesOrder, CustomerTier, ForecastDataPoint, DemandAlert, ActionOpportunity, Vendor, PurchaseSuggestion, SystemEvent, SystemSettings, CrmContact, CrmDeal, CrmActivity, CrmUser, CrmSettings, TaxRule, PricingRule, PaymentRule } from './types';
 
+export const RETEFUENTE_RATE = 2.5;
+export const RETEICA_BOGOTA = 1.104;
+export const RETEICA_BARRANQUILLA = 0.966;
 export const DEFAULT_SETTINGS: SystemSettings = {
   inventory: {
     slowAgingDays: 60,
@@ -25973,7 +25976,65 @@ export const SALES_DATA: SalesRecord[] = [
 
 export const MOCK_TRANSFERS: Transfer[] = [];
 
-export const MOCK_PRODUCTION: ProductionBatch[] = [];
+export const MOCK_PRODUCTION: ProductionBatch[] = [
+    {
+        id: 'PB-1001',
+        batchNumber: 'L-240315-A',
+        productName: 'Sellador Industrial Pro 550',
+        sku: 'FG-COAT-550',
+        status: BatchStatus.COMPLETED,
+        startDate: '2024-03-14',
+        endDate: '2024-03-15',
+        plannedOutput: 1000,
+        actualOutput: 980,
+        waste: 20,
+        rework: false,
+        standardUnitCost: 45.00,
+        realUnitCost: 45.92,
+        ingredients: [
+            { name: 'Resina Base', unit: 'kg', plannedQty: 500, actualQty: 505, costImpact: 600 },
+            { name: 'Solvente Industrial', unit: 'L', plannedQty: 300, actualQty: 300, costImpact: 0 },
+            { name: 'Aditivo Curado', unit: 'kg', plannedQty: 50, actualQty: 52, costImpact: 200 }
+        ]
+    },
+    {
+        id: 'PB-1002',
+        batchNumber: 'L-240316-B',
+        productName: 'Kit Epóxico Marino (Parte A)',
+        sku: 'FG-EPOX-900',
+        status: BatchStatus.QA_CHECK,
+        startDate: '2024-03-16',
+        plannedOutput: 500,
+        actualOutput: 460,
+        waste: 40,
+        rework: true,
+        standardUnitCost: 150.00,
+        realUnitCost: 175.50,
+        ingredients: [
+            { name: 'Epoxi Resina Pura', unit: 'kg', plannedQty: 300, actualQty: 320, costImpact: 3000 },
+            { name: 'Catalizador', unit: 'L', plannedQty: 100, actualQty: 100, costImpact: 0 },
+            { name: 'Pigmento Blanco', unit: 'kg', plannedQty: 20, actualQty: 20, costImpact: 0 }
+        ]
+    },
+    {
+        id: 'PB-1003',
+        batchNumber: 'L-240317-C',
+        productName: 'Primer Universal Gris',
+        sku: 'FG-PRIM-200',
+        status: BatchStatus.IN_PROGRESS,
+        startDate: '2024-03-17',
+        plannedOutput: 2000,
+        actualOutput: 0,
+        waste: 0,
+        rework: false,
+        standardUnitCost: 25.00,
+        realUnitCost: 25.00,
+        ingredients: [
+            { name: 'Base Acrílica', unit: 'kg', plannedQty: 1200, actualQty: 600, costImpact: 0 },
+            { name: 'Pigmento Gris', unit: 'kg', plannedQty: 100, actualQty: 50, costImpact: 0 }
+        ]
+    }
+];
 
 export const MOCK_CUSTOMERS: Customer[] = [
   { id: 'CUST-001', name: 'Constructora Mega', tier: CustomerTier.STRATEGIC, slaLevel: 'Gold' },
@@ -26226,6 +26287,25 @@ export const MOCK_EVENT_LOG: SystemEvent[] = [
   }
 ];
 
+// --- COMMERCIAL RULES MOCK DATA ---
+export const MOCK_TAX_RULES: TaxRule[] = [
+  { id: 'TAX-001', name: 'Régimen Común', taxRateOverride: 19 },
+  { id: 'TAX-002', name: 'Zona Franca', taxRateOverride: 0 }
+];
+
+export const MOCK_PRICING_RULES: PricingRule[] = [
+  { id: 'PR-001', name: 'Minorista (Sin Descuento)', discountPercentage: 0 },
+  { id: 'PR-002', name: 'Mayorista (10%)', discountPercentage: 10 },
+  { id: 'PR-003', name: 'Estratégico VIP (15%)', discountPercentage: 15 }
+];
+
+export const MOCK_PAYMENT_RULES: PaymentRule[] = [
+  { id: 'PAY-001', name: 'Contado Estricto', type: 'CONTADO' },
+  { id: 'PAY-002', name: 'Crédito a 30 Días', type: 'CREDITO', days: 30 },
+  { id: 'PAY-003', name: 'Crédito a 60 Días', type: 'CREDITO', days: 60 },
+  { id: 'PAY-004', name: 'Crédito a 90 Días', type: 'CREDITO', days: 90 }
+];
+
 // --- CRM MOCK DATA ---
 
 export const MOCK_CRM_CONTACTS: CrmContact[] = [
@@ -26240,8 +26320,13 @@ export const MOCK_CRM_CONTACTS: CrmContact[] = [
     source: 'GOOGLE_ADS',
     lastContactDate: new Date(Date.now() - 2 * 86400000).toISOString(), documentType: 'NIT', documentNumber: '900123456-1',
     decisionMakers: [{ name: 'Gerente General', position: 'Gerente', hobby: 'Golf', birthday: '1980-05-15' }],
+    taxRuleId: 'TAX-002', // Zona Franca
+    pricingRuleId: 'PR-003', // 15% VIP
+    paymentRuleId: 'PAY-004', // 90 Días
     ownerId: 'U-001',
     postSaleStage: 'FIDELIZACION',
+    fiscalClassification: 'GRAN_CONTRIBUYENTE',
+    cityCode: 'BOGOTA',
     purchaseHistory: {
       monthly: 125000000,
       quarterly: 350000000,
@@ -26271,6 +26356,8 @@ export const MOCK_CRM_CONTACTS: CrmContact[] = [
     decisionMakers: [{ name: 'Gerente General', position: 'Gerente', hobby: 'Golf', birthday: '1980-05-15' }],
     ownerId: 'U-002',
     postSaleStage: 'RENTABILIZACION',
+    fiscalClassification: 'PERSONA_JURIDICA',
+    cityCode: 'BARRANQUILLA',
     purchaseHistory: {
       monthly: 50000000,
       quarterly: 120000000,
@@ -26298,7 +26385,9 @@ export const MOCK_CRM_CONTACTS: CrmContact[] = [
     source: 'STREET',
     lastContactDate: new Date(Date.now() - 1 * 86400000).toISOString(), documentType: 'NIT', documentNumber: '900123456-1',
     decisionMakers: [{ name: 'Gerente General', position: 'Gerente', hobby: 'Golf', birthday: '1980-05-15' }],
-    ownerId: 'U-001'
+    ownerId: 'U-001',
+    fiscalClassification: 'PERSONA_NATURAL',
+    cityCode: 'OTRA'
   },
   {
     id: 'C-004',
@@ -26311,7 +26400,9 @@ export const MOCK_CRM_CONTACTS: CrmContact[] = [
     source: 'MANUAL',
     lastContactDate: new Date(Date.now() - 45 * 86400000).toISOString(), documentType: 'NIT', documentNumber: '900123456-1',
     decisionMakers: [{ name: 'Gerente General', position: 'Gerente', hobby: 'Golf', birthday: '1980-05-15' }],
-    ownerId: 'U-003'
+    ownerId: 'U-003',
+    fiscalClassification: 'REGIMEN_SIMPLE',
+    cityCode: 'BOGOTA'
   },
   {
     id: 'C-005',
@@ -26324,7 +26415,9 @@ export const MOCK_CRM_CONTACTS: CrmContact[] = [
     source: 'INSTAGRAM',
     lastContactDate: new Date(Date.now() - 10 * 86400000).toISOString(), documentType: 'NIT', documentNumber: '900123456-1',
     decisionMakers: [{ name: 'Gerente General', position: 'Gerente', hobby: 'Golf', birthday: '1980-05-15' }],
-    ownerId: 'U-002'
+    ownerId: 'U-002',
+    fiscalClassification: 'PERSONA_JURIDICA',
+    cityCode: 'BARRANQUILLA'
   },
   {
     id: 'C-006',
@@ -26337,7 +26430,9 @@ export const MOCK_CRM_CONTACTS: CrmContact[] = [
     source: 'TIKTOK',
     lastContactDate: new Date(Date.now() - 3 * 86400000).toISOString(), documentType: 'NIT', documentNumber: '900123456-1',
     decisionMakers: [{ name: 'Gerente General', position: 'Gerente', hobby: 'Golf', birthday: '1980-05-15' }],
-    ownerId: 'U-001'
+    ownerId: 'U-001',
+    fiscalClassification: 'PERSONA_NATURAL',
+    cityCode: 'BOGOTA'
   }
 ];
 

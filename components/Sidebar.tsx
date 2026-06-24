@@ -120,6 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         icon: FileSpreadsheet,
         children: [
             { to: "/accounting/sabana", icon: TableProperties, label: "Sábana General" },
+            { to: "/accounting/cartera", icon: HandCoins, label: "Estado de Cartera" },
             { to: "/accounting/cierres", icon: Calculator, label: "Cierres de Caja" },
             { to: "/accounting/ventas", icon: DollarSign, label: "Facturación (Ventas)" },
             { to: "/accounting/auditoria", icon: UserCheck, label: "Auditoría Terceros" },

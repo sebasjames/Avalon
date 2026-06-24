@@ -292,6 +292,9 @@ export interface CrmPurchaseHistory {
   evolution: { month: string; amount: number }[];
 }
 
+export type FiscalClassification = 'PERSONA_NATURAL' | 'PERSONA_JURIDICA' | 'GRAN_CONTRIBUYENTE' | 'REGIMEN_SIMPLE';
+export type CityCode = 'BOGOTA' | 'BARRANQUILLA' | 'OTRA';
+
 export interface CrmContact {
   id: string;
   name: string;
@@ -308,6 +311,30 @@ export interface CrmContact {
   documentNumber?: string;
   decisionMakers?: { name: string; position: string; hobby?: string; birthday?: string }[];
   purchaseHistory?: CrmPurchaseHistory;
+  taxRuleId?: string;
+  pricingRuleId?: string;
+  paymentRuleId?: string;
+  fiscalClassification?: FiscalClassification;
+  cityCode?: CityCode;
+}
+
+export interface TaxRule {
+  id: string;
+  name: string;
+  taxRateOverride: number; // e.g., 0 for Zona Franca
+}
+
+export interface PricingRule {
+  id: string;
+  name: string;
+  discountPercentage: number; // e.g., 15 for Mayorista
+}
+
+export interface PaymentRule {
+  id: string;
+  name: string;
+  type: 'CONTADO' | 'CREDITO';
+  days?: number; // e.g., 30, 60, 90
 }
 
 export interface CrmDeal {
@@ -446,6 +473,7 @@ export interface AccountingTransaction {
   date: string;
   type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA';
   client: string;
+  clientId?: string;
   document: string;
   sku: string;
   productName: string;
@@ -454,6 +482,9 @@ export interface AccountingTransaction {
   iva: number;
   paymentMethod: string;
   posLocation: string;
+  dueDate?: string;
+  paymentStatus?: 'PENDIENTE' | 'PAGADA' | 'EN_MORA';
+  balance?: number;
 }
 
 export interface TaxRate {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
-import { MOCK_INVENTORY, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_CONTACTS, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe } from '../types';
+import { MOCK_INVENTORY, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_CONTACTS, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES } from '../constants';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule } from '../types';
 
 interface EnterpriseContextType {
     inventory: Product[];
@@ -56,6 +56,14 @@ interface EnterpriseContextType {
     // --- Configuración Impuestos ---
     taxRates: TaxRate[];
     setTaxRates: (rates: TaxRate[]) => void;
+
+    // --- Commercial Rules ---
+    taxRules: TaxRule[];
+    setTaxRules: (rules: TaxRule[]) => void;
+    pricingRules: PricingRule[];
+    setPricingRules: (rules: PricingRule[]) => void;
+    paymentRules: PaymentRule[];
+    setPaymentRules: (rules: PaymentRule[]) => void;
 
     // --- Fórmulas y Recetas ---
     recipes: Recipe[];
@@ -139,15 +147,18 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [recipes, setRecipes] = useState<Recipe[]>([
         {
             id: 'REC-1',
-            finalProductId: '4191', // MOCK_INVENTORY id for 'IL-PL 800' just as an example
+            finalProductId: '4191', 
             ingredients: [
-                { productId: '202401', quantity: 0.8 }, // Needs to match real IDs, but just an example
+                { productId: '202401', quantity: 0.8 }, 
                 { productId: '202402', quantity: 0.2 },
-                { productId: 'SERV-MANO-OBRA', quantity: 1 } // Adding 1 hour of labor
+                { productId: 'SERV-MANO-OBRA', quantity: 1 } 
             ]
         }
     ]);
-
+    const [taxRules, setTaxRules] = useState<TaxRule[]>(MOCK_TAX_RULES);
+    const [pricingRules, setPricingRules] = useState<PricingRule[]>(MOCK_PRICING_RULES);
+    const [paymentRules, setPaymentRules] = useState<PaymentRule[]>(MOCK_PAYMENT_RULES);
+    
     const addRecipe = (recipe: Recipe) => setRecipes(prev => [...prev, recipe]);
     const deleteRecipe = (id: string) => setRecipes(prev => prev.filter(r => r.id !== id));
 
@@ -202,11 +213,35 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 iva = 0;
             }
 
+            let dueDate: string | undefined;
+            let paymentStatus: 'PENDIENTE' | 'PAGADA' | 'EN_MORA' | undefined;
+            let balance: number | undefined;
+
+            if (type === 'VENTA') {
+                if (method === 'CREDITO') {
+                    const termDays = [30, 60, 90][Math.floor(Math.random() * 3)];
+                    const due = new Date(date.getTime() + termDays * 24 * 60 * 60 * 1000);
+                    dueDate = due.toISOString().split('T')[0];
+                    
+                    if (due < new Date()) {
+                        paymentStatus = Math.random() > 0.4 ? 'EN_MORA' : 'PAGADA'; 
+                    } else {
+                        paymentStatus = Math.random() > 0.8 ? 'PAGADA' : 'PENDIENTE'; 
+                    }
+                    balance = paymentStatus === 'PAGADA' ? 0 : Math.round(total);
+                } else {
+                    paymentStatus = 'PAGADA';
+                    balance = 0;
+                    dueDate = dateStr;
+                }
+            }
+
             generated.push({
                 id,
                 date: dateStr,
                 type,
                 client: contact.name,
+                clientId: contact.id,
                 document: `${contact.documentType || 'NIT'} ${contact.documentNumber}`,
                 productName: product.name,
                 sku: product.sku,
@@ -214,7 +249,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 total: Math.round(total),
                 iva: Math.round(iva),
                 paymentMethod: type === 'VENTA' ? method : '-',
-                posLocation: type === 'VENTA' ? 'Sede Principal' : 'Bodega Central'
+                posLocation: type === 'VENTA' ? 'Sede Principal' : 'Bodega Central',
+                dueDate,
+                paymentStatus,
+                balance
             });
         }
         return generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -561,7 +599,13 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             setTaxRates,
             recipes,
             addRecipe,
-            deleteRecipe
+            deleteRecipe,
+            taxRules,
+            setTaxRules,
+            pricingRules,
+            setPricingRules,
+            paymentRules,
+            setPaymentRules
         }}>
             {children}
         </EnterpriseContext.Provider>

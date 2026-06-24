@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
     Calculator, FileSpreadsheet, Download, AlertTriangle, 
     CheckCircle2, DollarSign, PackageOpen, TableProperties,
-    Calendar, Filter, Search, ArrowRight, UserCheck, Mail, Send, CreditCard, Banknote
+    Calendar, Filter, Search, ArrowRight, UserCheck, Mail, Send, CreditCard, Banknote, Wallet, HandCoins
 } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import * as XLSX from 'xlsx';
@@ -16,12 +16,12 @@ export const AccountingModule: React.FC = () => {
     const { tabId } = useParams<{ tabId: string }>();
 
     // Valid tabs
-    const validTabs = ['sabana', 'cierres', 'ventas', 'auditoria', 'inventario', 'exportacion', 'importaciones'];
+    const validTabs = ['sabana', 'cartera', 'cierres', 'ventas', 'auditoria', 'inventario', 'exportacion', 'importaciones'];
     if (!tabId || !validTabs.includes(tabId)) {
         return <Navigate to="/accounting/sabana" replace />;
     }
 
-    const activeTab = tabId as 'sabana' | 'cierres' | 'ventas' | 'auditoria' | 'inventario' | 'exportacion' | 'importaciones';
+    const activeTab = tabId as 'sabana' | 'cartera' | 'cierres' | 'ventas' | 'auditoria' | 'inventario' | 'exportacion' | 'importaciones';
 
     // --- SABANA FILTER STATE ---
     const [showFilters, setShowFilters] = useState(false);
@@ -93,6 +93,66 @@ export const AccountingModule: React.FC = () => {
         XLSX.utils.book_append_sheet(wb, ws, "Sábana General");
         XLSX.writeFile(wb, `Sabana_Movimientos_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
+
+    const carteraData = useMemo(() => {
+        const cuentasPorCobrar = transactions.filter(t => t.type === 'VENTA' && t.paymentMethod === 'CREDITO');
+        
+        let carteraTotal = 0;
+        let carteraMora = 0;
+        let carteraSana = 0;
+        
+        let bucket30 = 0;
+        let bucket60 = 0;
+        let bucket90 = 0;
+        let bucket90Plus = 0;
+        
+        const now = new Date();
+        
+        const clientsWithDebt: Record<string, { client: string, document: string, totalDebt: number, status: 'MORA' | 'AL_DIA' | 'PAGADO', daysOverdue: number, latestDue: string }> = {};
+
+        cuentasPorCobrar.forEach(t => {
+            if (!t.balance) return; // Pagada
+            
+            carteraTotal += t.balance;
+            
+            const due = new Date(t.dueDate || t.date);
+            const diffTime = now.getTime() - due.getTime();
+            const daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (daysOverdue > 0) {
+                carteraMora += t.balance;
+                if (daysOverdue <= 30) bucket30 += t.balance;
+                else if (daysOverdue <= 60) bucket60 += t.balance;
+                else if (daysOverdue <= 90) bucket90 += t.balance;
+                else bucket90Plus += t.balance;
+            } else {
+                carteraSana += t.balance;
+            }
+            
+            if (!clientsWithDebt[t.client]) {
+                clientsWithDebt[t.client] = { client: t.client, document: t.document, totalDebt: 0, status: 'PAGADO', daysOverdue: 0, latestDue: t.dueDate || t.date };
+            }
+            clientsWithDebt[t.client].totalDebt += t.balance;
+            
+            if (daysOverdue > clientsWithDebt[t.client].daysOverdue) {
+                clientsWithDebt[t.client].daysOverdue = daysOverdue;
+                clientsWithDebt[t.client].status = daysOverdue > 0 ? 'MORA' : 'AL_DIA';
+            }
+        });
+
+        const chartData = [
+            { name: '< 30 Días', Valor: bucket30 },
+            { name: '31-60 Días', Valor: bucket60 },
+            { name: '61-90 Días', Valor: bucket90 },
+            { name: '> 90 Días', Valor: bucket90Plus },
+        ];
+
+        return {
+            carteraTotal, carteraMora, carteraSana,
+            chartData,
+            clientList: Object.values(clientsWithDebt).filter(c => c.totalDebt > 0).sort((a,b) => b.totalDebt - a.totalDebt)
+        };
+    }, [transactions]);
 
     const cierreData = useMemo(() => {
         const now = new Date();
@@ -382,6 +442,112 @@ export const AccountingModule: React.FC = () => {
                                                 ))}
                                             </tbody>
                                         </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB: CARTERA */}
+                        {activeTab === 'cartera' && (
+                            <div className="space-y-6">
+                                {/* KPIs */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                                        <div className="p-3 bg-blue-100 rounded-xl">
+                                            <Wallet className="w-6 h-6 text-blue-700" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-500">Cartera Total</p>
+                                            <p className="text-2xl font-black text-slate-800">${carteraData.carteraTotal.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                                        <div className="p-3 bg-rose-100 rounded-xl">
+                                            <AlertTriangle className="w-6 h-6 text-rose-700" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-500">Cartera Vencida (Mora)</p>
+                                            <p className="text-2xl font-black text-rose-600">${carteraData.carteraMora.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+                                        <div className="p-3 bg-emerald-100 rounded-xl">
+                                            <CheckCircle2 className="w-6 h-6 text-emerald-700" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-500">Cartera Sana (Al día)</p>
+                                            <p className="text-2xl font-black text-emerald-600">${carteraData.carteraSana.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* AGING CHART & TABLE */}
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+                                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:col-span-1 h-full flex flex-col">
+                                        <h3 className="text-lg font-bold text-slate-800 mb-6">Antigüedad de Saldos en Mora</h3>
+                                        <div className="flex-1">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={carteraData.chartData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                    <XAxis type="number" />
+                                                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12, fontWeight: 'bold' }} />
+                                                    <Tooltip formatter={(value: number) => `$${value.toLocaleString()}`} />
+                                                    <Bar dataKey="Valor" fill="#e11d48" radius={[0, 4, 4, 0]} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-0 lg:col-span-2 overflow-hidden flex flex-col h-full">
+                                        <div className="p-6 border-b border-slate-100">
+                                            <h3 className="text-lg font-bold text-slate-800">Detalle por Cliente</h3>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-slate-50 sticky top-0">
+                                                    <tr>
+                                                        <th className="p-3 text-xs font-bold text-slate-500">Cliente</th>
+                                                        <th className="p-3 text-xs font-bold text-slate-500">Estado</th>
+                                                        <th className="p-3 text-xs font-bold text-slate-500 text-right">Saldo Pendiente ($)</th>
+                                                        <th className="p-3 text-xs font-bold text-slate-500 text-right">Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100">
+                                                    {carteraData.clientList.map((c, i) => (
+                                                        <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                                            <td className="p-3">
+                                                                <p className="text-sm font-bold text-slate-800">{c.client}</p>
+                                                                <p className="text-[10px] text-slate-500">{c.document}</p>
+                                                            </td>
+                                                            <td className="p-3">
+                                                                <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                                                                    c.status === 'MORA' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+                                                                }`}>
+                                                                    {c.status === 'MORA' ? `Mora (${c.daysOverdue} días)` : 'Al Día'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-3 text-sm font-black text-slate-800 text-right">
+                                                                ${c.totalDebt.toLocaleString()}
+                                                            </td>
+                                                            <td className="p-3 text-right">
+                                                                {c.status === 'MORA' && (
+                                                                    <button className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs font-bold flex items-center justify-center ml-auto gap-1 transition">
+                                                                        <Mail className="w-3 h-3" /> Cobrar
+                                                                    </button>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {carteraData.clientList.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={4} className="p-8 text-center text-slate-500 font-bold">
+                                                                No hay cuentas por cobrar pendientes.
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

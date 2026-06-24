@@ -6,9 +6,10 @@ import {
     Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown
 } from 'lucide-react';
 import { Product, CrmContact, CustomerTier } from '../types';
+import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
 
 export const SmartPosPanel: React.FC = () => {
-    const { inventory, contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, fractionalRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes } = useEnterprise();
+    const { inventory, contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, fractionalRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes, taxRules, pricingRules, paymentRules } = useEnterprise();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const isReversedDisplay = (product: Product) => {
@@ -81,10 +82,16 @@ export const SmartPosPanel: React.FC = () => {
 
     const discountPercent = useMemo(() => {
         if (!activeCustomer) return 0;
+        
+        if (activeCustomer.pricingRuleId) {
+            const rule = pricingRules.find(r => r.id === activeCustomer.pricingRuleId);
+            if (rule) return rule.discountPercentage;
+        }
+
         if (activeCustomer.tier === CustomerTier.STRATEGIC) return 15;
         if (activeCustomer.tier === CustomerTier.REGULAR) return 5;
         return 0;
-    }, [activeCustomer]);
+    }, [activeCustomer, pricingRules]);
 
     const filteredCatalog = useMemo(() => {
         if (!search) return inventory;
@@ -221,6 +228,13 @@ export const SmartPosPanel: React.FC = () => {
         // Find default rate if product doesn't have one
         const defaultTax = taxRates?.find(t => t.isDefault) || { percentage: 19 };
 
+        // Check if customer has a tax rule override
+        let overrideRate: number | null = null;
+        if (activeCustomer && activeCustomer.taxRuleId) {
+            const rule = taxRules.find(r => r.id === activeCustomer.taxRuleId);
+            if (rule) overrideRate = rule.taxRateOverride;
+        }
+
         cart.forEach(item => {
             const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
             const multiplier = item.isCunete ? 20 : 1;
@@ -228,19 +242,39 @@ export const SmartPosPanel: React.FC = () => {
             const discountRatio = discountPercent > 0 ? (1 - discountPercent / 100) : 1;
             const finalLineTotal = lineTotal * discountRatio;
             
-            // Apply product rate or default rate
-            const rate = item.product.taxRate ?? defaultTax.percentage;
+            // Apply customer tax rule override, product rate, or default rate
+            const rate = overrideRate !== null ? overrideRate : (item.product.taxRate ?? defaultTax.percentage);
             
             if (!breakdown[rate]) breakdown[rate] = 0;
             breakdown[rate] += finalLineTotal * (rate / 100);
         });
         
         return breakdown;
-    }, [cart, discountPercent, taxRates]);
+    }, [cart, discountPercent, taxRates, activeCustomer, taxRules]);
 
     const taxes = Object.values(taxesBreakdown).reduce((acc, val) => acc + val, 0);
 
-    const total = (subtotal - discountAmount) + taxes;
+    const retenciones = useMemo(() => {
+        let reteFuente = 0;
+        let reteIca = 0;
+        
+        const subtotalNeto = subtotal - discountAmount;
+        
+        if (activeCustomer) {
+            if (activeCustomer.fiscalClassification === 'PERSONA_JURIDICA' || activeCustomer.fiscalClassification === 'GRAN_CONTRIBUYENTE') {
+                reteFuente = subtotalNeto * (RETEFUENTE_RATE / 100); 
+            }
+            if (activeCustomer.cityCode === 'BOGOTA') {
+                reteIca = subtotalNeto * (RETEICA_BOGOTA / 100); 
+            } else if (activeCustomer.cityCode === 'BARRANQUILLA') {
+                reteIca = subtotalNeto * (RETEICA_BARRANQUILLA / 100); 
+            }
+        }
+        
+        return { reteFuente, reteIca };
+    }, [activeCustomer, subtotal, discountAmount]);
+
+    const total = (subtotal - discountAmount) + taxes - retenciones.reteFuente - retenciones.reteIca;
 
     const totalCost = useMemo(() => {
         return cart.reduce((acc, item) => {
@@ -696,6 +730,18 @@ export const SmartPosPanel: React.FC = () => {
                                 </div>
                             );
                         })}
+                        {retenciones.reteFuente > 0 && (
+                            <div className="flex justify-between text-rose-400 text-sm font-medium">
+                                <span>ReteFuente ({RETEFUENTE_RATE}%)</span>
+                                <span>-${retenciones.reteFuente.toLocaleString('es-CO', { maximumFractionDigits: 0 })} COP</span>
+                            </div>
+                        )}
+                        {retenciones.reteIca > 0 && (
+                            <div className="flex justify-between text-rose-400 text-sm font-medium">
+                                <span>ReteICA</span>
+                                <span>-${retenciones.reteIca.toLocaleString('es-CO', { maximumFractionDigits: 0 })} COP</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-700">

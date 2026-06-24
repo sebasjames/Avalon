@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { X, Mail, Phone, Users, Plus, Calendar, Clock, Send, Paperclip, FileText, Download, UploadCloud, Trophy, CheckCircle2, TrendingUp, BarChart2, Eye } from 'lucide-react';
+import { X, Mail, Phone, Users, Plus, Calendar, Clock, Send, Paperclip, FileText, Download, UploadCloud, Trophy, CheckCircle2, TrendingUp, BarChart2, Eye, Tags } from 'lucide-react';
 import { CrmContact, CrmDeal, CrmActivity, CustomerTier, CrmAssignmentLog } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
 
@@ -22,7 +22,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
   const [taskDate, setTaskDate] = useState('');
   const [nextAction, setNextAction] = useState('');
   const [nextActionDate, setNextActionDate] = useState('');
-  const { setFullProfileContactId } = useEnterprise();
+  const { setFullProfileContactId, taxRules, pricingRules, paymentRules, updateContact } = useEnterprise();
   
   const [mockFiles, setMockFiles] = useState([
     { id: 'f1', name: 'Cotizacion_Procoquinal_v2.pdf', size: '1.2 MB', date: 'Hoy' },
@@ -197,6 +197,76 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                   {sourceBadge.label}
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* Commercial Rules Section */}
+          <section>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+                <Tags className="w-4 h-4 text-indigo-500" />
+                Condiciones Comerciales
+            </h3>
+            <div className="space-y-3 bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Regla Fiscal (Impuestos)</label>
+                    <select 
+                        value={contact.taxRuleId || ''}
+                        onChange={(e) => updateContact(contact.id, { taxRuleId: e.target.value || undefined })}
+                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <option value="">Ninguna (Por defecto)</option>
+                        {taxRules.map(r => <option key={r.id} value={r.id}>{r.name} (IVA {r.taxRateOverride}%)</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Regla de Precio</label>
+                    <select 
+                        value={contact.pricingRuleId || ''}
+                        onChange={(e) => updateContact(contact.id, { pricingRuleId: e.target.value || undefined })}
+                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <option value="">Ninguna (Sin descuento especial)</option>
+                        {pricingRules.map(r => <option key={r.id} value={r.id}>{r.name} ({r.discountPercentage}%)</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Condición de Pago</label>
+                    <select 
+                        value={contact.paymentRuleId || ''}
+                        onChange={(e) => updateContact(contact.id, { paymentRuleId: e.target.value || undefined })}
+                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <option value="">Ninguna (Contado por defecto)</option>
+                        {paymentRules.map(r => <option key={r.id} value={r.id}>{r.name} {r.type === 'CREDITO' ? `(${r.days} días)` : ''}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Clasificación Fiscal</label>
+                    <select 
+                        value={contact.fiscalClassification || ''}
+                        onChange={(e) => updateContact(contact.id, { fiscalClassification: (e.target.value as any) || undefined })}
+                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <option value="">Seleccione clasificación...</option>
+                        <option value="PERSONA_NATURAL">Persona Natural</option>
+                        <option value="PERSONA_JURIDICA">Persona Jurídica</option>
+                        <option value="GRAN_CONTRIBUYENTE">Gran Contribuyente</option>
+                        <option value="REGIMEN_SIMPLE">Régimen Simple</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Ciudad (Sede de Operación)</label>
+                    <select 
+                        value={contact.cityCode || ''}
+                        onChange={(e) => updateContact(contact.id, { cityCode: (e.target.value as any) || undefined })}
+                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <option value="">Seleccione ciudad...</option>
+                        <option value="BOGOTA">Bogotá D.C.</option>
+                        <option value="BARRANQUILLA">Barranquilla</option>
+                        <option value="OTRA">Otra / Exento</option>
+                    </select>
+                </div>
             </div>
           </section>
 

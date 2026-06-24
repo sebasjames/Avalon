@@ -22,13 +22,16 @@ import {
   Receipt
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
-import { SystemSettings } from '../types';
+import { SystemSettings, TaxRule, PricingRule, PaymentRule } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
 
 export const Configuration: React.FC = () => {
-  const { paymentMethods, setPaymentMethods, pointsOfSale, setPointsOfSale, taxRates, setTaxRates } = useEnterprise();
+  const { 
+    paymentMethods, setPaymentMethods, pointsOfSale, setPointsOfSale, taxRates, setTaxRates,
+    taxRules, setTaxRules, pricingRules, setPricingRules, paymentRules, setPaymentRules
+  } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos'>('inventario');
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas'>('inventario');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
@@ -173,6 +176,7 @@ export const Configuration: React.FC = () => {
     { id: 'compras', label: 'Compras', icon: ShoppingCart },
     { id: 'finanzas', label: 'Finanzas', icon: DollarSign },
     { id: 'impuestos', label: 'Impuestos', icon: Receipt },
+    { id: 'reglas', label: 'Reglas Comerciales', icon: Tags },
   ];
 
   return (
@@ -1117,6 +1121,165 @@ export const Configuration: React.FC = () => {
                                             <button 
                                                 onClick={() => setTaxRates(taxRates.filter(t => t.id !== tax.id))}
                                                 className="text-slate-400 hover:text-red-500 transition-colors p-2"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === 'reglas' && (
+                <div className="space-y-8">
+                  {/* Reglas Fiscales */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Reglas Fiscales (Impuestos)</h2>
+                            <p className="text-sm text-slate-500">Exenciones de IVA (ej. Zona Franca)</p>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const name = prompt("Nombre de la regla fiscal (ej. Zona Franca):");
+                                if (!name) return;
+                                const rate = parseFloat(prompt("Override de IVA (%):") || "0");
+                                setTaxRules([...taxRules, { id: 'TAX-' + Date.now(), name, taxRateOverride: isNaN(rate) ? 0 : rate }]);
+                            }}
+                            className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-indigo-100 flex items-center gap-2"
+                        >
+                            <Plus size={16} /> Nueva Regla Fiscal
+                        </button>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border border-slate-200">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                                <tr>
+                                    <th className="p-4">Nombre</th>
+                                    <th className="p-4 text-right">IVA Override (%)</th>
+                                    <th className="p-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {taxRules.map(rule => (
+                                    <tr key={rule.id} className="hover:bg-slate-50">
+                                        <td className="p-4 font-bold text-slate-800">{rule.name}</td>
+                                        <td className="p-4 font-mono text-slate-600 text-right">{rule.taxRateOverride}%</td>
+                                        <td className="p-4 text-center">
+                                            <button 
+                                                onClick={() => setTaxRules(taxRules.filter(r => r.id !== rule.id))}
+                                                className="text-slate-400 hover:text-red-500 p-2"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                  </section>
+
+                  {/* Reglas de Precios */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Reglas de Precios y Descuentos</h2>
+                            <p className="text-sm text-slate-500">Descuentos fijos por cliente (ej. Mayorista)</p>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const name = prompt("Nombre de la regla de precio (ej. Mayorista VIP):");
+                                if (!name) return;
+                                const pct = parseFloat(prompt("Porcentaje de descuento (%):") || "0");
+                                setPricingRules([...pricingRules, { id: 'PR-' + Date.now(), name, discountPercentage: isNaN(pct) ? 0 : pct }]);
+                            }}
+                            className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-indigo-100 flex items-center gap-2"
+                        >
+                            <Plus size={16} /> Nueva Regla Precio
+                        </button>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border border-slate-200">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                                <tr>
+                                    <th className="p-4">Nombre</th>
+                                    <th className="p-4 text-right">Descuento (%)</th>
+                                    <th className="p-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {pricingRules.map(rule => (
+                                    <tr key={rule.id} className="hover:bg-slate-50">
+                                        <td className="p-4 font-bold text-slate-800">{rule.name}</td>
+                                        <td className="p-4 font-mono text-slate-600 text-right">{rule.discountPercentage}%</td>
+                                        <td className="p-4 text-center">
+                                            <button 
+                                                onClick={() => setPricingRules(pricingRules.filter(r => r.id !== rule.id))}
+                                                className="text-slate-400 hover:text-red-500 p-2"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                  </section>
+
+                  {/* Reglas de Pago */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Condiciones de Crédito y Pago</h2>
+                            <p className="text-sm text-slate-500">Plazos y términos (ej. 30, 60, 90 días)</p>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const name = prompt("Nombre de la regla de pago (ej. Crédito 45 Días):");
+                                if (!name) return;
+                                const type = prompt("Tipo (CONTADO / CREDITO):", "CREDITO")?.toUpperCase();
+                                if (type !== 'CONTADO' && type !== 'CREDITO') return alert("Tipo inválido. Usa CONTADO o CREDITO.");
+                                let days = 0;
+                                if (type === 'CREDITO') {
+                                    days = parseInt(prompt("Días de crédito (ej. 45):") || "0");
+                                }
+                                setPaymentRules([...paymentRules, { id: 'PAY-' + Date.now(), name, type: type as 'CONTADO'|'CREDITO', days: isNaN(days) ? 0 : days }]);
+                            }}
+                            className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-indigo-100 flex items-center gap-2"
+                        >
+                            <Plus size={16} /> Nueva Regla Pago
+                        </button>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border border-slate-200">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                                <tr>
+                                    <th className="p-4">Nombre</th>
+                                    <th className="p-4 text-center">Tipo</th>
+                                    <th className="p-4 text-right">Días Plazo</th>
+                                    <th className="p-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {paymentRules.map(rule => (
+                                    <tr key={rule.id} className="hover:bg-slate-50">
+                                        <td className="p-4 font-bold text-slate-800">{rule.name}</td>
+                                        <td className="p-4 text-center">
+                                            <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase ${rule.type === 'CONTADO' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                                {rule.type}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 font-mono text-slate-600 text-right">{rule.days ? `${rule.days} días` : '-'}</td>
+                                        <td className="p-4 text-center">
+                                            <button 
+                                                onClick={() => setPaymentRules(paymentRules.filter(r => r.id !== rule.id))}
+                                                className="text-slate-400 hover:text-red-500 p-2"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
