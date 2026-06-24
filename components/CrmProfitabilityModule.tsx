@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { TrendingDown, TrendingUp, AlertOctagon, PhoneCall, Calendar, Target, DollarSign, Activity } from 'lucide-react';
+import { TrendingDown, TrendingUp, AlertOctagon, PhoneCall, Calendar, Target, DollarSign, Activity, CheckCircle2 } from 'lucide-react';
 import { CrmContact } from '../types';
 
 interface CrmProfitabilityModuleProps {

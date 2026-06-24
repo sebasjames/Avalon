@@ -5,7 +5,7 @@ import {
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
     PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
-    TableProperties, DollarSign, PackageOpen, UserCheck
+    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins
 } from 'lucide-react';
 
 interface SidebarProps {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, Briefcase, Calendar, BarChart3, Plus, Search, Filter, 
-  Phone, Mail, CheckCircle2, Clock, Share2, MapPin, Globe, UserPlus, AlertTriangle, Settings, PieChart, Target, Heart
+  Phone, Mail, CheckCircle2, Clock, Share2, MapPin, Globe, UserPlus, AlertTriangle, Settings, PieChart, Target, Heart, Trash2
 } from 'lucide-react';
 
 import { CrmDealStage, CrmLeadSource, CustomerTier, CrmDeal, CrmContact, CrmActivity } from '../types';
