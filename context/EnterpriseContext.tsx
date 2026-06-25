@@ -255,6 +255,64 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 balance
             });
         }
+
+        // ---- INJECT HARDCODED MOCK DATA FOR "CIERRE DE CAJA" (HOY) ----
+        const hoyStr = new Date().toISOString().split('T')[0];
+        for (let i = 0; i < 15; i++) {
+            const product = MOCK_INVENTORY[Math.floor(Math.random() * MOCK_INVENTORY.length)];
+            const total = (product.price || (product.unitCost * 1.4)) * 3;
+            generated.push({
+                id: `FV-HOY-${i}`,
+                date: hoyStr,
+                type: 'VENTA',
+                client: 'Consumidor Final',
+                clientId: '',
+                document: '222222222',
+                productName: product.name,
+                sku: product.sku,
+                qty: 3,
+                total: Math.round(total),
+                iva: Math.round(total * 0.19),
+                paymentMethod: i % 2 === 0 ? 'EFECTIVO' : (i % 3 === 0 ? 'TRANSFERENCIA' : 'DATAFONO'),
+                posLocation: 'Sede Principal',
+                dueDate: hoyStr,
+                paymentStatus: 'PAGADA',
+                balance: 0
+            });
+        }
+
+        // ---- INJECT HARDCODED MOCK DATA FOR "ESTADO DE CARTERA" (MORA Y AL DIA) ----
+        const diasAtras = [15, 45, 75, 120];
+        diasAtras.forEach((dias, idx) => {
+            const pastDate = new Date(Date.now() - dias * 24 * 60 * 60 * 1000);
+            const dateStr = pastDate.toISOString().split('T')[0];
+            const due = new Date(pastDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+            const dueStr = due.toISOString().split('T')[0];
+            const isOverdue = due < new Date();
+            const contact = MOCK_CRM_CONTACTS[idx % MOCK_CRM_CONTACTS.length];
+            const product = MOCK_INVENTORY[idx % MOCK_INVENTORY.length];
+            const total = (product.price || (product.unitCost * 1.4)) * 50;
+
+            generated.push({
+                id: `FV-CART-${idx}`,
+                date: dateStr,
+                type: 'VENTA',
+                client: contact.name,
+                clientId: contact.id,
+                document: `${contact.documentType || 'NIT'} ${contact.documentNumber}`,
+                productName: product.name,
+                sku: product.sku,
+                qty: 50,
+                total: Math.round(total),
+                iva: Math.round(total * 0.19),
+                paymentMethod: 'CREDITO',
+                posLocation: 'Sede Principal',
+                dueDate: dueStr,
+                paymentStatus: isOverdue ? 'EN_MORA' : 'PENDIENTE',
+                balance: Math.round(total)
+            });
+        });
+
         return generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     });
 

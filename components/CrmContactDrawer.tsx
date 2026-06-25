@@ -35,6 +35,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
     hobbies: '',
     favoriteSport: ''
   });
+  const [isEditingCommercialRules, setIsEditingCommercialRules] = useState(false);
 
   // Calculate completeness based on filled affinity fields (mock logic)
   const filledFields = Object.values(affinityData).filter(val => val.trim() !== '').length;
@@ -57,6 +58,11 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
   const handleSimulateUpload = () => {
     setMockFiles([{ id: Date.now().toString(), name: 'Documento_Adjunto_Nuevo.pdf', size: '0.8 MB', date: 'Recién ahora' }, ...mockFiles]);
   };
+
+  const timelineEvents = [
+    ...contactActivities.map(a => ({ ...a, eventType: 'ACTIVITY' as const })),
+    ...contactAssignmentLogs.map(l => ({ ...l, eventType: 'ASSIGNMENT' as const }))
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/20 backdrop-blur-sm">
@@ -200,76 +206,6 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
             </div>
           </section>
 
-          {/* Commercial Rules Section */}
-          <section>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1">
-                <Tags className="w-4 h-4 text-indigo-500" />
-                Condiciones Comerciales
-            </h3>
-            <div className="space-y-3 bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
-                <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Regla Fiscal (Impuestos)</label>
-                    <select 
-                        value={contact.taxRuleId || ''}
-                        onChange={(e) => updateContact(contact.id, { taxRuleId: e.target.value || undefined })}
-                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <option value="">Ninguna (Por defecto)</option>
-                        {taxRules.map(r => <option key={r.id} value={r.id}>{r.name} (IVA {r.taxRateOverride}%)</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Regla de Precio</label>
-                    <select 
-                        value={contact.pricingRuleId || ''}
-                        onChange={(e) => updateContact(contact.id, { pricingRuleId: e.target.value || undefined })}
-                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <option value="">Ninguna (Sin descuento especial)</option>
-                        {pricingRules.map(r => <option key={r.id} value={r.id}>{r.name} ({r.discountPercentage}%)</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Condición de Pago</label>
-                    <select 
-                        value={contact.paymentRuleId || ''}
-                        onChange={(e) => updateContact(contact.id, { paymentRuleId: e.target.value || undefined })}
-                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <option value="">Ninguna (Contado por defecto)</option>
-                        {paymentRules.map(r => <option key={r.id} value={r.id}>{r.name} {r.type === 'CREDITO' ? `(${r.days} días)` : ''}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Clasificación Fiscal</label>
-                    <select 
-                        value={contact.fiscalClassification || ''}
-                        onChange={(e) => updateContact(contact.id, { fiscalClassification: (e.target.value as any) || undefined })}
-                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <option value="">Seleccione clasificación...</option>
-                        <option value="PERSONA_NATURAL">Persona Natural</option>
-                        <option value="PERSONA_JURIDICA">Persona Jurídica</option>
-                        <option value="GRAN_CONTRIBUYENTE">Gran Contribuyente</option>
-                        <option value="REGIMEN_SIMPLE">Régimen Simple</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Ciudad (Sede de Operación)</label>
-                    <select 
-                        value={contact.cityCode || ''}
-                        onChange={(e) => updateContact(contact.id, { cityCode: (e.target.value as any) || undefined })}
-                        className="w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <option value="">Seleccione ciudad...</option>
-                        <option value="BOGOTA">Bogotá D.C.</option>
-                        <option value="BARRANQUILLA">Barranquilla</option>
-                        <option value="OTRA">Otra / Exento</option>
-                    </select>
-                </div>
-            </div>
-          </section>
-
           {/* Historical Purchase Section (Req 16) */}
           {contact.purchaseHistory && (
           <section>
@@ -401,71 +337,160 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
             </div>
           </section>
 
-          {/* Activities Section */}
+          {/* Unified Timeline Section (Phase 1) */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividades ({contactActivities.length})</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Timeline ({timelineEvents.length})</h3>
             </div>
-            <div className="space-y-3">
-              {contactActivities.length > 0 ? contactActivities.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(activity => (
-                <div key={activity.id} className={`flex gap-3 p-3 rounded-lg border shadow-sm ${new Date(activity.date) > new Date() && activity.status !== 'COMPLETED' ? 'border-amber-200 bg-amber-50/30' : 'border-slate-100 bg-white'}`}>
-                  <div className={`mt-0.5 p-2 rounded-full h-fit ${
-                    activity.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-600' : 
-                    new Date(activity.date) < new Date() ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
-                  }`}>
-                    {activity.type === 'CALL' ? <Phone className="w-3 h-3" /> : 
-                     activity.type === 'EMAIL' ? <Mail className="w-3 h-3" /> : 
-                     <Calendar className="w-3 h-3" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-semibold text-slate-900 text-sm flex gap-2">
-                        {activity.title}
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded uppercase">{activity.type}</span>
-                      </h4>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">{activity.description}</p>
-                    {activity.nextAction && (
-                        <div className="mt-2 p-2 bg-indigo-50 border border-indigo-100 rounded-md">
-                            <span className="text-[10px] font-bold text-indigo-700 uppercase">Siguiente Acción:</span>
-                            <p className="text-xs text-slate-700">{activity.nextAction} {activity.nextActionDate && <b>({new Date(activity.nextActionDate).toLocaleDateString()})</b>}</p>
+            <div className="relative border-l-2 border-slate-100 ml-4 space-y-6 pb-4">
+              {timelineEvents.length > 0 ? timelineEvents.map((event) => {
+                const isActivity = event.eventType === 'ACTIVITY';
+                if (isActivity) {
+                  const activity = event as typeof event & CrmActivity;
+                  return (
+                    <div key={activity.id} className="relative pl-6">
+                      <div className={`absolute -left-[17px] top-1 p-1.5 rounded-full border-2 border-white ${
+                        activity.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-600' : 
+                        new Date(activity.date) < new Date() ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
+                      }`}>
+                        {activity.type === 'CALL' ? <Phone className="w-3 h-3" /> : 
+                         activity.type === 'EMAIL' ? <Mail className="w-3 h-3" /> : 
+                         <Calendar className="w-3 h-3" />}
+                      </div>
+                      <div className={`p-3 rounded-lg border shadow-sm ${new Date(activity.date) > new Date() && activity.status !== 'COMPLETED' ? 'border-amber-200 bg-amber-50/30' : 'border-slate-100 bg-white'}`}>
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-semibold text-slate-900 text-sm flex gap-2">
+                            {activity.title}
+                            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded uppercase">{activity.type}</span>
+                          </h4>
                         </div>
-                    )}
-                    <time className={`text-[10px] font-bold flex items-center gap-1 mt-2 ${activity.status === 'COMPLETED' ? 'text-emerald-500' : new Date(activity.date) < new Date() ? 'text-rose-500' : 'text-amber-500'}`}>
-                      <Clock className="w-3 h-3" />
-                      {new Date(activity.date).toLocaleString('es-CO')} • {activity.status === 'COMPLETED' ? 'COMPLETADO' : activity.status === 'PENDING' ? 'PENDIENTE' : activity.status}
-                    </time>
-                  </div>
-                </div>
-              )) : (
-                <p className="text-sm text-slate-500 italic">No hay actividades registradas.</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{activity.description}</p>
+                        {activity.nextAction && (
+                            <div className="mt-2 p-2 bg-indigo-50 border border-indigo-100 rounded-md">
+                                <span className="text-[10px] font-bold text-indigo-700 uppercase">Siguiente Acción:</span>
+                                <p className="text-xs text-slate-700">{activity.nextAction} {activity.nextActionDate && <b>({new Date(activity.nextActionDate).toLocaleDateString()})</b>}</p>
+                            </div>
+                        )}
+                        <time className={`text-[10px] font-bold flex items-center gap-1 mt-2 ${activity.status === 'COMPLETED' ? 'text-emerald-500' : new Date(activity.date) < new Date() ? 'text-rose-500' : 'text-amber-500'}`}>
+                          <Clock className="w-3 h-3" />
+                          {new Date(activity.date).toLocaleString('es-CO')} • {activity.status === 'COMPLETED' ? 'COMPLETADO' : activity.status === 'PENDING' ? 'PENDIENTE' : activity.status}
+                        </time>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  const log = event as typeof event & CrmAssignmentLog;
+                  return (
+                    <div key={log.id} className="relative pl-6">
+                      <div className="absolute -left-[17px] top-1 p-1.5 rounded-full border-2 border-white bg-blue-100 text-blue-600">
+                        <Users className="w-3 h-3" />
+                      </div>
+                      <div className="p-3 rounded-lg border border-slate-100 shadow-sm bg-slate-50">
+                        <h4 className="font-semibold text-slate-900 text-sm">Transferido a ID: {log.newOwnerId}</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">Asignado por: {log.assignedByUserId} {log.previousOwnerId ? `(Anterior: ${log.previousOwnerId})` : ''}</p>
+                        <time className="text-[10px] font-bold flex items-center gap-1 mt-2 text-slate-400">
+                          <Clock className="w-3 h-3" />
+                          {new Date(log.date).toLocaleString('es-CO')}
+                        </time>
+                      </div>
+                    </div>
+                  );
+                }
+              }) : (
+                <p className="text-sm text-slate-500 italic ml-6">No hay timeline registrado.</p>
               )}
             </div>
           </section>
 
-          {/* Assignment History Section (NEW) */}
+          {/* Commercial Rules Section (Moved to Bottom) */}
           <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Historial de Asignaciones ({contactAssignmentLogs.length})</h3>
+            <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Tags className="w-4 h-4 text-indigo-500" />
+                    Condiciones Comerciales
+                </h3>
+                {!isEditingCommercialRules ? (
+                    <button 
+                        onClick={() => setIsEditingCommercialRules(true)}
+                        className="text-[10px] bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-md hover:bg-indigo-100 font-bold transition-colors"
+                    >
+                        Solicitar Cambio
+                    </button>
+                ) : (
+                    <button 
+                        onClick={() => setIsEditingCommercialRules(false)}
+                        className="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-md hover:bg-emerald-100 font-bold transition-colors"
+                    >
+                        Guardar
+                    </button>
+                )}
             </div>
-            <div className="space-y-3">
-              {contactAssignmentLogs.length > 0 ? contactAssignmentLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(log => (
-                <div key={log.id} className="flex gap-3 p-3 rounded-lg border border-slate-100 shadow-sm bg-slate-50">
-                  <div className="mt-0.5 p-2 rounded-full h-fit bg-blue-100 text-blue-600">
-                    <Users className="w-3 h-3" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-900 text-sm">Transferido a ID: {log.newOwnerId}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Asignado por: {log.assignedByUserId} {log.previousOwnerId ? `(Anterior: ${log.previousOwnerId})` : ''}</p>
-                    <time className="text-[10px] font-bold flex items-center gap-1 mt-2 text-slate-400">
-                      <Clock className="w-3 h-3" />
-                      {new Date(log.date).toLocaleString('es-CO')}
-                    </time>
-                  </div>
+            <div className="space-y-3 bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Regla Fiscal (Impuestos)</label>
+                    <select 
+                        disabled={!isEditingCommercialRules}
+                        value={contact.taxRuleId || ''}
+                        onChange={(e) => updateContact(contact.id, { taxRuleId: e.target.value || undefined })}
+                        className={`w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500 ${!isEditingCommercialRules ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        <option value="">Ninguna (Por defecto)</option>
+                        {taxRules.map(r => <option key={r.id} value={r.id}>{r.name} (IVA {r.taxRateOverride}%)</option>)}
+                    </select>
                 </div>
-              )) : (
-                <p className="text-sm text-slate-500 italic">No hay historial de asignaciones.</p>
-              )}
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Regla de Precio</label>
+                    <select 
+                        disabled={!isEditingCommercialRules}
+                        value={contact.pricingRuleId || ''}
+                        onChange={(e) => updateContact(contact.id, { pricingRuleId: e.target.value || undefined })}
+                        className={`w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500 ${!isEditingCommercialRules ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        <option value="">Ninguna (Sin descuento especial)</option>
+                        {pricingRules.map(r => <option key={r.id} value={r.id}>{r.name} ({r.discountPercentage}%)</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Condición de Pago</label>
+                    <select 
+                        disabled={!isEditingCommercialRules}
+                        value={contact.paymentRuleId || ''}
+                        onChange={(e) => updateContact(contact.id, { paymentRuleId: e.target.value || undefined })}
+                        className={`w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500 ${!isEditingCommercialRules ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        <option value="">Ninguna (Contado por defecto)</option>
+                        {paymentRules.map(r => <option key={r.id} value={r.id}>{r.name} {r.type === 'CREDITO' ? `(${r.days} días)` : ''}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Clasificación Fiscal</label>
+                    <select 
+                        disabled={!isEditingCommercialRules}
+                        value={contact.fiscalClassification || ''}
+                        onChange={(e) => updateContact(contact.id, { fiscalClassification: (e.target.value as any) || undefined })}
+                        className={`w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500 ${!isEditingCommercialRules ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        <option value="">Seleccione clasificación...</option>
+                        <option value="PERSONA_NATURAL">Persona Natural</option>
+                        <option value="PERSONA_JURIDICA">Persona Jurídica</option>
+                        <option value="GRAN_CONTRIBUYENTE">Gran Contribuyente</option>
+                        <option value="REGIMEN_SIMPLE">Régimen Simple</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Ciudad (Sede de Operación)</label>
+                    <select 
+                        disabled={!isEditingCommercialRules}
+                        value={contact.cityCode || ''}
+                        onChange={(e) => updateContact(contact.id, { cityCode: (e.target.value as any) || undefined })}
+                        className={`w-full text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-indigo-500 ${!isEditingCommercialRules ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        <option value="">Seleccione ciudad...</option>
+                        <option value="BOGOTA">Bogotá D.C.</option>
+                        <option value="BARRANQUILLA">Barranquilla</option>
+                        <option value="OTRA">Otra / Exento</option>
+                    </select>
+                </div>
             </div>
           </section>
         </div>

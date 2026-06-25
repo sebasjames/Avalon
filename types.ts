@@ -316,6 +316,16 @@ export interface CrmContact {
   paymentRuleId?: string;
   fiscalClassification?: FiscalClassification;
   cityCode?: CityCode;
+  tags?: string[];
+}
+
+export interface CrmView {
+  id: string;
+  name: string;
+  icon?: string;
+  filters: any; // Simplified for now
+  visibleColumns: string[];
+  mode: 'TABLE' | 'KANBAN';
 }
 
 export interface TaxRule {
