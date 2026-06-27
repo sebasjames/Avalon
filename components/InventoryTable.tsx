@@ -161,13 +161,13 @@ export const InventoryTable: React.FC = () => {
                 <th className="px-6 py-4 text-right">Stock Total</th>
                 <th className="px-6 py-4 text-right">ATP (Libre)</th>
                 <th className="px-6 py-4 text-right">Aging (Días)</th>
-                <th className="px-6 py-4 text-right">Valor</th>
+                <th className="px-6 py-4 text-right">Valor Total (Costo)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredData.map((item) => {
                  const atp = item.totalStock - item.reservedStock;
-                 const value = (item.category === 'Materia Prima' ? item.unitCost : item.price) * item.totalStock;
+                 const value = (item.category.includes('Materia Prima') ? item.unitCost : item.price) * item.totalStock;
                  return (
                 <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">

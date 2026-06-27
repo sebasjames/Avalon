@@ -268,7 +268,7 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                         <div className="space-y-4">
                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center">
                                 <div>
-                                    <div className="text-xs text-slate-500 font-bold mb-1">Valoración Total</div>
+                                    <div className="text-xs text-slate-500 font-bold mb-1">Valoración Total (Valor Costo)</div>
                                     <div className="text-xl font-black text-slate-800">{formatCOP(value)}</div>
                                 </div>
                                 <Activity className="w-8 h-8 text-slate-300" />
@@ -1017,7 +1017,7 @@ export const SmartInventoryView: React.FC = () => {
                                             <th className="p-4 text-center">IVA %</th>
                                             <th className="p-4 text-center">Reservado</th>
                                             <th className="p-4 text-center text-indigo-600">ATP (Disp)</th>
-                                            <th className="p-4 text-right">Valor Total</th>
+                                            <th className="p-4 text-right">Valor Total (Costo)</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
