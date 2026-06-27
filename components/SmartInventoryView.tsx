@@ -657,9 +657,10 @@ export const SmartInventoryView: React.FC = () => {
     }, [availableSizes]);
 
     useEffect(() => {
-        const loadTimer = setTimeout(() => setIsLoading(false), 800);
+        setIsLoading(true);
+        const loadTimer = setTimeout(() => setIsLoading(false), 200);
         return () => clearTimeout(loadTimer);
-    }, []);
+    }, [search, filter, segmentFilter, selectedFamilies, selectedSizes, selectedBrands, orderBy]);
 
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
@@ -1022,9 +1023,20 @@ export const SmartInventoryView: React.FC = () => {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {isLoading ? (
-                                            Array.from({ length: 15 }).map((_, i) => (
+                                            Array.from({ length: 10 }).map((_, i) => (
                                                 <tr key={i} className="animate-pulse">
-                                                    <td colSpan={12} className="p-4 h-16 bg-slate-50/50"></td>
+                                                    <td className="p-4"><div className="w-2 h-2 rounded-full bg-slate-200"></div></td>
+                                                    <td className="p-4"><div className="w-12 h-4 bg-slate-200 rounded"></div></td>
+                                                    <td className="p-4"><div className="w-40 h-4 bg-slate-200 rounded"></div></td>
+                                                    <td className="p-4"><div className="w-20 h-4 bg-slate-200 rounded"></div></td>
+                                                    <td className="p-4"><div className="w-16 h-4 bg-slate-200 rounded"></div></td>
+                                                    <td className="p-4"><div className="w-10 h-4 bg-slate-200 rounded"></div></td>
+                                                    <td className="p-4 text-center"><div className="w-6 h-4 bg-slate-200 rounded mx-auto"></div></td>
+                                                    <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>
+                                                    <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
+                                                    <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
+                                                    <td className="p-4 text-center"><div className="w-12 h-4 bg-slate-200 rounded mx-auto font-black"></div></td>
+                                                    <td className="p-4 text-right"><div className="w-24 h-4 bg-slate-200 rounded ml-auto"></div></td>
                                                 </tr>
                                             ))
                                         ) : (

@@ -78,6 +78,7 @@ interface EnterpriseContextType {
     // --- Auto Auditor ---
     auditReports: AuditReport[];
     runAuditAction: () => void;
+    clearNotifications: () => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -287,6 +288,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [crmUsers, setCrmUsers] = useState<CrmUser[]>(MOCK_CRM_USERS);
     const [crmSettings, setCrmSettings] = useState<CrmSettings>(MOCK_CRM_SETTINGS);
     const [receipts, setReceipts] = useState<InboundReceipt[]>([]);
+    const [dismissedNotifIds, setDismissedNotifIds] = useState<string[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
     
     // --- POS Configurations ---
@@ -852,7 +854,12 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 }
             }
         });
-        return notifs;
+        return notifs.filter(n => !dismissedNotifIds.includes(n.id));
+    };
+
+    const clearNotifications = () => {
+        const active = getActiveNotifications();
+        setDismissedNotifIds(prev => [...prev, ...active.map(n => n.id)]);
     };
 
     return (
@@ -908,7 +915,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             paymentRules,
             setPaymentRules,
             auditReports,
-            runAuditAction
+            runAuditAction,
+            clearNotifications
         }}>
             {children}
         </EnterpriseContext.Provider>

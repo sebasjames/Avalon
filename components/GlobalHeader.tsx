@@ -5,7 +5,7 @@ import { useEnterprise } from '../context/EnterpriseContext';
 import { MOCK_OPPORTUNITIES } from '../constants';
 
 export const GlobalHeader: React.FC = () => {
-    const { contacts, getActiveNotifications, setGlobalSelectedContactId, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
+    const { contacts, getActiveNotifications, setGlobalSelectedContactId, globalInventorySearch, setGlobalInventorySearch, clearNotifications } = useEnterprise();
     const navigate = useNavigate();
     const location = useLocation();
     const pendingCount = MOCK_OPPORTUNITIES.filter(o => o.status === 'PENDING').length;
@@ -173,9 +173,20 @@ export const GlobalHeader: React.FC = () => {
                     </button>
                     {isNotifOpen && (
                         <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
-                            <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 font-bold text-sm text-slate-800">
-                                Notificaciones ({notifications.length})
-                            </div>
+                             <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between font-bold text-sm text-slate-800">
+                                 <span>Notificaciones ({notifications.length})</span>
+                                 {notifications.length > 0 && (
+                                     <button 
+                                         onClick={(e) => {
+                                             e.stopPropagation();
+                                             clearNotifications();
+                                         }}
+                                         className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-semibold"
+                                     >
+                                         Marcar todo como leído
+                                     </button>
+                                 )}
+                             </div>
                             <div className="max-h-96 overflow-y-auto">
                                 {notifications.length > 0 ? notifications.map(n => (
                                     <div key={n.id} onClick={() => { if(n.relatedContactId) handleSelectResult(n.relatedContactId); setIsNotifOpen(false); }} className="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors">

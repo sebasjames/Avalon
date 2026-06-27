@@ -109,6 +109,8 @@ export const SmartPosPanel: React.FC = () => {
         return 0;
     }, [activeCustomer, pricingRules]);
 
+    const customerSearchInputRef = useRef<HTMLInputElement>(null);
+
     const filteredCatalog = useMemo(() => {
         if (!search) return inventory;
         const s = search.toLowerCase();
@@ -451,6 +453,37 @@ export const SmartPosPanel: React.FC = () => {
         }, 3000);
     };
 
+    const handleCheckoutRef = useRef(handleCheckout);
+    useEffect(() => {
+        handleCheckoutRef.current = handleCheckout;
+    }, [handleCheckout]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'F8') {
+                e.preventDefault();
+                handleCheckoutRef.current();
+            } else if (e.key === 'F2') {
+                e.preventDefault();
+                setIsCustomerDropdownOpen(true);
+                setTimeout(() => {
+                    customerSearchInputRef.current?.focus();
+                }, 100);
+            } else if (e.key === 'Escape') {
+                if (isCustomerDropdownOpen) {
+                    setIsCustomerDropdownOpen(false);
+                } else if (cart.length > 0) {
+                    if (window.confirm('¿Desea vaciar el carrito?')) {
+                        setCart([]);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [cart.length, isCustomerDropdownOpen]);
+
     return (
         <div className="absolute inset-0 bg-slate-50 flex flex-col md:flex-row overflow-hidden font-sans z-10">
             {/* Background elements */}
@@ -591,6 +624,7 @@ export const SmartPosPanel: React.FC = () => {
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                             <input 
                                                 type="text" 
+                                                ref={customerSearchInputRef}
                                                 placeholder="Buscar por nombre, empresa, o NIT..."
                                                 value={customerSearch}
                                                 onChange={e => setCustomerSearch(e.target.value)}
@@ -922,6 +956,9 @@ export const SmartPosPanel: React.FC = () => {
                                 'Carrito Vacío'
                             )}
                         </button>
+                    </div>
+                    <div className="mt-3 text-center text-[10px] text-slate-400 font-mono">
+                        Atajos: <span className="bg-slate-800 text-slate-300 px-1 py-0.5 rounded font-bold">F8</span> Facturar • <span className="bg-slate-800 text-slate-300 px-1 py-0.5 rounded font-bold">F2</span> Buscar Cliente • <span className="bg-slate-800 text-slate-300 px-1 py-0.5 rounded font-bold">Esc</span> Limpiar Carrito
                     </div>
                 </div>
 
