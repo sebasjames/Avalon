@@ -1029,8 +1029,10 @@ export const SmartInventoryView: React.FC = () => {
                                             ))
                                         ) : (
                                             filteredData.slice(0, displayLimit).map((product) => {
-                                                const atp = product.totalStock - product.reservedStock;
-                                                const val = (product.category.includes('Materia Prima') ? product.unitCost : product.price) * product.totalStock;
+                                                const currentStock = isEditing ? (editedRows[product.id]?.totalStock ?? product.totalStock) : product.totalStock;
+                                                const currentPrice = isEditing ? (editedRows[product.id]?.price ?? product.price) : product.price;
+                                                const atp = currentStock - product.reservedStock;
+                                                const val = (product.category.includes('Materia Prima') ? product.unitCost : currentPrice) * currentStock;
                                                 return (
                                                     <tr 
                                                         key={product.id} 
