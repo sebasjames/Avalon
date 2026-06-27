@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { GlobalHeader } from './components/GlobalHeader';
@@ -58,12 +58,12 @@ const App: React.FC = () => {
             >
               <Menu className="w-6 h-6" />
             </button>
-            <div className="ml-3 flex items-center gap-2">
+            <Link to="/" className="ml-3 flex items-center gap-2 hover:opacity-85 transition-opacity">
               <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
                 <span className="font-bold text-white text-xs">P</span>
               </div>
               <span className="font-bold text-slate-900">Procoquinal OS</span>
-            </div>
+            </Link>
           </div>
 
           <GlobalHeader />

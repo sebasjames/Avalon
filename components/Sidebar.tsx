@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, PackageSearch, BrainCircuit, FlaskConical, LineChart, 
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
@@ -71,9 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
     );
   };
 
-  const navStructure = [
-    { type: 'item', to: "/", icon: LayoutDashboard, label: "Tablero Principal" },
-    
+  const navStructure: any[] = [
     // Group: Sales & Revenue
     {
         type: 'group',
@@ -141,12 +139,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
   return (
     <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col h-screen transition-transform duration-300 ease-in-out transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
       <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-        <div className="flex items-center gap-2 text-white">
+        <Link to="/" className="flex items-center gap-2 text-white hover:opacity-85 transition-opacity">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="font-bold text-lg">P</span>
           </div>
           <span className="font-bold text-xl tracking-tight">Procoquinal OS</span>
-        </div>
+        </Link>
         {setIsOpen && (
           <button 
             onClick={() => setIsOpen(false)}
