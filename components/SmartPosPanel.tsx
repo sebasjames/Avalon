@@ -530,7 +530,7 @@ export const SmartPosPanel: React.FC = () => {
                                                 {reversed ? product.name : (product.sku || '').split('-')[0]}
                                             </div>
                                             <div className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors shrink-0">
-                                                {formatCOP(price)}
+                                                {formatCOP(price, false)}
                                             </div>
                                         </div>
                                         <div className="font-bold text-sm text-slate-800 leading-tight mb-auto line-clamp-2" title={reversed ? product.sku : product.name}>
