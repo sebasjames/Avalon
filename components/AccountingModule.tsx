@@ -825,7 +825,7 @@ export const AccountingModule: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Cartera Cobrar (AR)</p>
-                                                <p className="text-base font-black text-slate-800">${carteraData.carteraTotal.toLocaleString()}</p>
+                                                <p className="text-base font-black text-slate-800">{formatCOP(carteraData.carteraTotal)}</p>
                                             </div>
                                         </div>
                                         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
@@ -834,7 +834,7 @@ export const AccountingModule: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Cuentas por Pagar (AP)</p>
-                                                <p className="text-base font-black text-slate-800">${cxPData.totalPagar.toLocaleString()}</p>
+                                                <p className="text-base font-black text-slate-800">{formatCOP(cxPData.totalPagar)}</p>
                                             </div>
                                         </div>
                                         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
@@ -843,7 +843,7 @@ export const AccountingModule: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Inventario Valorizado</p>
-                                                <p className="text-base font-black text-slate-800">${inventarioValorizado.totalCosto.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                                                <p className="text-base font-black text-slate-800">{formatCOP(inventarioValorizado.totalCosto)}</p>
                                             </div>
                                         </div>
                                         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
@@ -852,7 +852,7 @@ export const AccountingModule: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Pasivo Vencido (Mora)</p>
-                                                <p className="text-base font-black text-amber-700">${cxPData.pagarVencido.toLocaleString()}</p>
+                                                <p className="text-base font-black text-amber-700">{formatCOP(cxPData.pagarVencido)}</p>
                                             </div>
                                         </div>
                                         <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-4 shadow-md flex items-center gap-3">
@@ -862,7 +862,7 @@ export const AccountingModule: React.FC = () => {
                                             <div>
                                                 <p className="text-[10px] font-bold text-indigo-200 uppercase">Capital Neto Corriente</p>
                                                 <p className="text-base font-black text-white">
-                                                    ${(carteraData.carteraTotal + inventarioValorizado.totalCosto - cxPData.totalPagar).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                                    {formatCOP(carteraData.carteraTotal + inventarioValorizado.totalCosto - cxPData.totalPagar)}
                                                 </p>
                                             </div>
                                         </div>
@@ -927,7 +927,7 @@ export const AccountingModule: React.FC = () => {
                                                                                 {c.status}
                                                                             </span>
                                                                         </td>
-                                                                        <td className="p-3 text-sm font-black text-slate-900 text-right">${c.totalDebt.toLocaleString()}</td>
+                                                                        <td className="p-3 text-sm font-black text-slate-900 text-right">{formatCOP(c.totalDebt)}</td>
                                                                     </tr>
                                                                     {expandedCarteraClient === c.client && (
                                                                         <tr>
@@ -972,7 +972,7 @@ export const AccountingModule: React.FC = () => {
                                                                                                             <td className="p-2 font-mono font-bold text-slate-700">{t.id}</td>
                                                                                                             <td className="p-2 font-bold text-slate-600">{t.type === 'VENTA' ? 'Factura Venta' : 'Recibo Caja'}</td>
                                                                                                             <td className={`p-2 text-right font-black ${t.type === 'VENTA' ? 'text-slate-800' : 'text-emerald-600'}`}>
-                                                                                                                {t.type === 'VENTA' ? '' : '-'}${t.total.toLocaleString()}
+                                                                                                                {t.type === 'VENTA' ? '' : '-'}{formatCOP(t.total)}
                                                                                                             </td>
                                                                                                         </tr>
                                                                                                     ))}
@@ -1014,7 +1014,7 @@ export const AccountingModule: React.FC = () => {
                                                                                 {p.status}
                                                                             </span>
                                                                         </td>
-                                                                        <td className="p-3 text-sm font-black text-slate-900 text-right">${p.balance.toLocaleString()}</td>
+                                                                        <td className="p-3 text-sm font-black text-slate-900 text-right">{formatCOP(p.balance)}</td>
                                                                     </tr>
                                                                     {expandedCarteraClient === p.provider && (
                                                                         <tr>
@@ -1059,7 +1059,7 @@ export const AccountingModule: React.FC = () => {
                                                                                                         })()}
                                                                                                     </td>
                                                                                                     <td className="p-2 text-right font-black text-rose-600">
-                                                                                                        ${p.balance.toLocaleString()}
+                                                                                                        {formatCOP(p.balance)}
                                                                                                     </td>
                                                                                                 </tr>
                                                                                             </tbody>
@@ -1111,7 +1111,7 @@ export const AccountingModule: React.FC = () => {
                                                     />
                                                 </div>
                                                 <div className="bg-indigo-50 border border-indigo-100 text-indigo-700 px-2.5 py-1.5 rounded-lg text-[10px] font-black whitespace-nowrap">
-                                                    En plata: ${filteredInventoryTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                                    En plata: {formatCOP(filteredInventoryTotal)}
                                                 </div>
                                             </div>
 
@@ -1140,7 +1140,7 @@ export const AccountingModule: React.FC = () => {
                                                                     <div className="text-[10px] text-slate-500 truncate max-w-[150px]">{item.name}</div>
                                                                 </td>
                                                                 <td className="p-3 text-right font-semibold text-slate-600">{item.totalStock} {item.baseUnit}</td>
-                                                                <td className="p-3 text-right font-black text-slate-800">${item.valorTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                                                                <td className="p-3 text-right font-black text-slate-800">{formatCOP(item.valorTotal)}</td>
                                                             </tr>
                                                         ))}
                                                     </tbody>

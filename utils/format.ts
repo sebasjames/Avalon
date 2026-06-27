@@ -1,28 +1,37 @@
-/**
- * Formats a number to Colombian Peso (COP) style.
- * Uses dot (.) as thousands separator and single quote (') as millions separator.
- * Example: 1234567 -> $1'234.567
- */
-export const formatCOP = (num: number): string => {
-    if (num === undefined || num === null || isNaN(num)) return '$0';
-    const rounded = Math.round(num);
-    const absVal = Math.abs(rounded);
-    const str = absVal.toString();
+export const formatCOP = (num: number, includeDecimals = true): string => {
+    if (num === undefined || num === null || isNaN(num)) {
+        return includeDecimals ? '$ 0,00 COP' : '$ 0 COP';
+    }
+    const isNegative = num < 0;
+    const absVal = Math.abs(num);
+    
+    let integerPart: string;
+    let decimalPart = '';
+    
+    if (includeDecimals) {
+        const parts = absVal.toFixed(2).split('.');
+        integerPart = parts[0];
+        decimalPart = ',' + parts[1];
+    } else {
+        integerPart = Math.round(absVal).toString();
+    }
     
     let result = '';
     let count = 0;
-    for (let i = str.length - 1; i >= 0; i--) {
-        if (count > 0 && count % 3 === 0) {
-            if (count === 6) {
-                result = "'" + result;
-            } else if (count === 12) {
-                result = "'" + result;
+    const rev = integerPart.split('').reverse();
+    for (let i = 0; i < rev.length; i++) {
+        if (i > 0 && i % 3 === 0) {
+            count++;
+            if (count % 2 === 0) {
+                // Millions (6th digit, 12th digit, etc.)
+                result = '´' + result;
             } else {
-                result = "." + result;
+                // Thousands (3rd digit, 9th digit, etc.)
+                result = '.' + result;
             }
         }
-        result = str[i] + result;
-        count++;
+        result = rev[i] + result;
     }
-    return (rounded < 0 ? '-$' : '$') + result;
+    
+    return `${isNegative ? '-' : ''}$ ${result}${decimalPart} COP`;
 };

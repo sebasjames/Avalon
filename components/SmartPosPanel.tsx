@@ -5,6 +5,7 @@ import {
     Search, ShoppingCart, Users, Tag, AlertTriangle, ShieldCheck, 
     Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown, Wallet, UploadCloud
 } from 'lucide-react';
+import { formatCOP } from '../utils/format';
 import { Product, CrmContact, CustomerTier } from '../types';
 import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
 
@@ -327,7 +328,7 @@ export const SmartPosPanel: React.FC = () => {
                 return;
             }
             if ((activeCustomer.accountBalance || 0) < total) {
-                alert(`El cliente no tiene suficiente Saldo a Favor. Saldo actual: $${(activeCustomer.accountBalance || 0).toLocaleString()}`);
+                alert(`El cliente no tiene suficiente Saldo a Favor. Saldo actual: ${formatCOP(activeCustomer.accountBalance || 0)}`);
                 return;
             }
         }
@@ -344,7 +345,7 @@ export const SmartPosPanel: React.FC = () => {
             }
             const remainingLimit = (activeCustomer.creditLimit || 0) - (activeCustomer.creditLimitUsed || 0);
             if (total > remainingLimit) {
-                alert(`OPERACIÓN DENEGADA: La venta supera el cupo de crédito disponible del cliente.\n\nCupo Total: $${(activeCustomer.creditLimit || 0).toLocaleString('es-CO')}\nUtilizado: $${(activeCustomer.creditLimitUsed || 0).toLocaleString('es-CO')}\nDisponible: $${remainingLimit.toLocaleString('es-CO')}\nRequerido para esta venta: $${total.toLocaleString('es-CO')}`);
+                alert(`OPERACIÓN DENEGADA: La venta supera el cupo de crédito disponible del cliente.\n\nCupo Total: ${formatCOP(activeCustomer.creditLimit || 0)}\nUtilizado: ${formatCOP(activeCustomer.creditLimitUsed || 0)}\nDisponible: ${formatCOP(remainingLimit)}\nRequerido para esta venta: ${formatCOP(total)}`);
                 return;
             }
         }
@@ -730,7 +731,7 @@ export const SmartPosPanel: React.FC = () => {
                                                     <button onClick={() => updateQty(item.id, 1)} className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-md transition-colors"><Plus className="w-3 h-3" /></button>
                                                 </div>
                                                 <div className="text-sm font-bold text-indigo-600">
-                                                    ${totalItem.toLocaleString('es-CO')} COP
+                                                    {formatCOP(totalItem)}
                                                 </div>
                                                 {recipe && (
                                                     <button 
@@ -870,7 +871,7 @@ export const SmartPosPanel: React.FC = () => {
 
                     <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-end">
                         <div className="text-slate-400 text-sm font-medium mb-1">Total a Pagar</div>
-                        <div className="text-4xl font-black text-white tracking-tight">${total.toLocaleString('es-CO')} COP COP</div>
+                        <div className="text-4xl font-black text-white tracking-tight">{formatCOP(total)}</div>
                     </div>
 
                     {/* Margin Simulator Panel */}
@@ -889,12 +890,12 @@ export const SmartPosPanel: React.FC = () => {
                                     <div className="flex justify-between items-end">
                                         <div>
                                             <div className="text-xs text-slate-500 font-medium">Costo Base Lote</div>
-                                            <div className="text-sm font-bold text-slate-300">${totalCost.toLocaleString('es-CO')} COP COP</div>
+                                            <div className="text-sm font-bold text-slate-300">{formatCOP(totalCost)}</div>
                                         </div>
                                         <div className="text-right">
                                             <div className="text-xs text-slate-500 font-medium">Utilidad Bruta</div>
                                             <div className={`text-lg font-black ${marginPercent > 30 ? 'text-emerald-400' : marginPercent > 15 ? 'text-amber-400' : 'text-rose-400'}`}>
-                                                ${grossMargin.toLocaleString('es-CO')} COP COP ({marginPercent.toFixed(1)}%)
+                                                {formatCOP(grossMargin)} ({marginPercent.toFixed(1)}%)
                                             </div>
                                         </div>
                                     </div>

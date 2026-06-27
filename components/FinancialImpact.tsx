@@ -10,6 +10,7 @@ import {
 import { MOCK_PRODUCTION, SALES_DATA, MOCK_FORECAST_DATA } from '../constants';
 import { InventoryStatus, Category } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { formatCOP } from '../utils/format';
 
 export const FinancialImpact: React.FC = () => {
     const { inventory } = useEnterprise();
@@ -111,8 +112,8 @@ export const FinancialImpact: React.FC = () => {
                             <Coins className="w-5 h-5 text-blue-600" />
                             <span className="text-sm font-semibold text-slate-500">Capital Inmovilizado</span>
                         </div>
-                        <div className="text-3xl font-bold text-slate-900">
-                            ${(totalInventoryValue / 1000).toFixed(0)}k
+                        <div className="text-2xl font-bold text-slate-900">
+                            {formatCOP(totalInventoryValue)}
                         </div>
                         <div className="mt-3 flex items-center text-xs text-slate-500">
                             <span className="font-medium text-slate-700">{inventory.length} SKUs</span>
@@ -128,8 +129,8 @@ export const FinancialImpact: React.FC = () => {
                         <AlertOctagon className="w-5 h-5 text-rose-600" />
                         <span className="text-sm font-semibold text-rose-700">Capital en Riesgo</span>
                     </div>
-                    <div className="text-3xl font-bold text-rose-600">
-                        ${(totalCashAtRisk / 1000).toFixed(1)}k
+                    <div className="text-2xl font-bold text-rose-600">
+                        {formatCOP(totalCashAtRisk)}
                     </div>
                     <div className="mt-3 text-xs bg-rose-50 text-rose-800 px-2 py-1 rounded inline-block font-medium">
                         {(totalCashAtRisk / totalInventoryValue * 100).toFixed(1)}% del Inventario Total
@@ -195,14 +196,14 @@ export const FinancialImpact: React.FC = () => {
                                         <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(value: number) => `$${value.toLocaleString('es-CO')} COP COP COP COP`} />
+                                <Tooltip formatter={(value: number) => formatCOP(value)} />
                                 <Legend verticalAlign="bottom" height={36}/>
                             </PieChart>
                         </ResponsiveContainer>
                         {/* Center Text */}
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -mt-5 text-center pointer-events-none">
                             <div className="text-xs text-slate-400 uppercase">Total</div>
-                            <div className="text-lg font-bold text-slate-800">${(totalInventoryValue/1000).toFixed(0)}k</div>
+                            <div className="text-base font-bold text-slate-800">{formatCOP(totalInventoryValue)}</div>
                         </div>
                     </div>
                 </div>
@@ -237,7 +238,7 @@ export const FinancialImpact: React.FC = () => {
                                 <YAxis axisLine={false} tickLine={false} tickFormatter={(v) => `$${v/1000}k`} />
                                 <Tooltip 
                                     contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                                    formatter={(value: number) => [`$${value.toLocaleString('es-CO')} COP COP COP COP`, '']}
+                                    formatter={(value: number) => [formatCOP(value), '']}
                                 />
                                 <Area 
                                     type="monotone" 
@@ -306,10 +307,10 @@ export const FinancialImpact: React.FC = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">{item.totalStock.toLocaleString('es-CO')}</td>
-                                            <td className="px-6 py-4 text-right font-medium text-slate-900">${value.toLocaleString('es-CO')} COP COP</td>
+                                            <td className="px-6 py-4 text-right font-medium text-slate-900">{formatCOP(value)}</td>
                                             <td className="px-6 py-4 text-right text-slate-500">{item.agingDays} días</td>
                                             <td className="px-6 py-4 text-right font-bold text-emerald-600">
-                                                +${opportunity.toLocaleString('es-CO')} COP COP
+                                                +{formatCOP(opportunity)}
                                             </td>
                                         </tr>
                                     );
