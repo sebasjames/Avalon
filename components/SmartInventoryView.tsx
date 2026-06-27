@@ -1032,7 +1032,7 @@ export const SmartInventoryView: React.FC = () => {
                                                 const currentStock = isEditing ? (editedRows[product.id]?.totalStock ?? product.totalStock) : product.totalStock;
                                                 const currentPrice = isEditing ? (editedRows[product.id]?.price ?? product.price) : product.price;
                                                 const atp = currentStock - product.reservedStock;
-                                                const val = (product.category.includes('Materia Prima') ? product.unitCost : currentPrice) * currentStock;
+                                                const val = currentPrice * currentStock;
                                                 return (
                                                     <tr 
                                                         key={product.id} 
