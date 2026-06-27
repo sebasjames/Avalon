@@ -84,7 +84,7 @@ export const GlobalHeader: React.FC = () => {
             {/* Actions */}
             <div className="flex items-center gap-4">
                 {/* Shortcut Buttons */}
-                <div className="flex items-center gap-1 bg-slate-50 border border-slate-200/60 p-1.5 rounded-2xl shadow-sm mr-2">
+                <div className="flex items-center gap-1.5 mr-2">
                     <NavLink 
                         to="/crm" 
                         className={({ isActive }) => {
