@@ -529,8 +529,8 @@ export const SmartPosPanel: React.FC = () => {
                                             <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider line-clamp-1 ${reversed ? 'bg-indigo-100 text-indigo-700 max-w-[70%]' : 'bg-slate-100 text-slate-600'}`} title={reversed ? product.name : (product.sku || '').split('-')[0]}>
                                                 {reversed ? product.name : (product.sku || '').split('-')[0]}
                                             </div>
-                                            <div className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors shrink-0">
-                                                ${(price / 1000).toFixed(1)}k
+                                            <div className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors shrink-0">
+                                                {formatCOP(price)}
                                             </div>
                                         </div>
                                         <div className="font-bold text-sm text-slate-800 leading-tight mb-auto line-clamp-2" title={reversed ? product.sku : product.name}>
