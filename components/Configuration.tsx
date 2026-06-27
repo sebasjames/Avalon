@@ -19,7 +19,9 @@ import {
   Trash2,
   ArrowRightLeft,
   Database,
-  Receipt
+  Receipt,
+  Wallet,
+  TableProperties
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings, TaxRule, PricingRule, PaymentRule } from '../types';
@@ -31,15 +33,16 @@ export const Configuration: React.FC = () => {
     taxRules, setTaxRules, pricingRules, setPricingRules, paymentRules, setPaymentRules
   } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas'>('inventario');
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad'>('inventario');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules, litersToCunetesRules, updateLitersToCunetesRules, fractionalRules, updateFractionalRules, inventory } = useEnterprise();
+  const { tintometricRules, updateTintometricRules, reverseDisplayRules, updateReverseDisplayRules, litersToCunetesRules, updateLitersToCunetesRules, fractionalRules, updateFractionalRules, inventory, rawMaterialCategories, updateRawMaterialCategories, accountingShortcuts, updateAccountingShortcuts } = useEnterprise();
   const [newRule, setNewRule] = useState('');
   const [newReverseRule, setNewReverseRule] = useState('');
   const [newCuneteRule, setNewCuneteRule] = useState('');
   const [newFractionalRule, setNewFractionalRule] = useState('');
+  const [newRawCategory, setNewRawCategory] = useState('');
 
   const getSuggestions = (input: string) => {
     if (input.length < 2) return [];
@@ -175,12 +178,13 @@ export const Configuration: React.FC = () => {
     { id: 'ventas', label: 'Ventas', icon: TrendingUp },
     { id: 'compras', label: 'Compras', icon: ShoppingCart },
     { id: 'finanzas', label: 'Finanzas', icon: DollarSign },
+    { id: 'contabilidad', label: 'Contabilidad', icon: Wallet },
     { id: 'impuestos', label: 'Impuestos', icon: Receipt },
     { id: 'reglas', label: 'Reglas Comerciales', icon: Tags },
   ];
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-8 w-full">
       <header className="mb-8 flex justify-between items-end">
         <div>
           <div className="flex items-center gap-2 text-indigo-600 mb-2">
@@ -905,6 +909,63 @@ export const Configuration: React.FC = () => {
                 </div>
               )}
 
+              {activeTab === 'contabilidad' && (
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                      <Wallet size={24} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold text-slate-800">Contabilidad & Cuentas</h2>
+                      <p className="text-slate-500">Configura los atajos contables para la Sábana General.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                      <TableProperties size={20} className="text-indigo-500" />
+                      Pestañas Rápidas (Sábana General)
+                    </h3>
+                    <p className="text-slate-500 text-sm mb-6">
+                      Selecciona cuáles métodos de pago o cuentas deseas anclar como pestañas de acceso rápido en el panel de Contabilidad.
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[
+                        'Efectivo (110505)', 'Caja General (110505)', 'Caja Menor (110510)', 'Transferencia (111005)', 'Bancos (111005)', 'Nequi (112005)', 'Daviplata (112005)', 'Datáfonos (111505)',
+                        'Crédito 30 días (130505)', 'Crédito 60 días (130505)', 'Crédito 90 días (130505)', 'Anticipos de Clientes (280505)',
+                        'Proveedores Nacionales (220505)', 'Costos y Gastos (233595)', 'Nómina (2505)', 'Nota Crédito (4175)', 'Gastos Operativos (5195)', 'Impuestos (2365)'
+                      ].map((method) => {
+                        const isEnabled = accountingShortcuts?.includes(method);
+                        return (
+                          <div 
+                            key={method} 
+                            className={`flex items-center justify-between p-4 rounded-xl border transition-all ${isEnabled ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-200 bg-white'}`}
+                          >
+                            <span className={`font-medium ${isEnabled ? 'text-indigo-900' : 'text-slate-700'}`}>{method}</span>
+                            
+                            {/* Toggle Switch */}
+                            <button
+                              onClick={() => {
+                                const current = accountingShortcuts || [];
+                                if (isEnabled) {
+                                  updateAccountingShortcuts(current.filter(s => s !== method));
+                                } else {
+                                  updateAccountingShortcuts([...current, method]);
+                                }
+                              }}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                            >
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'ventas' && (
                 <div className="space-y-8">
                   <section>
@@ -1136,6 +1197,52 @@ export const Configuration: React.FC = () => {
 
               {activeTab === 'reglas' && (
                 <div className="space-y-8">
+                  {/* Categorías de Materia Prima */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-slate-800 mb-2">Categorías de Materia Prima</h2>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Las categorías agregadas aquí serán tratadas financieramente como Materia Prima (ej. recargos en POS, fórmulas de costos).
+                    </p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {rawMaterialCategories.map((cat, idx) => (
+                        <div key={idx} className="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm flex items-center gap-2">
+                          {cat}
+                          <button 
+                            onClick={() => updateRawMaterialCategories(rawMaterialCategories.filter(c => c !== cat))}
+                            className="hover:text-rose-300 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (newRawCategory.trim() && !rawMaterialCategories.includes(newRawCategory.trim())) {
+                          updateRawMaterialCategories([...rawMaterialCategories, newRawCategory.trim()]);
+                          setNewRawCategory('');
+                        }
+                      }}
+                      className="flex gap-2"
+                    >
+                      <input 
+                        type="text" 
+                        value={newRawCategory}
+                        onChange={(e) => setNewRawCategory(e.target.value)}
+                        placeholder="Añadir Categoría..."
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <button 
+                        type="submit" 
+                        disabled={!newRawCategory.trim()}
+                        className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 disabled:opacity-50 flex items-center gap-2"
+                      >
+                        <Plus size={16} /> Añadir Categoría
+                      </button>
+                    </form>
+                  </section>
+
                   {/* Reglas Fiscales */}
                   <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                     <div className="flex justify-between items-center mb-6">

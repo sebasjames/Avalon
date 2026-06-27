@@ -7,29 +7,32 @@ import {
     DollarSign, Wallet, TrendingUp, AlertOctagon, 
     ArrowUpRight, ArrowDownRight, Coins, PieChart as PieChartIcon, Activity
 } from 'lucide-react';
-import { MOCK_INVENTORY, MOCK_PRODUCTION, SALES_DATA, MOCK_FORECAST_DATA } from '../constants';
-import { InventoryStatus } from '../types';
+import { MOCK_PRODUCTION, SALES_DATA, MOCK_FORECAST_DATA } from '../constants';
+import { InventoryStatus, Category } from '../types';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 export const FinancialImpact: React.FC = () => {
+    const { inventory } = useEnterprise();
+
     // --- 1. Calculations & Logic ---
 
     // Capital Inmovilizado (Total Inventory Value)
-    const totalInventoryValue = MOCK_INVENTORY.reduce((acc, item) => {
-        const cost = item.category === 'Materia Prima' ? item.unitCost : (item.unitCost * 0.8); // Estimate internal cost for FG if not explicit
+    const totalInventoryValue = inventory.reduce((acc, item) => {
+        const cost = item.category === Category.RAW_MATERIAL ? item.unitCost : (item.unitCost * 0.8); // Estimate internal cost for FG if not explicit
         return acc + (item.totalStock * cost);
     }, 0);
 
     // Cash at Risk (Silent + Slow Moving Value)
-    const silentInventoryValue = MOCK_INVENTORY
+    const silentInventoryValue = inventory
         .filter(i => i.status === InventoryStatus.SILENT || i.status === InventoryStatus.DEAD)
         .reduce((acc, item) => {
-            const cost = item.category === 'Materia Prima' ? item.unitCost : (item.unitCost * 0.8);
+            const cost = item.category === Category.RAW_MATERIAL ? item.unitCost : (item.unitCost * 0.8);
             return acc + (item.totalStock * cost);
         }, 0);
 
-    const expiringValue = MOCK_INVENTORY
+    const expiringValue = inventory
         .reduce((acc, item) => {
-            const expiringBatchValue = item.batches
+            const expiringBatchValue = (item.batches || [])
                 .filter(b => {
                     const days = Math.ceil((new Date(b.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                     return days < 90; // Risk threshold
@@ -112,7 +115,7 @@ export const FinancialImpact: React.FC = () => {
                             ${(totalInventoryValue / 1000).toFixed(0)}k
                         </div>
                         <div className="mt-3 flex items-center text-xs text-slate-500">
-                            <span className="font-medium text-slate-700">{MOCK_INVENTORY.length} SKUs</span>
+                            <span className="font-medium text-slate-700">{inventory.length} SKUs</span>
                             <span className="mx-1">•</span>
                             Valoración promedio costo
                         </div>
@@ -283,7 +286,7 @@ export const FinancialImpact: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {MOCK_INVENTORY
+                            {inventory
                                 .filter(i => i.status === InventoryStatus.SILENT || i.status === InventoryStatus.SLOW)
                                 .sort((a, b) => (b.totalStock * b.unitCost) - (a.totalStock * a.unitCost))
                                 .slice(0, 5)

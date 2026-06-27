@@ -5,7 +5,7 @@ import {
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
     PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
-    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins
+    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -17,22 +17,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState<string[]>([]);
 
+  const financeGroup = {
+      label: "Finanzas & Inteligencia",
+      children: [
+          { to: "/forecast", icon: PieChart, label: "Proyecciones y Planeación" },
+          { to: "/action-center", icon: Zap, label: "Centro de Acción / Alertas" },
+          { to: "/financial", icon: Wallet, label: "Impacto Financiero" },
+          { to: "/intelligence", icon: BrainCircuit, label: "Inteligencia Artificial" },
+          { to: "/analytics", icon: LineChart, label: "Analítica Avanzada" },
+          { to: "/governance", icon: ShieldCheck, label: "Data Governance" },
+          { to: "/accounting/auditoria", icon: UserCheck, label: "Auditoría Terceros" },
+          { to: "/event-log", icon: GitCommit, label: "Bitácora de Eventos" },
+      ]
+  };
+
+  const isFinanceOpen = openGroups.includes(financeGroup.label);
+  const isFinanceChildActive = financeGroup.children.some(child => child.to === location.pathname);
+
   // Auto-open groups if active route is inside them
   useEffect(() => {
     const operationPaths = ['/inventory', '/inventory-control', '/production'];
-    const planningPaths = ['/forecast', '/purchasing', '/action-center'];
-    const financePaths = ['/financial', '/governance', '/intelligence', '/analytics', '/event-log'];
+    const financePaths = ['/financial', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center', '/accounting/auditoria'];
     const salesPaths = ['/crm', '/sales-performance', '/atp', '/pos'];
     const staffPaths = ['/staff/sales-profiles', '/staff/gestion-comercial'];
-    const accountingPaths = ['/accounting'];
+    const accountingPaths = ['/accounting', '/returns'];
 
     setOpenGroups(prev => {
         const newGroups = [...prev];
         if (operationPaths.includes(location.pathname) && !newGroups.includes('Operación')) {
             newGroups.push('Operación');
-        }
-        if (planningPaths.includes(location.pathname) && !newGroups.includes('Planificación & Optimización')) {
-            newGroups.push('Planificación & Optimización');
         }
         if (financePaths.includes(location.pathname) && !newGroups.includes('Finanzas & Inteligencia')) {
             newGroups.push('Finanzas & Inteligencia');
@@ -43,8 +56,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         if (staffPaths.includes(location.pathname) && !newGroups.includes('Staff & Talento')) {
             newGroups.push('Staff & Talento');
         }
-        if (accountingPaths.includes(location.pathname) && !newGroups.includes('Contabilidad & Interfaces')) {
-            newGroups.push('Contabilidad & Interfaces');
+        if ((accountingPaths.includes(location.pathname) || location.pathname.startsWith('/accounting')) && !newGroups.includes('Contabilidad')) {
+            newGroups.push('Contabilidad');
         }
         return newGroups;
     });
@@ -88,45 +101,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         ]
     },
 
-    // Group: Planning & Optimization
-    {
-        type: 'group',
-        label: "Planificación & Optimización",
-        icon: TrendingUp,
-        children: [
-            { to: "/forecast", icon: PieChart, label: "Proyecciones y Planeación" },
-            { to: "/action-center", icon: Zap, label: "Centro de Acción / Alertas" },
-        ]
-    },
 
-    // Group: Finance & Intelligence
-    {
-        type: 'group',
-        label: "Finanzas & Inteligencia",
-        icon: Landmark,
-        children: [
-            { to: "/financial", icon: Wallet, label: "Impacto Financiero" },
-            { to: "/intelligence", icon: BrainCircuit, label: "Inteligencia Artificial" },
-            { to: "/analytics", icon: LineChart, label: "Analítica Avanzada" },
-            { to: "/governance", icon: ShieldCheck, label: "Data Governance" },
-            { to: "/event-log", icon: GitCommit, label: "Bitácora de Eventos" },
-        ]
-    },
+
+
 
     // Group: Accounting & Interfaces
     {
         type: 'group',
-        label: "Contabilidad & Interfaces",
+        label: "Contabilidad",
         icon: FileSpreadsheet,
         children: [
             { to: "/accounting/sabana", icon: TableProperties, label: "Sábana General" },
-            { to: "/accounting/cartera", icon: HandCoins, label: "Estado de Cartera" },
+            { to: "/accounting/activos_liquidez", icon: Landmark, label: "Activos & Liquidez" },
             { to: "/accounting/cierres", icon: Calculator, label: "Cierres de Caja" },
             { to: "/accounting/ventas", icon: DollarSign, label: "Facturación (Ventas)" },
-            { to: "/accounting/auditoria", icon: UserCheck, label: "Auditoría Terceros" },
-            { to: "/accounting/inventario", icon: PackageOpen, label: "Inventario Valorizado" },
+            { to: "/returns", icon: RefreshCcw, label: "Devoluciones" },
             { to: "/accounting/exportacion", icon: FileSpreadsheet, label: "Exportación SIIGO" },
             { to: "/accounting/importaciones", icon: FileSpreadsheet, label: "Carga de Facturas (EDI)" },
+            { to: "/accounting/facturas_correo", icon: Mail, label: "Facturas por Correo" },
+            { to: "/accounting/conciliacion_datafono", icon: CreditCard, label: "Conciliación Datáfonos" },
+            { to: "/accounting/caja_menor", icon: Wallet, label: "Caja Menor" },
         ]
     },
 
@@ -170,73 +164,171 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
                 const isChildActive = item.children.some(child => child.to === location.pathname);
 
                 return (
-                    <div key={index} className="mb-1">
-                        <button 
-                            onClick={() => toggleGroup(item.label)}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                                isChildActive ? 'text-white bg-slate-800' : 'hover:bg-slate-800 hover:text-white'
-                            }`}
-                        >
-                            <div className="flex items-center">
-                                {item.icon && <item.icon className="w-5 h-5 mr-3" />}
-                                {item.label}
-                            </div>
-                            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                        </button>
-                        
-                        {isOpen && (
-                            <div className="mt-1 space-y-1 pl-4 relative">
-                                <div className="absolute left-6 top-0 bottom-0 w-px bg-slate-800"></div>
-                                {item.children.map((child) => (
-                                    <NavLink
-                                        key={child.to}
-                                        to={child.to}
-                                        onClick={() => setIsOpen && setIsOpen(false)}
-                                        className={({ isActive }) =>
-                                        `flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all relative z-10 ${
-                                            isActive
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
-                                            : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                                        }`
-                                        }
-                                    >
-                                        <child.icon className="w-4 h-4 mr-3" />
-                                        {child.label}
-                                    </NavLink>
-                                ))}
-                            </div>
+                    <React.Fragment key={index}>
+                        <div className="mb-1">
+                            <button 
+                                onClick={() => toggleGroup(item.label)}
+                                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                                    isChildActive ? 'text-white bg-slate-700' : 'hover:bg-slate-800 hover:text-white'
+                                }`}
+                            >
+                                <div className="flex items-center">
+                                    {item.icon && <item.icon className="w-5 h-5 mr-3" />}
+                                    {item.label}
+                                </div>
+                                {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            </button>
+                            
+                            {isOpen && (
+                                <div className="mt-1 space-y-1 pl-4 relative">
+                                    <div className="absolute left-6 top-0 bottom-0 w-px bg-slate-800"></div>
+                                    {item.children.map((child) => (
+                                        <NavLink
+                                            key={child.to}
+                                            to={child.to}
+                                            onClick={() => setIsOpen && setIsOpen(false)}
+                                            className={({ isActive }) =>
+                                            `flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all relative z-10 ${
+                                                isActive
+                                                ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
+                                                : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                                            }`
+                                            }
+                                        >
+                                            <child.icon className="w-4 h-4 mr-3" />
+                                            {child.label}
+                                        </NavLink>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {item.label === 'Operación' && (
+                            <div className="my-2 border-t border-slate-800/80 mx-2" />
                         )}
-                    </div>
+                    </React.Fragment>
                 );
             } else {
                 // Regular Item
                 const isSpecial = (item as any).special;
                 return (
-                    <NavLink
-                        key={item.to}
-                        to={item.to!}
-                        onClick={() => setIsOpen && setIsOpen(false)}
-                        className={({ isActive }) =>
-                        `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all ${
-                            isActive
-                            ? isSpecial 
-                                ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30" 
-                                : "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
-                            : isSpecial
-                                ? "text-indigo-300 hover:text-white hover:bg-indigo-900/30 border border-indigo-500/30 my-2"
-                                : "hover:bg-slate-800 hover:text-white"
-                        }`
-                        }
-                    >
-                        {item.icon && <item.icon className={`w-5 h-5 mr-3 ${isSpecial ? 'animate-pulse' : ''}`} />}
-                        {item.label}
-                    </NavLink>
+                    <React.Fragment key={item.to}>
+                        <NavLink
+                            to={item.to!}
+                            onClick={() => setIsOpen && setIsOpen(false)}
+                            className={({ isActive }) =>
+                            `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all ${
+                                isActive
+                                ? isSpecial 
+                                    ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30" 
+                                    : "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
+                                : isSpecial
+                                    ? "text-indigo-300 hover:text-white hover:bg-indigo-900/30 border border-indigo-500/30 my-2"
+                                    : "hover:bg-slate-800 hover:text-white"
+                            }`
+                            }
+                        >
+                            {item.icon && <item.icon className={`w-5 h-5 mr-3 ${isSpecial ? 'animate-pulse' : ''}`} />}
+                            {item.label}
+                        </NavLink>
+                        {item.to === "/" && (
+                            <div className="my-2 border-t border-slate-800/80 mx-2" />
+                        )}
+                    </React.Fragment>
                 );
             }
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-800 space-y-2">        <NavLink
+      <div className="p-4 relative space-y-2">
+        <style>{`
+          @keyframes lineShine {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+          .animate-line-shine {
+            background: linear-gradient(90deg, transparent 20%, #3b82f6 50%, transparent 80%);
+            background-size: 200% 100%;
+            animation: lineShine 3.5s infinite linear;
+          }
+          @keyframes rotateBorder {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          .border-beam-active {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+          }
+          .border-beam-active::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent 25%, #3b82f6 50%, transparent 75%);
+            animation: rotateBorder 5s infinite linear;
+            z-index: 0;
+            pointer-events: none;
+          }
+          .border-beam-inner {
+            position: relative;
+            z-index: 10;
+            background-color: rgba(15, 23, 42, 0.95);
+            border-radius: 9px;
+          }
+        `}</style>
+
+        {/* Group: Finance & Intelligence (Bottom Pinned) */}
+        <div className={`mb-2 transition-all duration-300 ${
+            isFinanceChildActive || isFinanceOpen
+                ? 'border-beam-active p-[3px]' 
+                : 'p-[3px]'
+        }`}>
+            <div className={`p-1.5 transition-all duration-300 ${
+                isFinanceChildActive || isFinanceOpen
+                    ? 'border-beam-inner shadow-inner bg-slate-950/40 border border-slate-800/40' 
+                    : ''
+            }`}>
+                <button 
+                    onClick={() => toggleGroup(financeGroup.label)}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        isFinanceChildActive ? 'text-white bg-slate-800 font-bold' : 'hover:bg-slate-800 hover:text-white'
+                    }`}
+                >
+                    <div className="flex items-center">
+                        <Landmark className="w-5 h-5 mr-3 text-slate-400" />
+                        Finanzas & Inteligencia
+                    </div>
+                    {isFinanceOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                </button>
+                
+                {isFinanceOpen && (
+                    <div className="mt-1 space-y-1 pl-4 relative">
+                        <div className="absolute left-6 top-0 bottom-0 w-px bg-slate-800"></div>
+                        {financeGroup.children.map((child) => (
+                            <NavLink
+                                key={child.to}
+                                to={child.to}
+                                onClick={() => setIsOpen && setIsOpen(false)}
+                                className={({ isActive }) =>
+                                `flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all relative z-10 ${
+                                    isActive
+                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
+                                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                                }`
+                                }
+                            >
+                                <child.icon className="w-4 h-4 mr-3" />
+                                {child.label}
+                            </NavLink>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+
+        <NavLink
             to="/config"
             onClick={() => setIsOpen && setIsOpen(false)}
             className={({ isActive }) =>

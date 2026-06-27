@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { MOCK_INVENTORY, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_CONTACTS, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule } from '../types';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport } from '../types';
 
 interface EnterpriseContextType {
     inventory: Product[];
@@ -34,6 +34,10 @@ interface EnterpriseContextType {
     updateLitersToCunetesRules: (rules: string[]) => void;
     fractionalRules: string[];
     updateFractionalRules: (rules: string[]) => void;
+    rawMaterialCategories: string[];
+    updateRawMaterialCategories: (cats: string[]) => void;
+    accountingShortcuts: string[];
+    updateAccountingShortcuts: (shortcuts: string[]) => void;
     transactions: AccountingTransaction[];
     addTransaction: (t: AccountingTransaction) => void;
     assignmentLogs: CrmAssignmentLog[];
@@ -53,7 +57,6 @@ interface EnterpriseContextType {
     setPointsOfSale: (pos: string[]) => void;
     
     // --- Configuración Impuestos ---
-    // --- Configuración Impuestos ---
     taxRates: TaxRate[];
     setTaxRates: (rates: TaxRate[]) => void;
 
@@ -69,6 +72,12 @@ interface EnterpriseContextType {
     recipes: Recipe[];
     addRecipe: (recipe: Recipe) => void;
     deleteRecipe: (id: string) => void;
+    processCreditNote: (t: AccountingTransaction) => void;
+    reconcileDatáfonoTransaction: (id: string, bankAmount: number, bankFee: number) => void;
+
+    // --- Auto Auditor ---
+    auditReports: AuditReport[];
+    runAuditAction: () => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -76,7 +85,203 @@ const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undef
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [inventory, setInventory] = useState<Product[]>(MOCK_INVENTORY);
     const [deals, setDeals] = useState<CrmDeal[]>(MOCK_CRM_DEALS);
-    const [contacts, setContacts] = useState<CrmContact[]>(MOCK_CRM_CONTACTS);
+
+    // --- Unified Mock Data Generator ---
+    const seedData = useMemo(() => {
+        if (!MOCK_INVENTORY.length || !MOCK_CRM_CONTACTS.length) {
+            return { txs: [] as AccountingTransaction[], cts: MOCK_CRM_CONTACTS };
+        }
+        
+        const generated: AccountingTransaction[] = [];
+        
+        // 1. Explicitly seed Caja Menor Transactions (2 reposiciones and 8 egresos)
+        generated.push({
+            id: 'RC-CM01',
+            date: '2026-06-01',
+            type: 'PAGO_RECIBIDO',
+            client: 'Banco de Occidente',
+            document: 'Reembolso Inicial de Caja Menor',
+            productName: 'Reposición de fondos Caja Menor',
+            sku: '-',
+            family: '-',
+            category: '-',
+            qty: 1,
+            total: 2000000,
+            iva: 0,
+            paymentMethod: 'Caja Menor',
+            posLocation: 'Sede Principal Centro'
+        });
+        
+        const cmExpenses = [
+            { id: 'CE-CM01', date: '2026-06-03', client: 'Papelería El Cid', doc: 'Factura Papel y Carpetas', desc: 'Papelería de oficina y carpetas de archivo', total: 85000 },
+            { id: 'CE-CM02', date: '2026-06-05', client: 'Café Córdoba', doc: 'Recibo Cafetería', desc: 'Café, azúcar y vasos desechables', total: 45000 },
+            { id: 'CE-CM03', date: '2026-06-08', client: 'Distribuidora Envases', doc: 'Compra material empaque', desc: 'Envases plásticos de 1 Litro', total: 420000, sku: '202401', prodName: 'ENVASES PLASTICOS 1L' },
+            { id: 'CE-CM04', date: '2026-06-12', client: 'Ferretería El Tornillo', doc: 'Compra de bombillos y cinta', desc: 'Mantenimiento luces oficina y cinta adhesiva', total: 32000 },
+            { id: 'CE-CM05', date: '2026-06-15', client: 'Servicio de Aseo Limpio', doc: 'Servicios diversos', desc: 'Implementos de aseo y desinfectantes', total: 64000 },
+            { id: 'CE-CM06', date: '2026-06-18', client: 'Empaques de Colombia', doc: 'Compra cajas cartón', desc: 'Cajas de cartón corrugado para despacho', total: 350000, sku: '202402', prodName: 'CAJAS DE CARTON' },
+            { id: 'CE-CM07', date: '2026-06-22', client: 'Papelería El Cid', doc: 'Factura Lapiceros', desc: 'Lapiceros y marcadores para bodega', total: 28000 },
+            { id: 'CE-CM08', date: '2026-06-24', client: 'Café Córdoba', doc: 'Recibo Café', desc: 'Suministros de cafetería y galletas', total: 38000 }
+        ];
+        
+        cmExpenses.forEach(exp => {
+            generated.push({
+                id: exp.id,
+                date: exp.date,
+                type: 'COMPRA',
+                client: exp.client,
+                clientId: 'C-VENDEDOR-VARIOS',
+                document: exp.doc,
+                productName: exp.prodName || exp.desc,
+                sku: exp.sku || '-',
+                family: exp.sku ? 'EMPAQUES' : 'DIVERSOS',
+                category: exp.sku ? 'FINISHED_GOOD' : 'SERVICE',
+                qty: exp.sku ? 100 : 1,
+                total: exp.total,
+                iva: 0,
+                paymentMethod: 'Caja Menor',
+                posLocation: 'Sede Principal Centro'
+            });
+        });
+        
+        // 2. Generate random Sales and Purchases
+        let ventaCounter = 1;
+        let compraCounter = 1;
+        let ajusteCounter = 1;
+        
+        const methods = [
+            'Efectivo', 'Tarjeta', 'Transferencia', 'Nequi', 'Datáfonos (111505)'
+        ];
+        
+        for (let i = 0; i < 200; i++) {
+            const rand = Math.random();
+            let type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' = 'VENTA';
+            if (rand > 0.8 && rand <= 0.95) type = 'COMPRA';
+            else if (rand > 0.95) type = 'AJUSTE_MERMA';
+            
+            const contact = MOCK_CRM_CONTACTS[Math.floor(Math.random() * MOCK_CRM_CONTACTS.length)];
+            const product = MOCK_INVENTORY[Math.floor(Math.random() * MOCK_INVENTORY.length)];
+            
+            const date = new Date(Date.now() - Math.floor(Math.random() * 60 * 24 * 60 * 60 * 1000));
+            const dateStr = date.toISOString().split('T')[0];
+            const qty = Math.floor(Math.random() * 15) + 1;
+            
+            let id = '';
+            let total = 0;
+            let iva = 0;
+            let paymentMethod = '';
+            
+            if (type === 'VENTA') {
+                id = `FV-${ventaCounter.toString().padStart(4, '0')}`;
+                ventaCounter++;
+                total = product.price * qty;
+                const rate = product.taxRate ?? 19;
+                iva = Math.round(total * (rate / 100));
+                
+                const isCredit = Math.random() > 0.5;
+                paymentMethod = isCredit ? (Math.random() > 0.5 ? 'Crédito 30 días' : 'Crédito 60 días') : methods[Math.floor(Math.random() * methods.length)];
+            } else if (type === 'COMPRA') {
+                id = `ALB-${compraCounter.toString().padStart(4, '0')}`;
+                compraCounter++;
+                total = product.unitCost * qty;
+                iva = 0;
+                paymentMethod = 'Proveedores Nacionales (220505)';
+            } else {
+                id = `AJM-${ajusteCounter.toString().padStart(4, '0')}`;
+                ajusteCounter++;
+                total = product.unitCost * qty;
+                iva = 0;
+                paymentMethod = 'Inventario Físico';
+            }
+            
+            let dueDate: string | undefined;
+            let paymentStatus: 'PENDIENTE' | 'PAGADA' | 'EN_MORA' | undefined;
+            let balance: number | undefined;
+            
+            if (type === 'VENTA') {
+                const isCreditMethod = paymentMethod.toLowerCase().includes('cr') && (paymentMethod.toLowerCase().includes('30') || paymentMethod.toLowerCase().includes('60') || paymentMethod.toLowerCase().includes('di') || paymentMethod.toLowerCase().includes('d'));
+                if (isCreditMethod) {
+                    const days = paymentMethod.includes('30') ? 30 : 60;
+                    const due = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+                    dueDate = due.toISOString().split('T')[0];
+                    
+                    if (due < new Date()) {
+                        paymentStatus = Math.random() > 0.3 ? 'EN_MORA' : 'PAGADA';
+                    } else {
+                        paymentStatus = Math.random() > 0.7 ? 'PAGADA' : 'PENDIENTE';
+                    }
+                    balance = paymentStatus === 'PAGADA' ? 0 : total + iva;
+                    
+                    if (paymentStatus === 'PAGADA' || (paymentStatus === 'PENDIENTE' && Math.random() > 0.5)) {
+                        const paidAmount = paymentStatus === 'PAGADA' ? (total + iva) : Math.round((total + iva) * 0.6);
+                        balance = (total + iva) - paidAmount;
+                        
+                        generated.push({
+                            id: `RC-${id.split('-')[1]}`,
+                            date: new Date(date.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            type: 'PAGO_RECIBIDO',
+                            client: contact.name,
+                            clientId: contact.id,
+                            document: `Abono/Pago Factura ${id}`,
+                            productName: `Recaudo de Cartera`,
+                            sku: '-',
+                            family: '-',
+                            category: '-',
+                            qty: 1,
+                            total: paidAmount,
+                            iva: 0,
+                            paymentMethod: 'Transferencia',
+                            posLocation: 'Sede Principal Centro'
+                        });
+                    }
+                } else {
+                    paymentStatus = 'PAGADA';
+                    balance = 0;
+                    dueDate = dateStr;
+                }
+            }
+            
+            generated.push({
+                id,
+                date: dateStr,
+                type,
+                client: type === 'VENTA' ? contact.name : 'PROVEEDOR QUÍMICO S.A.',
+                clientId: type === 'VENTA' ? contact.id : 'V-001',
+                document: type === 'VENTA' ? `${contact.documentType || 'NIT'} ${contact.documentNumber}` : 'Orden Compra',
+                sku: product.sku,
+                productName: product.name,
+                qty,
+                total: total + iva,
+                iva,
+                paymentMethod,
+                posLocation: 'Sede Principal Centro',
+                dueDate,
+                paymentStatus,
+                balance
+            });
+        }
+        
+        // 3. Update customer limits dynamically based on transactions
+        const cts = MOCK_CRM_CONTACTS.map(c => {
+            const clientTxs = generated.filter(t => t.clientId === c.id);
+            const unpaidTxs = clientTxs.filter(t => t.type === 'VENTA' && t.paymentStatus !== 'PAGADA');
+            
+            const creditLimitUsed = unpaidTxs.reduce((sum, t) => sum + (t.balance || 0), 0);
+            const hasOverdueBills = unpaidTxs.some(t => t.paymentStatus === 'EN_MORA' || (t.dueDate && new Date(t.dueDate) < new Date()));
+            
+            return {
+                ...c,
+                creditLimit: c.name.includes('S.A.') || c.name.includes('Ltda') ? 60000000 : 25000000,
+                creditLimitUsed,
+                hasOverdueBills
+            };
+        });
+        
+        generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        return { txs: generated, cts };
+    }, []);
+
+    const [contacts, setContacts] = useState<CrmContact[]>(seedData.cts);
     const [activities, setActivities] = useState<CrmActivity[]>(MOCK_CRM_ACTIVITIES);
     const [events, setEvents] = useState<SystemEvent[]>(MOCK_EVENT_LOG);
     const [crmUsers, setCrmUsers] = useState<CrmUser[]>(MOCK_CRM_USERS);
@@ -92,12 +297,14 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'Nequi', 
         'Crédito 30 días', 
         'Crédito 60 días', 
-        'Crédito 90 días'
+        'Crédito 90 días',
+        'Saldo a Favor'
     ]);
     const [pointsOfSale, setPointsOfSale] = useState<string[]>([
         'Sede Principal Centro', 
         'Bodega Norte', 
-        'Ventas Online'
+        'Ventas Online',
+        'Garantías / Averías'
     ]);
     
     // Tintometric Rules
@@ -134,6 +341,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'TINTILLA SEMIPIGMENTARIA',
         'HNS 2A02', 'TS 364', 'COLOR'
     ]);
+    const [rawMaterialCategories, setRawMaterialCategories] = useState<string[]>(['Materia Prima Nacional', 'Materia Prima Importada']);
+    const [accountingShortcuts, setAccountingShortcuts] = useState<string[]>(['Datáfonos (111505)', 'Crédito 30 días (130505)', 'Crédito 60 días (130505)', 'Crédito 90 días (130505)', 'Caja Menor (110510)']);
     
     // Tax Rates
     // Tax Rates
@@ -166,158 +375,182 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [fullProfileContactId, setFullProfileContactId] = useState<string | null>(null);
     const [globalInventorySearch, setGlobalInventorySearch] = useState<string>('');
     
-    // --- Transactions (Mock Data Init) ---
-    const [transactions, setTransactions] = useState<AccountingTransaction[]>(() => {
-        if (!MOCK_INVENTORY.length || !MOCK_CRM_CONTACTS.length) return [];
-        const generated: AccountingTransaction[] = [];
-        const types = ['VENTA', 'COMPRA', 'AJUSTE_MERMA'] as const;
-        const methods = ['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'CREDITO'];
-        
-        let ventaCounter = 1;
-        let compraCounter = 1;
-        let ajusteCounter = 1;
-
-        for (let i = 0; i < 300; i++) {
-            const rand = Math.random();
-            let type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' = 'VENTA';
-            if (rand > 0.7 && rand <= 0.9) type = 'COMPRA';
-            else if (rand > 0.9) type = 'AJUSTE_MERMA';
-
-            const contact = MOCK_CRM_CONTACTS[Math.floor(Math.random() * MOCK_CRM_CONTACTS.length)];
-            const product = MOCK_INVENTORY[Math.floor(Math.random() * MOCK_INVENTORY.length)];
-            const method = methods[Math.floor(Math.random() * methods.length)];
-            
-            const date = new Date(Date.now() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000));
-            const dateStr = date.toISOString().split('T')[0];
-            
-            const qty = Math.floor(Math.random() * 20) + 1;
-            let id = '';
-            let total = 0;
-            let iva = 0;
-            
-            if (type === 'VENTA') {
-                id = `FV-${ventaCounter.toString().padStart(4, '0')}`;
-                ventaCounter++;
-                total = (product.price || (product.unitCost * 1.4)) * qty;
-                const rate = product.taxRate ?? 19;
-                iva = total * (rate / 100);
-            } else if (type === 'COMPRA') {
-                id = `ALB-${compraCounter.toString().padStart(4, '0')}`;
-                compraCounter++;
-                total = product.unitCost * qty;
-                iva = 0;
-            } else {
-                id = `AJM-${ajusteCounter.toString().padStart(4, '0')}`;
-                ajusteCounter++;
-                total = product.unitCost * qty;
-                iva = 0;
-            }
-
-            let dueDate: string | undefined;
-            let paymentStatus: 'PENDIENTE' | 'PAGADA' | 'EN_MORA' | undefined;
-            let balance: number | undefined;
-
-            if (type === 'VENTA') {
-                if (method === 'CREDITO') {
-                    const termDays = [30, 60, 90][Math.floor(Math.random() * 3)];
-                    const due = new Date(date.getTime() + termDays * 24 * 60 * 60 * 1000);
-                    dueDate = due.toISOString().split('T')[0];
-                    
-                    if (due < new Date()) {
-                        paymentStatus = Math.random() > 0.4 ? 'EN_MORA' : 'PAGADA'; 
-                    } else {
-                        paymentStatus = Math.random() > 0.8 ? 'PAGADA' : 'PENDIENTE'; 
-                    }
-                    balance = paymentStatus === 'PAGADA' ? 0 : Math.round(total);
-                } else {
-                    paymentStatus = 'PAGADA';
-                    balance = 0;
-                    dueDate = dateStr;
-                }
-            }
-
-            generated.push({
-                id,
-                date: dateStr,
-                type,
-                client: contact.name,
-                clientId: contact.id,
-                document: `${contact.documentType || 'NIT'} ${contact.documentNumber}`,
-                productName: product.name,
-                sku: product.sku,
-                qty,
-                total: Math.round(total),
-                iva: Math.round(iva),
-                paymentMethod: type === 'VENTA' ? method : '-',
-                posLocation: type === 'VENTA' ? 'Sede Principal' : 'Bodega Central',
-                dueDate,
-                paymentStatus,
-                balance
-            });
-        }
-
-        // ---- INJECT HARDCODED MOCK DATA FOR "CIERRE DE CAJA" (HOY) ----
-        const hoyStr = new Date().toISOString().split('T')[0];
-        for (let i = 0; i < 15; i++) {
-            const product = MOCK_INVENTORY[Math.floor(Math.random() * MOCK_INVENTORY.length)];
-            const total = (product.price || (product.unitCost * 1.4)) * 3;
-            generated.push({
-                id: `FV-HOY-${i}`,
-                date: hoyStr,
-                type: 'VENTA',
-                client: 'Consumidor Final',
-                clientId: '',
-                document: '222222222',
-                productName: product.name,
-                sku: product.sku,
-                qty: 3,
-                total: Math.round(total),
-                iva: Math.round(total * 0.19),
-                paymentMethod: i % 2 === 0 ? 'EFECTIVO' : (i % 3 === 0 ? 'TRANSFERENCIA' : 'DATAFONO'),
-                posLocation: 'Sede Principal',
-                dueDate: hoyStr,
-                paymentStatus: 'PAGADA',
-                balance: 0
-            });
-        }
-
-        // ---- INJECT HARDCODED MOCK DATA FOR "ESTADO DE CARTERA" (MORA Y AL DIA) ----
-        const diasAtras = [15, 45, 75, 120];
-        diasAtras.forEach((dias, idx) => {
-            const pastDate = new Date(Date.now() - dias * 24 * 60 * 60 * 1000);
-            const dateStr = pastDate.toISOString().split('T')[0];
-            const due = new Date(pastDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-            const dueStr = due.toISOString().split('T')[0];
-            const isOverdue = due < new Date();
-            const contact = MOCK_CRM_CONTACTS[idx % MOCK_CRM_CONTACTS.length];
-            const product = MOCK_INVENTORY[idx % MOCK_INVENTORY.length];
-            const total = (product.price || (product.unitCost * 1.4)) * 50;
-
-            generated.push({
-                id: `FV-CART-${idx}`,
-                date: dateStr,
-                type: 'VENTA',
-                client: contact.name,
-                clientId: contact.id,
-                document: `${contact.documentType || 'NIT'} ${contact.documentNumber}`,
-                productName: product.name,
-                sku: product.sku,
-                qty: 50,
-                total: Math.round(total),
-                iva: Math.round(total * 0.19),
-                paymentMethod: 'CREDITO',
-                posLocation: 'Sede Principal',
-                dueDate: dueStr,
-                paymentStatus: isOverdue ? 'EN_MORA' : 'PENDIENTE',
-                balance: Math.round(total)
-            });
-        });
-
-        return generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    });
+    // --- Transactions State ---
+    const [transactions, setTransactions] = useState<AccountingTransaction[]>(seedData.txs);
 
     const addTransaction = (t: AccountingTransaction) => {
         setTransactions(prev => [t, ...prev]);
+    };
+
+    const reconcileDatáfonoTransaction = (id: string, bankAmount: number, bankFee: number) => {
+        setTransactions(prev => prev.map(t => {
+            if (t.id === id) {
+                return {
+                    ...t,
+                    validationStatus: 'VALIDADA',
+                    bankAmount,
+                    bankFee,
+                    reconciledDate: new Date().toISOString().split('T')[0]
+                };
+            }
+            return t;
+        }));
+    };
+
+    const processCreditNote = (t: AccountingTransaction) => {
+        if (t.type !== 'NOTA_CREDITO') return;
+        
+        // 1. Añadir la transacción contable
+        addTransaction(t);
+        
+        // 2. Sumar el stock a la bodega seleccionada (en este caso el totalStock global asume todo, pero se documenta posLocation)
+        updateInventoryStock(t.sku, t.qty); // qty debe venir positivo
+        
+        // 3. Sumar el saldo a favor al cliente
+        if (t.clientId) {
+            setContacts(prev => prev.map(c => {
+                if (c.id === t.clientId) {
+                    return { ...c, accountBalance: (c.accountBalance || 0) + t.total };
+                }
+                return c;
+            }));
+        }
+    };
+
+    // --- Auto Auditor Implementation ---
+    const initialReports: AuditReport[] = [
+        {
+            id: 'AUD-20260623',
+            date: '2026-06-23',
+            timestamp: '2026-06-23T08:00:00.000Z',
+            status: 'WARNING',
+            issues: [
+                {
+                    category: 'SIIGO_NIT',
+                    severity: 'HIGH',
+                    description: 'Tercero sin NIT en base de datos',
+                    details: 'El contacto Ana Silva no tenía configurado su número de NIT para facturación de SIIGO.'
+                }
+            ]
+        },
+        {
+            id: 'AUD-20260624',
+            date: '2026-06-24',
+            timestamp: '2026-06-24T08:00:00.000Z',
+            status: 'SUCCESS',
+            issues: []
+        },
+        {
+            id: 'AUD-20260625',
+            date: '2026-06-25',
+            timestamp: '2026-06-25T08:00:00.000Z',
+            status: 'ERROR',
+            issues: [
+                {
+                    category: 'TAX_MATH',
+                    severity: 'HIGH',
+                    description: 'Diferencia en cálculo de IVA',
+                    details: 'En la Factura FV-0010, el IVA registrado ($19,000) difiere del 19% calculado sobre la base ($12,000).'
+                }
+            ]
+        },
+        {
+            id: 'AUD-20260626',
+            date: '2026-06-26',
+            timestamp: '2026-06-26T08:00:00.000Z',
+            status: 'SUCCESS',
+            issues: []
+        }
+    ];
+
+    const [auditReports, setAuditReports] = useState<AuditReport[]>(initialReports);
+
+    const runAuditAction = () => {
+        const issues: any[] = [];
+
+        // 1. SIIGO NIT Validation
+        contacts.forEach(c => {
+            if (!c.documentNumber || c.documentNumber.trim() === '') {
+                issues.push({
+                    category: 'SIIGO_NIT',
+                    severity: 'HIGH',
+                    description: `Cliente sin Documento: ${c.name}`,
+                    details: `El cliente con ID ${c.id} tiene el campo de documento vacío, lo cual bloqueará la transmisión a SIIGO.`
+                });
+            } else if (c.documentNumber.length < 5) {
+                issues.push({
+                    category: 'SIIGO_NIT',
+                    severity: 'MEDIUM',
+                    description: `Documento posiblemente inválido: ${c.name}`,
+                    details: `El número de documento '${c.documentNumber}' es demasiado corto para ser un NIT o Cédula válido.`
+                });
+            }
+        });
+
+        // 2. TAX_MATH Validation
+        transactions.forEach(t => {
+            if (t.type === 'VENTA' && t.iva > 0) {
+                const product = inventory.find(p => p.sku === t.sku);
+                const rate = product?.taxRate ?? 19;
+                if (rate > 0) {
+                    const base = t.total - t.iva;
+                    const calculatedIva = Math.round(base * (rate / 100));
+                    const diff = Math.abs(t.iva - calculatedIva);
+                    if (diff > 100) {
+                        issues.push({
+                            category: 'TAX_MATH',
+                            severity: 'HIGH',
+                            description: `Diferencia de IVA en Comprobante ${t.id}`,
+                            details: `El IVA registrado es $${t.iva.toLocaleString('es-CO')}, pero el IVA calculado es $${calculatedIva.toLocaleString('es-CO')} (Base: $${base.toLocaleString('es-CO')} a tarifa del ${rate}%).`
+                        });
+                    }
+                }
+            }
+        });
+
+        // 3. SKU_ORPHAN Validation
+        transactions.forEach(t => {
+            if (t.sku && t.sku !== '-' && t.sku !== '') {
+                const productExists = inventory.some(p => p.sku === t.sku);
+                if (!productExists) {
+                    issues.push({
+                        category: 'SKU_ORPHAN',
+                        severity: 'HIGH',
+                        description: `SKU Huérfano en Transacción ${t.id}`,
+                        details: `La transacción hace referencia al SKU '${t.sku}' (${t.productName}), pero este producto no existe en el catálogo.`
+                    });
+                }
+            }
+        });
+
+        // 4. LEDGER_INTEGRITY Validation
+        const cmTxs = transactions.filter(t => t.paymentMethod === 'Caja Menor');
+        const cmSales = cmTxs.filter(t => t.type === 'VENTA');
+        if (cmSales.length > 0) {
+            issues.push({
+                category: 'LEDGER_INTEGRITY',
+                severity: 'MEDIUM',
+                description: `Ventas registradas con Caja Menor`,
+                details: `Se detectaron ${cmSales.length} facturas de venta usando 'Caja Menor' como método de recaudo contable.`
+            });
+        }
+
+        const status = issues.some(i => i.severity === 'HIGH') 
+            ? 'ERROR' 
+            : issues.length > 0 
+                ? 'WARNING' 
+                : 'SUCCESS';
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const newReport: AuditReport = {
+            id: `AUD-${Date.now()}`,
+            date: todayStr,
+            timestamp: new Date().toISOString(),
+            status,
+            issues
+        };
+
+        setAuditReports(prev => [newReport, ...prev]);
     };
 
     const updateInventoryStock = (productId: string, quantityChange: number) => {
@@ -350,6 +583,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const updateFractionalRules = (rules: string[]) => {
         setFractionalRules(rules);
+    };
+
+    const updateRawMaterialCategories = (cats: string[]) => {
+        setRawMaterialCategories(cats);
     };
 
     const getContactHealthScore = (contactId: string): 'GREEN' | 'YELLOW' | 'RED' => {
@@ -637,6 +874,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateLitersToCunetesRules,
             fractionalRules,
             updateFractionalRules,
+            rawMaterialCategories,
+            updateRawMaterialCategories,
+            accountingShortcuts,
+            updateAccountingShortcuts: setAccountingShortcuts,
             assignmentLogs,
             cleanGarbageLeads,
             getActiveNotifications,
@@ -658,12 +899,16 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             recipes,
             addRecipe,
             deleteRecipe,
+            processCreditNote,
+            reconcileDatáfonoTransaction,
             taxRules,
             setTaxRules,
             pricingRules,
             setPricingRules,
             paymentRules,
-            setPaymentRules
+            setPaymentRules,
+            auditReports,
+            runAuditAction
         }}>
             {children}
         </EnterpriseContext.Provider>

@@ -54,6 +54,7 @@ export const CrmFull: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRegistroType, setNewRegistroType] = useState<'CONTACT' | 'DEAL'>('CONTACT');
   const [newPayload, setNewPayload] = useState<any>({});
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   // Lost Reason Modal State (Feature 4)
   const [lostModalDealId, setLostModalDealId] = useState<string | null>(null);
@@ -109,15 +110,59 @@ export const CrmFull: React.FC = () => {
   };
 
   const handleCreateRegistro = () => {
+    setValidationError(null);
     if (newRegistroType === 'CONTACT') {
+      const company = (newPayload.company || '').trim();
+      const docNum = (newPayload.documentNumber || '').trim();
+      const email = (newPayload.email || '').trim();
+      const address = (newPayload.address || '').trim();
+      const phone = (newPayload.phone || '').trim();
+
+      if (!company) {
+        setValidationError('El Nombre de la Empresa / Razón Social es requerido.');
+        return;
+      }
+      if (!docNum) {
+        setValidationError('El Número de Identificación (NIT/Cédula) es requerido y no puede ser inexistente.');
+        return;
+      }
+      if (docNum.length < 5) {
+        setValidationError('El Número de Identificación (NIT/Cédula) ingresado tiene errores (es demasiado corto).');
+        return;
+      }
+      if (!address) {
+        setValidationError('La Dirección Física es requerida.');
+        return;
+      }
+      if (!email) {
+        setValidationError('El Correo Electrónico es requerido.');
+        return;
+      }
+      if (!email.includes('@') || !email.includes('.')) {
+        setValidationError('El Correo Electrónico ingresado tiene errores de formato (debe contener @ y un dominio).');
+        return;
+      }
+      if (!phone) {
+        setValidationError('El Teléfono Principal es requerido.');
+        return;
+      }
+
+      // Check duplicate NIT/Cédula
+      const isDuplicate = contacts.some(c => c.documentNumber === docNum);
+      if (isDuplicate) {
+        setValidationError(`Ya existe un tercero registrado en el sistema con el documento/NIT ${docNum}. No se permiten duplicados.`);
+        return;
+      }
+
       const nc: CrmContact = {
         id: `C-NEW-${Date.now()}`,
-        name: newPayload.name || 'Sin Nombre',
-        company: newPayload.company || 'Sin Empresa',
-        email: newPayload.email || '',
-        phone: newPayload.phone || '',
+        name: company,
+        company: company,
+        email: email,
+        phone: phone,
         documentType: newPayload.documentType || 'NIT',
-        documentNumber: newPayload.documentNumber || '',
+        documentNumber: docNum,
+        address: address,
         tier: CustomerTier.REGULAR,
         status: newPayload.status || 'LEAD',
         source: 'MANUAL',
@@ -127,6 +172,14 @@ export const CrmFull: React.FC = () => {
       };
       addContact(nc);
     } else {
+      if (!newPayload.title || !newPayload.title.trim()) {
+        setValidationError('El Título de la Oportunidad es requerido.');
+        return;
+      }
+      if (!newPayload.value || Number(newPayload.value) <= 0) {
+        setValidationError('El Valor Estimado debe ser mayor a 0.');
+        return;
+      }
       const nd: CrmDeal = {
         id: `D-NEW-${Date.now()}`,
         title: newPayload.title || 'Nueva Oportunidad',
@@ -142,6 +195,7 @@ export const CrmFull: React.FC = () => {
     }
     setIsModalOpen(false);
     setNewPayload({});
+    setValidationError(null);
   };
 
   const handleAddDecisionMaker = () => {
@@ -242,7 +296,7 @@ export const CrmFull: React.FC = () => {
 
       <div className="flex items-center gap-1 bg-slate-100/50 p-1 rounded-xl mb-6 w-fit border border-slate-200/60 flex-wrap">
         {[
-          { id: 'contactos', label: 'Directorio', icon: Users }, 
+          { id: 'contactos', label: 'Base Total', icon: Users }, 
           { id: 'dashboard', label: 'Informes', icon: PieChart }, 
           { id: 'embudo', label: 'Pipeline Ventas', icon: Target }, 
           { id: 'postventa', label: 'Post-Venta', icon: Heart }, 
@@ -385,6 +439,13 @@ export const CrmFull: React.FC = () => {
                 <button onClick={() => setNewRegistroType('DEAL')} className={`px-4 py-2 text-sm rounded-lg transition-colors ${newRegistroType === 'DEAL' ? 'bg-indigo-600 text-white font-bold shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Nueva Oportunidad</button>
               </div>
 
+              {validationError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3.5 rounded-xl text-xs font-bold flex items-center gap-2 mb-4">
+                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>{validationError}</span>
+                </div>
+              )}
+
               <div className="space-y-4">
                 {newRegistroType === 'CONTACT' ? (
                   <>
@@ -394,7 +455,7 @@ export const CrmFull: React.FC = () => {
                             <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Razón Social" onChange={(e) => setNewPayload({...newPayload, company: e.target.value})} />
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-slate-500 mb-1 block">Tipo y No. Documento (DIAN)</label>
+                            <label className="text-xs font-bold text-slate-500 mb-1 block">Tipo y No. Documento (DIAN) *</label>
                             <div className="flex gap-2">
                                 <select 
                                     className="border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none w-28 bg-white"
@@ -423,6 +484,17 @@ export const CrmFull: React.FC = () => {
                                 <option value="PROSPECTO">Prospecto (En Negociación)</option>
                                 <option value="VINCULADO">Vinculado (Con Venta)</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Correo Electrónico *</label>
+                            <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="correo@empresa.com" type="email" onChange={(e) => setNewPayload({...newPayload, email: e.target.value})} />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Dirección Física *</label>
+                            <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Calle 12 # 34 - 56" onChange={(e) => setNewPayload({...newPayload, address: e.target.value})} />
                         </div>
                     </div>
 

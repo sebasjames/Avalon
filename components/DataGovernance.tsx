@@ -7,17 +7,18 @@ import {
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line 
 } from 'recharts';
-import { MOCK_INVENTORY } from '../constants';
 import { InventoryStatus, ABCClass } from '../types';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 export const DataGovernance: React.FC = () => {
+    const { inventory } = useEnterprise();
     const [activeTab, setActiveTab] = useState<'quality' | 'reconciliation' | 'audit'>('quality');
 
     // --- 1. DATA QUALITY LOGIC ---
 
     // Check 1: Integrity (Header Stock vs Sum of Batches)
-    const integrityIssues = MOCK_INVENTORY.map(item => {
-        const batchSum = item.batches.reduce((acc, b) => acc + b.quantity, 0);
+    const integrityIssues = inventory.map(item => {
+        const batchSum = (item.batches || []).reduce((acc, b) => acc + b.quantity, 0);
         const diff = item.totalStock - batchSum;
         return {
             ...item,
@@ -28,7 +29,7 @@ export const DataGovernance: React.FC = () => {
     }).filter(i => i.hasError);
 
     // Check 2: Misclassification (Silent items that are Class A, or Missing Costs)
-    const classificationIssues = MOCK_INVENTORY.filter(item => {
+    const classificationIssues = inventory.filter(item => {
         const isSilentButImportant = item.status === InventoryStatus.SILENT && item.abc === ABCClass.A;
         const missingCost = item.unitCost <= 0;
         return isSilentButImportant || missingCost;

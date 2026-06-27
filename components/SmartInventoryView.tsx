@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { InventoryExcelModal } from './InventoryExcelModal';
-import { InventoryStatus } from '../types';
+import { InventoryStatus, Category } from '../types';
 import { 
     Search, Layers, Box, Cpu, Activity, Droplet, Ghost,
     LayoutGrid, List, X, History, TrendingUp, TrendingDown, RefreshCw, AlertCircle,
@@ -78,16 +78,19 @@ const CardSkeleton = () => (
 );
 
 const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void }) => {
-    const [activeTab, setActiveTab] = useState<'kardex' | 'details'>('kardex');
+    const [activeTab, setActiveTab] = useState<'kardex' | 'details' | 'master'>('kardex');
     const navigate = useNavigate();
-    const { events } = useEnterprise();
+    const { events, transactions, inventory, updateInventoryProduct } = useEnterprise();
+    
+    // Always use the freshest version of the product from context
+    const currentProduct = inventory.find(p => p.id === product.id) || product;
 
-    const validTotal = product.totalStock || 1;
-    const atp = product.totalStock - product.reservedStock;
-    const value = (product.category === 'Materia Prima' ? product.unitCost : product.price) * product.totalStock;
+    const validTotal = currentProduct.totalStock || 1;
+    const atp = currentProduct.totalStock - currentProduct.reservedStock;
+    const value = (currentProduct.category.includes('Materia Prima') ? currentProduct.unitCost : currentProduct.price) * currentProduct.totalStock;
 
     // Obtener los verdaderos del contexto, mezclados con algunos mocks de UI si está vacío
-    const realEvents = events.filter(e => e.entity_id === product.sku).map((evt, idx) => ({
+    const realEvents = events.filter(e => e.entity_id === currentProduct.sku).map((evt, idx) => ({
         id: evt.event_id,
         type: evt.event_type.includes('RESERVE') ? 'RESERVA' : evt.event_type.includes('IN') ? 'ENTRADA' : 'SALIDA',
         qty: evt.new_state?.reservedStock ? (evt.new_state.reservedStock - (evt.previous_state?.reservedStock || 0)) : (evt.new_state?.quantity || 0),
@@ -109,6 +112,28 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
+    const hasHistory = transactions.some(t => t.sku === currentProduct.sku);
+
+    // Edit State for Master Data
+    const [masterCategory, setMasterCategory] = useState<Category>(currentProduct.category);
+    const [masterFamily, setMasterFamily] = useState(currentProduct.family || '');
+    const [masterBrand, setMasterBrand] = useState(currentProduct.brand || '');
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    
+    // Accounting Change Request State
+    const [isRequestingChange, setIsRequestingChange] = useState(false);
+    const [changeAuthId, setChangeAuthId] = useState('');
+
+    const handleSaveMaster = () => {
+        updateInventoryProduct(currentProduct.id, {
+            category: masterCategory,
+            family: masterFamily,
+            brand: masterBrand
+        });
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
+    };
+
     return createPortal(
         <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/40 backdrop-blur-sm" onClick={onClose}>
             <motion.div 
@@ -123,19 +148,19 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 uppercase">
-                                {product.abc}{product.xyz}
+                                {currentProduct.abc}{currentProduct.xyz}
                             </span>
                             <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded border border-slate-200">
-                                {product.category}
+                                {currentProduct.category}
                             </span>
                         </div>
-                        <h2 className="text-2xl font-black text-slate-900 mt-2">{product.name}</h2>
+                        <h2 className="text-2xl font-black text-slate-900 mt-2">{currentProduct.name}</h2>
                         <div className="flex flex-col gap-1 mt-2">
                              <p className="text-xs font-mono text-slate-500 flex items-center gap-2">
-                                <span className="font-bold text-indigo-600">AVALON SKU:</span> {product.sku}
+                                <span className="font-bold text-indigo-600">AVALON SKU:</span> {currentProduct.sku}
                             </p>
                             <p className="text-xs font-mono text-slate-400 flex items-center gap-2 border-l-2 border-slate-200 pl-2 ml-1">
-                                <span className="font-bold text-slate-500">ORIGINAL:</span> {product.originalSku}
+                                <span className="font-bold text-slate-500">ORIGINAL:</span> {currentProduct.originalSku}
                             </p>
                         </div>
                     </div>
@@ -148,7 +173,7 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                 <div className="p-6 grid grid-cols-3 gap-3 bg-white">
                     <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-2xl">
                         <div className="text-[10px] uppercase font-bold text-indigo-500 mb-1">Stock Físico</div>
-                        <div className="text-2xl font-black text-indigo-900">{product.totalStock}</div>
+                        <div className="text-2xl font-black text-indigo-900">{currentProduct.totalStock}</div>
                     </div>
                     <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
                         <div className="text-[10px] uppercase font-bold text-emerald-500 mb-1">Disponible (ATP)</div>
@@ -156,11 +181,11 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                     </div>
                     <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl">
                         <div className="text-[10px] uppercase font-bold text-amber-500 mb-1">Reservado</div>
-                        <div className="text-2xl font-black text-amber-900">{product.reservedStock}</div>
+                        <div className="text-2xl font-black text-amber-900">{currentProduct.reservedStock}</div>
                     </div>
                 </div>
 
-                {product.mixingInstructions && (
+                {currentProduct.mixingInstructions && (
                     <div className="px-6 mt-4 mb-2">
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
@@ -168,13 +193,13 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                                 <TestTube className="w-3 h-3" /> Nota Técnica: Mezclas
                             </div>
                             <div className="text-sm font-bold text-amber-900 mt-1">
-                                {product.mixingInstructions}
+                                {currentProduct.mixingInstructions}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {product.informationalNote && (
+                {currentProduct.informationalNote && (
                     <div className="px-6 mt-2 mb-2">
                         <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-1 h-full bg-sky-400"></div>
@@ -182,7 +207,7 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                                 <AlertCircle className="w-3 h-3" /> Información
                             </div>
                             <div className="text-sm font-bold text-sky-900 mt-1 whitespace-pre-line">
-                                {product.informationalNote}
+                                {currentProduct.informationalNote}
                             </div>
                         </div>
                     </div>
@@ -200,6 +225,12 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                         className={`pb-3 text-sm font-bold border-b-2 px-4 whitespace-nowrap transition-colors ${activeTab === 'details' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                     >
                         Análisis de Costos
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('master')}
+                        className={`pb-3 text-sm font-bold border-b-2 px-4 whitespace-nowrap transition-colors flex items-center gap-2 ${activeTab === 'master' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                    >
+                        <Shield className="w-4 h-4" /> Ficha Técnica
                     </button>
                 </div>
 
@@ -249,6 +280,145 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                             </button>
                         </div>
                     )}
+                    {activeTab === 'master' && (
+                        <div className="space-y-4">
+                            {hasHistory && (
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <h4 className="text-sm font-bold text-amber-900">Campos Bloqueados</h4>
+                                            <p className="text-xs text-amber-700 mt-1">
+                                                Este producto tiene historial transaccional de compras o ventas. Para mantener la integridad contable con SIIGO, no es posible editar su Familia ni Categoría directamente.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1">Categoría Principal (Grupo SIIGO)</label>
+                                    <select 
+                                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500 transition-colors"
+                                        value={masterCategory}
+                                        onChange={(e) => setMasterCategory(e.target.value as Category)}
+                                        disabled={hasHistory && !isRequestingChange}
+                                    >
+                                        {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1">Familia / Sublínea</label>
+                                    <input 
+                                        type="text"
+                                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500 transition-colors"
+                                        value={masterFamily}
+                                        onChange={(e) => setMasterFamily(e.target.value)}
+                                        disabled={hasHistory && !isRequestingChange}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1">Marca / Proveedor (Homologación)</label>
+                                    <input 
+                                        type="text"
+                                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500 transition-colors"
+                                        value={masterBrand}
+                                        onChange={(e) => setMasterBrand(e.target.value)}
+                                        disabled={hasHistory && !isRequestingChange}
+                                    />
+                                </div>
+                                
+                                {isRequestingChange && (
+                                    <div className="pt-4 border-t border-slate-200 mt-4">
+                                        <label className="block text-xs font-bold text-slate-600 mb-2 uppercase">Firma de Autorización (ID)</label>
+                                        <input 
+                                            type="password" 
+                                            placeholder="Ingrese su código ID..."
+                                            value={changeAuthId}
+                                            onChange={(e) => setChangeAuthId(e.target.value)}
+                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 mb-3 font-mono text-center tracking-widest"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => setIsRequestingChange(false)}
+                                                className="flex-1 py-2 rounded-lg text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    updateInventoryProduct(currentProduct.id, {
+                                                        isPendingAccountingReview: true,
+                                                        pendingAccountingChanges: {
+                                                            requestedAt: new Date().toLocaleString('es-CO'),
+                                                            requestedBy: changeAuthId,
+                                                            category: masterCategory,
+                                                            family: masterFamily,
+                                                            brand: masterBrand
+                                                        }
+                                                    });
+                                                    setIsRequestingChange(false);
+                                                }}
+                                                disabled={changeAuthId.trim().length < 3 || (masterCategory === currentProduct.category && masterFamily === currentProduct.family && masterBrand === currentProduct.brand)}
+                                                className="flex-1 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Confirmar Solicitud
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {!hasHistory && (
+                                    <button 
+                                        onClick={handleSaveMaster}
+                                        className={`w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${
+                                            saveSuccess ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'
+                                        }`}
+                                    >
+                                        {saveSuccess ? <><Check className="w-4 h-4" /> Guardado Exitoso</> : <><Save className="w-4 h-4" /> Guardar Datos Maestros</>}
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {hasHistory && (
+                                <div>
+                                    {currentProduct.isPendingAccountingReview ? (
+                                        <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 mt-2 text-amber-800 text-xs shadow-sm">
+                                            <div className="font-bold flex items-center gap-2 mb-2 text-sm border-b border-amber-200/50 pb-2">
+                                                <Timer className="w-4 h-4" />
+                                                Cambio Solicitado (Pendiente de Aprobación)
+                                            </div>
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between">
+                                                    <span className="opacity-70">Operador:</span>
+                                                    <span className="font-bold">{currentProduct.pendingAccountingChanges?.requestedBy}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="opacity-70">Fecha:</span>
+                                                    <span className="font-mono">{currentProduct.pendingAccountingChanges?.requestedAt}</span>
+                                                </div>
+                                                <div className="mt-2 pt-2 border-t border-amber-200/50">
+                                                    <div className="font-bold mb-1">Nuevos valores solicitados:</div>
+                                                    {currentProduct.pendingAccountingChanges?.category !== currentProduct.category && <div>• Categoría: <span className="line-through opacity-50 mr-1">{currentProduct.category}</span> ➔ {currentProduct.pendingAccountingChanges?.category}</div>}
+                                                    {currentProduct.pendingAccountingChanges?.family !== currentProduct.family && <div>• Familia: <span className="line-through opacity-50 mr-1">{currentProduct.family || 'N/A'}</span> ➔ {currentProduct.pendingAccountingChanges?.family || 'N/A'}</div>}
+                                                    {currentProduct.pendingAccountingChanges?.brand !== currentProduct.brand && <div>• Marca: <span className="line-through opacity-50 mr-1">{currentProduct.brand || 'N/A'}</span> ➔ {currentProduct.pendingAccountingChanges?.brand || 'N/A'}</div>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        !isRequestingChange && (
+                                            <button
+                                                onClick={() => setIsRequestingChange(true)}
+                                                className="w-full mt-2 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors shadow-sm flex justify-center items-center gap-2"
+                                            >
+                                                <Shield className="w-4 h-4" />
+                                                Solicitar Cambio a Contabilidad
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </motion.div>
         </div>,
@@ -260,7 +430,7 @@ const Card = ({ product, onClick }: { product: any, onClick: () => void }) => {
     const validTotal = product.totalStock || 1; 
     const atp = product.totalStock - product.reservedStock;
     const atpPercent = Math.min(100, Math.max(0, (atp / validTotal) * 100)); 
-    const value = (product.category === 'Materia Prima' ? product.unitCost : product.price) * product.totalStock;
+    const value = (product.category.includes('Materia Prima') ? product.unitCost : product.price) * product.totalStock;
     
     let rawHealth = 100;
     if (product.status === InventoryStatus.SLOW) rawHealth -= 30;
@@ -386,15 +556,16 @@ const normalizeBrand = (b?: string) => {
 };
 
 export const SmartInventoryView: React.FC = () => {
-    const { inventory, updateInventoryProduct, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
+    const { inventory, updateInventoryProduct, transactions, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
-    const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number; barcode?: string; taxRate?: number }>>({});
+    const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number; barcode?: string; taxRate?: number; category?: Category; family?: string; brand?: string; }>>({});
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [showExcelModal, setShowExcelModal] = useState(false);
     const [selectedChanges, setSelectedChanges] = useState<string[]>([]);
     const [authSignature, setAuthSignature] = useState('');
     const [filter, setFilter] = useState('ALL');
+    const [segmentFilter, setSegmentFilter] = useState<'ALL' | 'NACIONAL' | 'IMPORTADA' | 'FERRETERIA'>('ALL');
     const [orderBy, setOrderBy] = useState('name_asc');
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
@@ -561,6 +732,12 @@ export const SmartInventoryView: React.FC = () => {
                 }
             }
 
+            if (segmentFilter !== 'ALL') {
+                if (segmentFilter === 'NACIONAL' && item.category !== Category.RAW_MATERIAL) return false;
+                if (segmentFilter === 'IMPORTADA' && item.category !== Category.RAW_MATERIAL_IMPORTADA) return false;
+                if (segmentFilter === 'FERRETERIA' && item.category !== Category.HARDWARE) return false;
+            }
+
             if (selectedFamilies.length > 0) {
                 if (!selectedFamilies.includes(item.family)) return false;
             }
@@ -596,8 +773,8 @@ export const SmartInventoryView: React.FC = () => {
                 case 'stock_desc': return b.totalStock - a.totalStock;
                 case 'stock_asc': return a.totalStock - b.totalStock;
                 case 'value_desc': {
-                    const valA = (a.category === 'Materia Prima' ? a.unitCost : a.price) * a.totalStock;
-                    const valB = (b.category === 'Materia Prima' ? b.unitCost : b.price) * b.totalStock;
+                    const valA = (a.category.includes('Materia Prima') ? a.unitCost : a.price) * a.totalStock;
+                    const valB = (b.category.includes('Materia Prima') ? b.unitCost : b.price) * b.totalStock;
                     return valB - valA;
                 }
                 case 'atp_asc': {
@@ -610,7 +787,7 @@ export const SmartInventoryView: React.FC = () => {
         });
 
         return result;
-    }, [filter, search, inventory, orderBy, selectedFamilies, selectedSizes, selectedBrands]);
+    }, [filter, segmentFilter, search, inventory, orderBy, selectedFamilies, selectedSizes, selectedBrands]);
 
     const handleSaveEdits = () => {
         const hasChanges = Object.keys(editedRows).some(id => {
@@ -620,7 +797,10 @@ export const SmartInventoryView: React.FC = () => {
             return (updates.totalStock !== undefined && updates.totalStock !== product.totalStock) ||
                    (updates.price !== undefined && updates.price !== product.price) ||
                    (updates.barcode !== undefined && updates.barcode !== product.barcode) ||
-                   (updates.taxRate !== undefined && updates.taxRate !== product.taxRate);
+                   (updates.taxRate !== undefined && updates.taxRate !== product.taxRate) ||
+                   (updates.category !== undefined && updates.category !== product.category) ||
+                   (updates.family !== undefined && updates.family !== product.family) ||
+                   (updates.brand !== undefined && updates.brand !== product.brand);
         });
 
         if (hasChanges) {
@@ -646,6 +826,35 @@ export const SmartInventoryView: React.FC = () => {
     return (
         <div className="h-full flex flex-col relative w-full pt-2">
             <div className="flex-1 flex flex-col overflow-hidden w-full">
+                
+                {/* Segment Filter Tabs */}
+                <div className="flex flex-wrap gap-2 mb-3 bg-white p-2 rounded-xl border border-slate-200/50 shadow-sm w-full md:w-max">
+                    <button 
+                        onClick={() => setSegmentFilter('ALL')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${segmentFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        Todos
+                    </button>
+                    <button 
+                        onClick={() => setSegmentFilter('NACIONAL')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'NACIONAL' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        🇨🇴 Nacional
+                    </button>
+                    <button 
+                        onClick={() => setSegmentFilter('IMPORTADA')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'IMPORTADA' ? 'bg-sky-600 text-white shadow-md shadow-sky-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        🚢 Importada
+                    </button>
+                    <button 
+                        onClick={() => setSegmentFilter('FERRETERIA')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'FERRETERIA' ? 'bg-amber-600 text-white shadow-md shadow-amber-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        🔧 Ferretería
+                    </button>
+                </div>
+
                 <header className="flex flex-col xl:flex-row justify-between items-center mb-4 gap-4 bg-white p-3 rounded-xl border border-slate-200/50 shadow-sm">
 
                     <div className="flex flex-wrap items-center justify-center gap-3">
@@ -798,6 +1007,9 @@ export const SmartInventoryView: React.FC = () => {
                                             <th className="p-4 w-4"></th>
                                             <th className="p-4">SKU / Producto</th>
                                             <th className="p-4 text-center">Barcode</th>
+                                            <th className="p-4">Categoría</th>
+                                            <th className="p-4">Familia</th>
+                                            <th className="p-4">Marca/Prov.</th>
                                             <th className="p-4 text-center">Clase</th>
                                             <th className="p-4 text-center">Físico</th>
                                             <th className="p-4 text-center text-indigo-600">Precio Unit.</th>
@@ -811,13 +1023,13 @@ export const SmartInventoryView: React.FC = () => {
                                         {isLoading ? (
                                             Array.from({ length: 15 }).map((_, i) => (
                                                 <tr key={i} className="animate-pulse">
-                                                    <td colSpan={9} className="p-4 h-16 bg-slate-50/50"></td>
+                                                    <td colSpan={12} className="p-4 h-16 bg-slate-50/50"></td>
                                                 </tr>
                                             ))
                                         ) : (
                                             filteredData.slice(0, displayLimit).map((product) => {
                                                 const atp = product.totalStock - product.reservedStock;
-                                                const val = (product.category === 'Materia Prima' ? product.unitCost : product.price) * product.totalStock;
+                                                const val = (product.category.includes('Materia Prima') ? product.unitCost : product.price) * product.totalStock;
                                                 return (
                                                     <tr 
                                                         key={product.id} 
@@ -843,6 +1055,49 @@ export const SmartInventoryView: React.FC = () => {
                                                                 />
                                                             ) : (
                                                                 <span className="text-xs font-mono text-slate-500">{product.barcode || '-'}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="p-4">
+                                                            {isEditing ? (
+                                                                <select
+                                                                    className="w-32 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                                                    value={editedRows[product.id]?.category ?? product.category}
+                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], category: e.target.value as Category } }))}
+                                                                    onClick={e => e.stopPropagation()}
+                                                                    disabled={transactions.some(t => t.sku === product.sku)}
+                                                                >
+                                                                    {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
+                                                                </select>
+                                                            ) : (
+                                                                <span className="text-xs text-slate-600">{product.category}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="p-4">
+                                                            {isEditing ? (
+                                                                <input
+                                                                    type="text"
+                                                                    className="w-28 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                                                    value={editedRows[product.id]?.family ?? product.family ?? ''}
+                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], family: e.target.value } }))}
+                                                                    onClick={e => e.stopPropagation()}
+                                                                    disabled={transactions.some(t => t.sku === product.sku)}
+                                                                />
+                                                            ) : (
+                                                                <span className="text-xs text-slate-600">{product.family || '-'}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="p-4">
+                                                            {isEditing ? (
+                                                                <input
+                                                                    type="text"
+                                                                    className="w-28 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                                                    value={editedRows[product.id]?.brand ?? product.brand ?? ''}
+                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], brand: e.target.value } }))}
+                                                                    onClick={e => e.stopPropagation()}
+                                                                    disabled={transactions.some(t => t.sku === product.sku)}
+                                                                />
+                                                            ) : (
+                                                                <span className="text-xs text-slate-600">{product.brand || '-'}</span>
                                                             )}
                                                         </td>
                                                         <td className="p-4 text-center">
@@ -986,8 +1241,11 @@ export const SmartInventoryView: React.FC = () => {
                                                 const hasPriceChange = updates.price !== undefined && updates.price !== product.price;
                                                 const hasBarcodeChange = updates.barcode !== undefined && updates.barcode !== product.barcode;
                                                 const hasTaxChange = updates.taxRate !== undefined && updates.taxRate !== product.taxRate;
+                                                const hasCategoryChange = updates.category !== undefined && updates.category !== product.category;
+                                                const hasFamilyChange = updates.family !== undefined && updates.family !== product.family;
+                                                const hasBrandChange = updates.brand !== undefined && updates.brand !== product.brand;
                                                 
-                                                if (!hasStockChange && !hasPriceChange && !hasBarcodeChange && !hasTaxChange) return null;
+                                                if (!hasStockChange && !hasPriceChange && !hasBarcodeChange && !hasTaxChange && !hasCategoryChange && !hasFamilyChange && !hasBrandChange) return null;
                                                 
                                                 const isSelected = selectedChanges.includes(id);
                                                 
@@ -1012,11 +1270,19 @@ export const SmartInventoryView: React.FC = () => {
                                                             {hasStockChange && <div>{product.totalStock} ud.</div>}
                                                             {hasPriceChange && <div>${(product.price||0).toLocaleString('es-CO')}</div>}
                                                             {hasBarcodeChange && <div className="text-xs text-slate-500">{product.barcode || 'Sin Barcode'}</div>}
+                                                            {hasTaxChange && <div className="text-xs text-slate-500">{product.taxRate || 19}%</div>}
+                                                            {hasCategoryChange && <div className="text-xs text-slate-500">{product.category}</div>}
+                                                            {hasFamilyChange && <div className="text-xs text-slate-500">{product.family || 'Sin Familia'}</div>}
+                                                            {hasBrandChange && <div className="text-xs text-slate-500">{product.brand || 'Sin Marca'}</div>}
                                                         </td>
                                                         <td className="p-3 text-center text-emerald-600 font-bold">
                                                             {hasStockChange && <div>{updates.totalStock} ud.</div>}
                                                             {hasPriceChange && <div>${(updates.price||0).toLocaleString('es-CO')}</div>}
                                                             {hasBarcodeChange && <div className="text-xs text-indigo-600">{updates.barcode || 'Sin Barcode'}</div>}
+                                                            {hasTaxChange && <div className="text-xs text-indigo-600">{updates.taxRate || 19}%</div>}
+                                                            {hasCategoryChange && <div className="text-xs text-indigo-600">{updates.category}</div>}
+                                                            {hasFamilyChange && <div className="text-xs text-indigo-600">{updates.family || 'Sin Familia'}</div>}
+                                                            {hasBrandChange && <div className="text-xs text-indigo-600">{updates.brand || 'Sin Marca'}</div>}
                                                         </td>
                                                     </tr>
                                                 );

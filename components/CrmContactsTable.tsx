@@ -26,11 +26,31 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   
   // Phase 2: Saved Views
   const [activeViewId, setActiveViewId] = useState('v1');
-  const savedViews = [
+  const [savedViews, setSavedViews] = useState<any[]>([
     { id: 'v1', name: 'Todos los Contactos' },
-    { id: 'v2', name: 'Mis Leads' },
+    { id: 'v2', name: 'Leads' },
+    { id: 'v4', name: 'Clientes' },
     { id: 'v3', name: 'Clientes VIP' },
-  ];
+  ]);
+
+  const [isNewViewModalOpen, setIsNewViewModalOpen] = useState(false);
+  const [newViewName, setNewViewName] = useState('');
+  const [newViewField, setNewViewField] = useState('status');
+  const [newViewValue, setNewViewValue] = useState('VINCULADO');
+
+  const handleCreateView = () => {
+      if (newViewName) {
+          const newView = {
+              id: 'v_' + Date.now(),
+              name: newViewName,
+              customFilter: { field: newViewField, value: newViewValue }
+          };
+          setSavedViews(prev => [...prev, newView]);
+          setActiveViewId(newView.id);
+          setIsNewViewModalOpen(false);
+          setNewViewName('');
+      }
+  };
 
   // Phase 1: Dynamic columns
   const AVAILABLE_COLUMNS = [
@@ -134,7 +154,24 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     const matchesTier = filterTier === 'ALL' || c.tier === filterTier;
     const matchesStatus = filterStatus === 'ALL' || c.status === filterStatus;
     
-    return matchesSearch && matchesSource && matchesTier && matchesStatus;
+    let matchesView = true;
+    if (activeViewId === 'v2') { // Leads
+        matchesView = c.status === 'PROSPECTO' || c.status === 'LEAD';
+    } else if (activeViewId === 'v4') { // Clientes
+        matchesView = c.status === 'VINCULADO';
+    } else if (activeViewId === 'v3') { // Clientes VIP
+        matchesView = c.tier === 'Estratégico' || (c.tags && c.tags.includes('VIP')) || false;
+    } else {
+        const customView = savedViews.find(v => v.id === activeViewId);
+        if (customView && customView.customFilter) {
+            if (customView.customFilter.field === 'status') matchesView = c.status === customView.customFilter.value;
+            else if (customView.customFilter.field === 'tier') matchesView = c.tier === customView.customFilter.value;
+            else if (customView.customFilter.field === 'tags') matchesView = c.tags && c.tags.includes(customView.customFilter.value);
+            else if (customView.customFilter.field === 'source') matchesView = c.source === customView.customFilter.value;
+        }
+    }
+    
+    return matchesSearch && matchesSource && matchesTier && matchesStatus && matchesView;
   });
 
   const sortedContacts = React.useMemo(() => {
@@ -238,7 +275,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   {view.name}
               </button>
           ))}
-          <button className="px-3 py-2 text-sm font-medium text-slate-400 hover:text-indigo-600 transition-colors flex items-center gap-1">
+          <button onClick={() => setIsNewViewModalOpen(true)} className="px-3 py-2 text-sm font-medium text-slate-400 hover:text-indigo-600 transition-colors flex items-center gap-1">
               <Plus className="w-4 h-4" /> Nueva Vista
           </button>
       </div>
@@ -325,6 +362,8 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 {visibleColumns.includes('company') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('company')}>
                     Empresa <SortIcon columnKey="company" />
                 </th>}
+
+                {visibleColumns.includes('tags') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etiquetas</th>}
                 
                 {visibleColumns.includes('document') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">NIT/Cédula</th>}
                 {visibleColumns.includes('phone') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Teléfono</th>}
@@ -619,6 +658,40 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {isNewViewModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                      <h3 className="font-bold text-lg text-slate-800">Crear Nueva Vista</h3>
+                      <button onClick={() => setIsNewViewModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
+                  </div>
+                  <div className="p-6 space-y-4">
+                      <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre de la Vista</label>
+                          <input type="text" value={newViewName} onChange={e => setNewViewName(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej. Leads Facebook" />
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filtrar por Campo</label>
+                          <select value={newViewField} onChange={e => setNewViewField(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                              <option value="status">Estado (PROSPECTO, VINCULADO...)</option>
+                              <option value="source">Origen (FACEBOOK, GOOGLE_ADS...)</option>
+                              <option value="tier">Tier (Estratégico, Regular...)</option>
+                              <option value="tags">Etiqueta (VIP, Nuevo...)</option>
+                          </select>
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Valor Exacto</label>
+                          <input type="text" value={newViewValue} onChange={e => setNewViewValue(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej. FACEBOOK" />
+                      </div>
+                  </div>
+                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+                      <button onClick={() => setIsNewViewModalOpen(false)} className="px-4 py-2 font-semibold text-slate-600 hover:text-slate-800 transition-colors">Cancelar</button>
+                      <button onClick={handleCreateView} className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">Guardar Vista</button>
+                  </div>
+              </div>
+          </div>
       )}
     </div>
   );

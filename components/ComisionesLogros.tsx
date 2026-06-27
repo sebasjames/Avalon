@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useEnterprise } from '../context/EnterpriseContext';
 import { 
   Trophy, Flame, Target, DollarSign, Star, TrendingUp, AlertCircle, 
   CheckCircle2, Lock, Unlock, ChevronRight, Gift, Medal, ChevronDown, Check, Users
@@ -98,10 +99,64 @@ const agentsData = [
 ];
 
 export const ComisionesLogros: React.FC = () => {
+  const { transactions, contacts, activities } = useEnterprise();
   const [selectedAgentId, setSelectedAgentId] = useState<number>(1);
   const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
 
-  const player = agentsData.find(a => a.id === selectedAgentId) || agentsData[0];
+  const player = useMemo(() => {
+      const baseAgent = agentsData.find(a => a.id === selectedAgentId) || agentsData[0];
+      
+      const repOwnerId = selectedAgentId === 1 ? 'U-001' : selectedAgentId === 2 ? 'U-002' : 'U-003';
+      const repUser = selectedAgentId === 1 ? 'U-CARLOS' : selectedAgentId === 2 ? 'U-MARIA' : 'U-ME';
+      
+      const repContacts = contacts.filter(c => c.ownerId === repOwnerId);
+      const repContactNames = new Set(repContacts.map(c => c.name));
+      const repCompanyNames = new Set(repContacts.map(c => c.company).filter(Boolean));
+      
+      const isRepTransaction = (t: any) => {
+          return repContactNames.has(t.client) || repCompanyNames.has(t.client);
+      };
+
+      const repTransactions = transactions.filter(isRepTransaction);
+      
+      const calculatedBilled = repTransactions
+          .filter(t => t.type === 'VENTA')
+          .reduce((sum, t) => sum + t.total, 0);
+          
+      const calculatedCollected = repTransactions
+          .filter(t => t.type === 'VENTA' && !t.paymentMethod.toLowerCase().includes('crédito') && !t.paymentMethod.toLowerCase().includes('credito'))
+          .reduce((sum, t) => sum + t.total, 0) +
+          repTransactions
+          .filter(t => (t.type as string === 'PAGO_RECIBIDO') && t.paymentMethod !== 'Caja Menor') // ignore petty cash replenishments
+          .reduce((sum, t) => sum + t.total, 0);
+          
+      const calculatedPending = Math.max(0, calculatedBilled - calculatedCollected);
+      
+      const commissionRate = 0.015;
+      const commissionEarned = Math.round(calculatedCollected * commissionRate);
+      const commissionFrozen = Math.round(calculatedPending * commissionRate);
+      
+      const repActivities = activities.filter(a => a.ownerId === repUser && a.status === 'COMPLETED');
+      const crmBonus = repActivities.length * 15000; // $15,000 COP per CRM completed task
+      
+      const totalComm = commissionEarned + crmBonus;
+
+      return {
+          ...baseAgent,
+          currentSales: calculatedBilled,
+          transparencyData: {
+              totalBilled: calculatedBilled,
+              totalCollected: calculatedCollected,
+              pendingCollection: calculatedPending,
+              commissionEarned: totalComm,
+              commissionFrozen: commissionFrozen,
+          },
+          commissionDistribution: [
+              { name: 'Comisión Base (1.5%)', value: commissionEarned, color: '#10b981' },
+              { name: 'Micropagos (CRM Activo)', value: crmBonus, color: '#8b5cf6' },
+          ]
+      };
+  }, [selectedAgentId, transactions, contacts, activities]);
   
   // Close dropdown on outside click
   useEffect(() => {

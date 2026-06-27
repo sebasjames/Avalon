@@ -29,6 +29,7 @@ import { HobbiesPanel } from './components/HobbiesPanel';
 import { AlbaranIngestion } from './components/AlbaranIngestion';
 import { SmartPosPanel } from './components/SmartPosPanel';
 import { AccountingModule } from './components/AccountingModule';
+import { ReturnsPanel } from './components/ReturnsPanel';
 import { EnterpriseProvider } from './context/EnterpriseContext';
 
 const App: React.FC = () => {
@@ -92,6 +93,7 @@ const App: React.FC = () => {
             <Route path="/staff/matrix" element={<MatrixComisiones />} />
             <Route path="/config" element={<Configuration />} />
             <Route path="/accounting/:tabId" element={<AccountingModule />} />
+            <Route path="/returns" element={<ReturnsPanel />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </div>

@@ -3,13 +3,21 @@ import { useEnterprise } from '../context/EnterpriseContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
     Search, ShoppingCart, Users, Tag, AlertTriangle, ShieldCheck, 
-    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown
+    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown, Wallet, UploadCloud
 } from 'lucide-react';
 import { Product, CrmContact, CustomerTier } from '../types';
 import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
 
 export const SmartPosPanel: React.FC = () => {
-    const { inventory, contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, fractionalRules, paymentMethods, pointsOfSale, addTransaction, updateInventoryStock, taxRates, recipes, taxRules, pricingRules, paymentRules } = useEnterprise();
+    const { 
+        inventory, updateInventoryStock, updateInventoryProduct, 
+        addEvent, deals, receipts, crmUsers, 
+        recipes, addRecipe, deleteRecipe,
+        paymentMethods, pointsOfSale,
+        taxRules, pricingRules, paymentRules, rawMaterialCategories,
+        contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, fractionalRules, addTransaction,
+        taxRates, updateContact
+    } = useEnterprise();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const isReversedDisplay = (product: Product) => {
@@ -75,6 +83,13 @@ export const SmartPosPanel: React.FC = () => {
             return saved ? JSON.parse(saved) : ['RAL 9010', 'RAL 9005', 'BLANCO NIEVE'];
         } catch(e) { return []; }
     });
+
+    // --- NUEVO: ESTADO REGISTRO DE GASTOS POS (CAJA MENOR EN TIEMPO REAL) ---
+    const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [expenseConcept, setExpenseConcept] = useState('');
+    const [expenseAmount, setExpenseAmount] = useState('');
+    const [expenseProvider, setExpenseProvider] = useState('');
+    const [expenseFile, setExpenseFile] = useState<string | null>(null);
 
     const activeCustomer = useMemo(() => {
         return contacts.find(c => c.id === selectedCustomerId) || null;
@@ -213,7 +228,7 @@ export const SmartPosPanel: React.FC = () => {
     // Financials
     const subtotal = useMemo(() => {
         return cart.reduce((acc, item) => {
-            const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
+            const price = rawMaterialCategories.includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
             const multiplier = item.isCunete ? 20 : 1;
             return acc + (price * item.qty * multiplier);
         }, 0);
@@ -236,7 +251,7 @@ export const SmartPosPanel: React.FC = () => {
         }
 
         cart.forEach(item => {
-            const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
+            const price = rawMaterialCategories.includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
             const multiplier = item.isCunete ? 20 : 1;
             const lineTotal = price * item.qty * multiplier;
             const discountRatio = discountPercent > 0 ? (1 - discountPercent / 100) : 1;
@@ -306,6 +321,63 @@ export const SmartPosPanel: React.FC = () => {
             localStorage.setItem('avalon_recent_colors', JSON.stringify(newColors));
         }
 
+        if (selectedPaymentMethod === 'Saldo a Favor') {
+            if (!activeCustomer) {
+                alert('Debe seleccionar un cliente para pagar con Saldo a Favor.');
+                return;
+            }
+            if ((activeCustomer.accountBalance || 0) < total) {
+                alert(`El cliente no tiene suficiente Saldo a Favor. Saldo actual: $${(activeCustomer.accountBalance || 0).toLocaleString()}`);
+                return;
+            }
+        }
+
+        const isCreditSale = selectedPaymentMethod.toLowerCase().includes('crédito') || selectedPaymentMethod.toLowerCase().includes('credito');
+        if (isCreditSale) {
+            if (!activeCustomer) {
+                alert('Las ventas a crédito requieren seleccionar un cliente del CRM.');
+                return;
+            }
+            if (activeCustomer.hasOverdueBills) {
+                alert('OPERACIÓN DENEGADA: El cliente tiene facturas en mora / saldos vencidos en cartera. Despacho no autorizado.');
+                return;
+            }
+            const remainingLimit = (activeCustomer.creditLimit || 0) - (activeCustomer.creditLimitUsed || 0);
+            if (total > remainingLimit) {
+                alert(`OPERACIÓN DENEGADA: La venta supera el cupo de crédito disponible del cliente.\n\nCupo Total: $${(activeCustomer.creditLimit || 0).toLocaleString('es-CO')}\nUtilizado: $${(activeCustomer.creditLimitUsed || 0).toLocaleString('es-CO')}\nDisponible: $${remainingLimit.toLocaleString('es-CO')}\nRequerido para esta venta: $${total.toLocaleString('es-CO')}`);
+                return;
+            }
+        }
+
+        // --- VALIDAR INVENTARIO ESTRICTAMENTE ---
+        const requiredStock = new Map<string, number>();
+        for (const item of cart) {
+            if (item.product.category !== 'Servicio') {
+                const recipe = recipes.find(r => r.finalProductId === item.product.id);
+                const multiplier = item.isCunete ? 20 : 1;
+                
+                if (recipe) {
+                    recipe.ingredients.forEach(ing => {
+                        const current = requiredStock.get(ing.productId) || 0;
+                        requiredStock.set(ing.productId, current + (ing.quantity * item.qty * multiplier));
+                    });
+                } else {
+                    const current = requiredStock.get(item.product.id) || 0;
+                    requiredStock.set(item.product.id, current + (item.qty * multiplier));
+                }
+            }
+        }
+
+        for (const [productId, qtyNeeded] of requiredStock.entries()) {
+            const product = inventory.find(p => p.id === productId);
+            if (product && product.category !== 'Servicio') {
+                if (product.totalStock < qtyNeeded) {
+                    alert(`Operación denegada: Stock insuficiente para "${product.name}". Requerido: ${qtyNeeded.toFixed(2)}, Disponible: ${product.totalStock.toFixed(2)}`);
+                    return; // Bloquear el checkout
+                }
+            }
+        }
+
         // --- CONECTAR CON INVENTARIO Y CONTABILIDAD ---
         const invoiceId = `FV-${Math.floor(Math.random() * 9000) + 1000}`;
         const dateStr = new Date().toISOString().split('T')[0];
@@ -353,9 +425,22 @@ export const SmartPosPanel: React.FC = () => {
                 total: subtotalLine,
                 iva: iva,
                 paymentMethod: selectedPaymentMethod,
-                posLocation: selectedPointOfSale
+                posLocation: selectedPointOfSale,
+                dueDate: isCreditSale ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+                paymentStatus: isCreditSale ? 'PENDIENTE' : 'PAGADA',
+                balance: isCreditSale ? subtotalLine : 0
             });
         });
+
+        if (isCreditSale && activeCustomer) {
+            updateContact(activeCustomer.id, {
+                creditLimitUsed: (activeCustomer.creditLimitUsed || 0) + total
+            });
+        }
+
+        if (selectedPaymentMethod === 'Saldo a Favor' && activeCustomer) {
+            updateContact(activeCustomer.id, { accountBalance: (activeCustomer.accountBalance || 0) - total });
+        }
 
         setShowSuccess(true);
         setTimeout(() => {
@@ -381,6 +466,18 @@ export const SmartPosPanel: React.FC = () => {
                         </h1>
                         <p className="text-sm font-medium text-slate-500 mt-1">Cotizaciones y facturación rápida</p>
                     </div>
+                    <button
+                        onClick={() => {
+                            setExpenseConcept('');
+                            setExpenseAmount('');
+                            setExpenseProvider('');
+                            setExpenseFile(null);
+                            setShowExpenseModal(true);
+                        }}
+                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm transition active:scale-95 shrink-0"
+                    >
+                        <Wallet className="w-4 h-4" /> Registrar Gasto de Caja
+                    </button>
                 </header>
 
                 {/* Search Bar - Scanner Ready */}
@@ -408,7 +505,7 @@ export const SmartPosPanel: React.FC = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <AnimatePresence>
                             {filteredCatalog.map((product) => {
-                                const price = product.category === 'Materia Prima' ? product.unitCost * 1.3 : product.price;
+                                const price = rawMaterialCategories.includes(product.category) ? product.unitCost * 1.3 : product.price;
                                 const atp = product.totalStock - product.reservedStock;
                                 const reversed = isReversedDisplay(product);
                                 
@@ -554,7 +651,7 @@ export const SmartPosPanel: React.FC = () => {
                             </motion.div>
                         ) : (
                             cart.map((item) => {
-                                const price = item.product.category === 'Materia Prima' ? item.product.unitCost * 1.3 : item.product.price;
+                                const price = rawMaterialCategories.includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
                                 const multiplier = item.isCunete ? 20 : 1;
                                 const totalItem = price * item.qty * multiplier;
                                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
@@ -853,6 +950,137 @@ export const SmartPosPanel: React.FC = () => {
                             <button onClick={() => setShowSuccess(false)} className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold transition-colors">
                                 Nueva Venta
                             </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showExpenseModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col border border-slate-200"
+                        >
+                            {/* Header */}
+                            <div className="bg-slate-900 px-6 py-4 flex justify-between items-center shrink-0">
+                                <h3 className="text-base font-black text-white flex items-center gap-2">
+                                    <Wallet className="w-5 h-5 text-rose-400" />
+                                    Registrar Gasto de Caja
+                                </h3>
+                                <button 
+                                    onClick={() => setShowExpenseModal(false)} 
+                                    className="text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Body */}
+                            <div className="p-6 space-y-4">
+                                <div className="text-xs text-rose-800 bg-rose-50 border border-rose-100 p-3 rounded-xl font-medium">
+                                    Este egreso se deducirá del saldo disponible en efectivo de la caja de <strong>{selectedPointOfSale || 'Principal'}</strong> en tiempo real.
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Concepto del Gasto</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ej: Cafetería, Elementos de Aseo, Taxis..."
+                                        value={expenseConcept}
+                                        onChange={e => setExpenseConcept(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:ring-1 focus:ring-rose-500"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Monto Pagado ($)</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Valor en COP"
+                                            value={expenseAmount}
+                                            onChange={e => setExpenseAmount(e.target.value)}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:ring-1 focus:ring-rose-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Tercero / Nit / Proveedor</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ej: Supermercado El Éxito"
+                                            value={expenseProvider}
+                                            onChange={e => setExpenseProvider(e.target.value)}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:ring-1 focus:ring-rose-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Drag and drop representation for invoice receipt upload */}
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Soporte Digital (Foto/Recibo/Factura)</label>
+                                    {expenseFile ? (
+                                        <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                            <span className="text-xs font-bold text-emerald-800 truncate max-w-[80%]">{expenseFile}</span>
+                                            <button 
+                                                onClick={() => setExpenseFile(null)}
+                                                className="text-slate-400 hover:text-rose-600 transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div 
+                                            onClick={() => setExpenseFile(`recibo_gasto_${Math.floor(1000 + Math.random() * 9000)}.png`)}
+                                            className="border-2 border-dashed border-slate-200 hover:border-indigo-400 cursor-pointer p-4 rounded-xl flex flex-col items-center justify-center bg-slate-50 hover:bg-indigo-50/20 transition-all text-slate-400"
+                                        >
+                                            <UploadCloud className="w-6 h-6 text-slate-400 mb-1 animate-pulse" />
+                                            <span className="text-[10px] font-black text-slate-600">Simular Carga de Recibo</span>
+                                            <span className="text-[9px] text-slate-400 mt-0.5">Formatos PDF, PNG, JPG</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="bg-slate-50 p-6 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+                                <button
+                                    onClick={() => setShowExpenseModal(false)}
+                                    className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        addTransaction({
+                                            id: `EG-${Math.floor(100000 + Math.random() * 900000)}`,
+                                            date: new Date().toISOString().split('T')[0],
+                                            type: 'COMPRA',
+                                            client: expenseProvider || 'Caja POS',
+                                            document: expenseFile || 'Soporte Digital',
+                                            productName: `[POS - ${selectedPointOfSale || 'Principal'}] Gasto: ${expenseConcept || 'Egreso de Caja'}`,
+                                            sku: 'N/A',
+                                            qty: 1,
+                                            total: Number(expenseAmount) || 0,
+                                            iva: 0,
+                                            paymentMethod: 'Caja Menor',
+                                            posLocation: selectedPointOfSale || 'Principal',
+                                            paymentStatus: 'PAGADA'
+                                        });
+                                        setShowExpenseModal(false);
+                                    }}
+                                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md shadow-rose-100 active:scale-95 transition-all"
+                                >
+                                    Confirmar Gasto
+                                </button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

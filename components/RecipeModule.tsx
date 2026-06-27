@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FlaskConical, Plus, Trash2, Search, ArrowRight, Save, DatabaseZap } from 'lucide-react';
+import { FlaskConical, Plus, Trash2, Search, ArrowRight, Save, DatabaseZap, FileSpreadsheet } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { Product, Recipe, RecipeIngredient } from '../types';
+import { ImportRecipesModal } from './ImportRecipesModal';
 
 export const RecipeModule: React.FC = () => {
     const { inventory, recipes, addRecipe, deleteRecipe } = useEnterprise();
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreating, setIsCreating] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     // New Recipe State
     const [selectedProduct, setSelectedProduct] = useState<string>('');
@@ -55,12 +57,20 @@ export const RecipeModule: React.FC = () => {
                     </div>
                 </div>
                 {!isCreating && (
-                    <button 
-                        onClick={() => setIsCreating(true)}
-                        className="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl shadow-md hover:bg-indigo-700 transition-colors flex items-center gap-2"
-                    >
-                        <Plus size={18} /> Nueva Fórmula
-                    </button>
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => setIsImportModalOpen(true)}
+                            className="bg-emerald-100 text-emerald-700 font-bold px-4 py-2 rounded-xl shadow-sm hover:bg-emerald-200 transition-colors flex items-center gap-2"
+                        >
+                            <FileSpreadsheet size={18} /> Importar Excel
+                        </button>
+                        <button 
+                            onClick={() => setIsCreating(true)}
+                            className="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl shadow-md hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                        >
+                            <Plus size={18} /> Nueva Fórmula
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -234,6 +244,11 @@ export const RecipeModule: React.FC = () => {
                     )}
                 </AnimatePresence>
             </div>
+            
+            <ImportRecipesModal 
+                isOpen={isImportModalOpen} 
+                onClose={() => setIsImportModalOpen(false)} 
+            />
         </div>
     );
 };

@@ -7,9 +7,11 @@ export enum InventoryStatus {
 }
 
 export enum Category {
-  RAW_MATERIAL = 'Materia Prima',
+  RAW_MATERIAL = 'Materia Prima Nacional',
+  RAW_MATERIAL_IMPORTADA = 'Materia Prima Importada',
   WIP = 'En Proceso (WIP)',
   FINISHED_GOOD = 'Producto Terminado',
+  HARDWARE = 'Insumos y Ferretería',
   SERVICE = 'Servicio',
 }
 
@@ -91,6 +93,14 @@ export interface Product {
   mixingInstructions?: string; // e.g. "CAT 82 AL 50% DIS 7771 AL 25%"
   informationalNote?: string; // High-visibility note for the user
   taxRate?: number; // Impuesto aplicado al producto (ej. 19, 5, 0)
+  isPendingAccountingReview?: boolean; // Flag para solicitar cambio de familia a contabilidad
+  pendingAccountingChanges?: {
+      requestedAt: string;
+      requestedBy: string;
+      category?: Category;
+      family?: string;
+      brand?: string;
+  };
 }
 
 export interface Transfer {
@@ -317,6 +327,11 @@ export interface CrmContact {
   fiscalClassification?: FiscalClassification;
   cityCode?: CityCode;
   tags?: string[];
+  accountBalance?: number; // Saldo a favor (Ej. por Notas Crédito)
+  creditLimit?: number; // Cupo de crédito total
+  creditLimitUsed?: number; // Cupo de crédito utilizado / deuda actual
+  hasOverdueBills?: boolean; // Indica si el cliente tiene facturas en mora
+  address?: string;
 }
 
 export interface CrmView {
@@ -481,7 +496,7 @@ export interface CrmSettings {
 export interface AccountingTransaction {
   id: string;
   date: string;
-  type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA';
+  type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' | 'NOTA_CREDITO' | 'NOTA_DEBITO' | 'PAGO_RECIBIDO';
   client: string;
   clientId?: string;
   document: string;
@@ -492,9 +507,15 @@ export interface AccountingTransaction {
   iva: number;
   paymentMethod: string;
   posLocation: string;
+  family?: string;
+  category?: string;
   dueDate?: string;
   paymentStatus?: 'PENDIENTE' | 'PAGADA' | 'EN_MORA';
   balance?: number;
+  validationStatus?: 'PENDIENTE_VALIDACION' | 'VALIDADA';
+  bankAmount?: number;
+  bankFee?: number;
+  reconciledDate?: string;
 }
 
 export interface TaxRate {
@@ -503,5 +524,20 @@ export interface TaxRate {
   percentage: number;
   isActive: boolean;
   isDefault: boolean;
+}
+
+export interface AuditIssue {
+    category: 'SIIGO_NIT' | 'TAX_MATH' | 'LEDGER_INTEGRITY' | 'SKU_ORPHAN';
+    severity: 'HIGH' | 'MEDIUM';
+    description: string;
+    details: string;
+}
+
+export interface AuditReport {
+    id: string;
+    date: string;
+    timestamp: string;
+    status: 'SUCCESS' | 'WARNING' | 'ERROR';
+    issues: AuditIssue[];
 }
 

@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { useEnterprise } from '../context/EnterpriseContext';
 import { MOCK_PURCHASE_SUGGESTIONS, MOCK_VENDORS } from '../constants';
-import { Vendor, PurchaseSuggestion } from '../types';
+import { Vendor, PurchaseSuggestion, Category } from '../types';
 import { 
     ShoppingCart, TrendingUp, AlertOctagon, CheckCircle2, 
     Truck, BarChart3, ShieldCheck, DollarSign, Clock, AlertTriangle, ArrowRight
 } from 'lucide-react';
 
 export const PurchasingIntelligence: React.FC = () => {
+    const { inventory } = useEnterprise();
     const [suggestions, setSuggestions] = useState<PurchaseSuggestion[]>(MOCK_PURCHASE_SUGGESTIONS);
     const [selectedSuggestion, setSelectedSuggestion] = useState<string | null>(null);
+    const [segmentFilter, setSegmentFilter] = useState<'ALL' | 'NACIONAL' | 'IMPORTADA' | 'FERRETERIA'>('ALL');
 
     const handleAction = (id: string, action: 'Approve' | 'Reject') => {
         setSuggestions(prev => prev.map(s => 
@@ -17,7 +20,20 @@ export const PurchasingIntelligence: React.FC = () => {
         setSelectedSuggestion(null);
     };
 
-    const activeSuggestions = suggestions.filter(s => s.status === 'Proposed');
+    const activeSuggestions = suggestions.filter(s => {
+        if (s.status !== 'Proposed') return false;
+        
+        if (segmentFilter !== 'ALL') {
+            const inventoryItem = inventory.find(i => i.sku === s.skuId);
+            if (!inventoryItem) return false;
+            
+            if (segmentFilter === 'NACIONAL' && inventoryItem.category !== Category.RAW_MATERIAL) return false;
+            if (segmentFilter === 'IMPORTADA' && inventoryItem.category !== Category.RAW_MATERIAL_IMPORTADA) return false;
+            if (segmentFilter === 'FERRETERIA' && inventoryItem.category !== Category.HARDWARE) return false;
+        }
+        
+        return true;
+    });
     const totalProposedSpend = activeSuggestions.reduce((acc, s) => acc + s.totalCost, 0);
 
     const renderVendorComparison = (suggestion: PurchaseSuggestion) => {
@@ -86,6 +102,34 @@ export const PurchasingIntelligence: React.FC = () => {
 
     return (
         <div className="py-2 space-y-6 h-full overflow-y-auto custom-scrollbar pr-2">
+            {/* Segment Filter Tabs */}
+            <div className="flex flex-wrap gap-2 bg-white p-2 rounded-xl border border-slate-200/50 shadow-sm w-full md:w-max">
+                <button 
+                    onClick={() => setSegmentFilter('ALL')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${segmentFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                >
+                    Todas las Compras
+                </button>
+                <button 
+                    onClick={() => setSegmentFilter('NACIONAL')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'NACIONAL' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                >
+                    🇨🇴 Nacional
+                </button>
+                <button 
+                    onClick={() => setSegmentFilter('IMPORTADA')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'IMPORTADA' ? 'bg-sky-600 text-white shadow-md shadow-sky-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                >
+                    🚢 Importada
+                </button>
+                <button 
+                    onClick={() => setSegmentFilter('FERRETERIA')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'FERRETERIA' ? 'bg-amber-600 text-white shadow-md shadow-amber-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                >
+                    🔧 Ferretería
+                </button>
+            </div>
+
             <header className="flex justify-between items-end hidden">
                 {/* Oculto porque InventoryHub ya tiene título */}
             </header>
