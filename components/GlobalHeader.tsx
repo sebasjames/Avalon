@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Bell, X } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Search, Bell, X, Users, ShoppingCart, Calculator, BrainCircuit, Zap } from 'lucide-react';
+import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
 
 export const GlobalHeader: React.FC = () => {
@@ -83,6 +83,80 @@ export const GlobalHeader: React.FC = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-4">
+                {/* Shortcut Buttons */}
+                <div className="flex items-center gap-1 bg-slate-50 border border-slate-200/60 p-1.5 rounded-2xl shadow-sm mr-2">
+                    <NavLink 
+                        to="/crm" 
+                        className={({ isActive }) => {
+                            const isCrmActive = isActive || location.pathname.startsWith('/crm');
+                            return `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
+                                isCrmActive 
+                                ? "bg-slate-200/80 text-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] border border-slate-300/40 translate-y-[1px] scale-[0.95]" 
+                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
+                            }`;
+                        }}
+                        title="Gestión de Clientes (CRM)"
+                    >
+                        <Users className="w-5 h-5" />
+                    </NavLink>
+                    <NavLink 
+                        to="/pos" 
+                        className={({ isActive }) => 
+                            `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
+                                isActive 
+                                ? "bg-slate-200/80 text-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] border border-slate-300/40 translate-y-[1px] scale-[0.95]" 
+                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
+                            }`
+                        }
+                        title="Punto de Venta (POS)"
+                    >
+                        <ShoppingCart className="w-5 h-5" />
+                    </NavLink>
+                    <NavLink 
+                        to="/accounting/activos_liquidez" 
+                        className={({ isActive }) => {
+                            const isAccActive = isActive || location.pathname.startsWith('/accounting');
+                            return `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
+                                isAccActive 
+                                ? "bg-slate-200/80 text-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] border border-slate-300/40 translate-y-[1px] scale-[0.95]" 
+                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
+                            }`;
+                        }}
+                        title="Contabilidad & Interfaces"
+                    >
+                        <Calculator className="w-5 h-5" />
+                    </NavLink>
+
+                    <div className="h-5 w-[1px] bg-slate-200 mx-2" />
+
+                    <NavLink 
+                        to="/intelligence" 
+                        className={({ isActive }) => 
+                            `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
+                                isActive 
+                                ? "bg-slate-200/80 text-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] border border-slate-300/40 translate-y-[1px] scale-[0.95]" 
+                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
+                            }`
+                        }
+                        title="Inteligencia Artificial"
+                    >
+                        <BrainCircuit className="w-5 h-5" />
+                    </NavLink>
+                    <NavLink 
+                        to="/action-center" 
+                        className={({ isActive }) => 
+                            `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
+                                isActive 
+                                ? "bg-slate-200/80 text-slate-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] border border-slate-300/40 translate-y-[1px] scale-[0.95]" 
+                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
+                            }`
+                        }
+                        title="Centro de Acción / Alertas"
+                    >
+                        <Zap className="w-5 h-5" />
+                    </NavLink>
+                </div>
+
                 <div className="relative">
                     <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 transition-colors relative">
                         <Bell className="w-5 h-5" />
