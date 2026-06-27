@@ -147,7 +147,7 @@ export const GlobalHeader: React.FC = () => {
                         className={({ isActive }) => 
                             `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
                                 isActive 
-                                ? "bg-orange-500 text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] translate-y-[1px] scale-[0.95]" 
+                                ? "bg-blue-600 text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] translate-y-[1px] scale-[0.95]" 
                                 : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
                             }`
                         }
