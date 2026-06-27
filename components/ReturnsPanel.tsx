@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCcw, Search, CheckCircle, Package, ArrowRight, User } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { Product, CrmContact } from '../types';
+import { formatCOP } from '../utils/format';
 
 export const ReturnsPanel: React.FC = () => {
     const { inventory, contacts, pointsOfSale, processCreditNote, transactions } = useEnterprise();
@@ -153,7 +154,7 @@ export const ReturnsPanel: React.FC = () => {
                                         <div className="flex justify-between items-center p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
                                             <div>
                                                 <div className="font-bold text-indigo-900">{selectedContact.name}</div>
-                                                <div className="text-xs text-indigo-700 font-medium">Saldo a Favor Actual: ${(selectedContact.accountBalance || 0).toLocaleString()}</div>
+                                                <div className="text-xs text-indigo-700 font-medium">Saldo a Favor Actual: {formatCOP(selectedContact.accountBalance || 0)}</div>
                                             </div>
                                             <button 
                                                 onClick={() => setSelectedContact(null)}
@@ -196,7 +197,7 @@ export const ReturnsPanel: React.FC = () => {
                                                                 <div className="text-xs text-slate-500">{p.sku}</div>
                                                             </div>
                                                             <div className="font-bold text-slate-700 text-sm">
-                                                                ${p.price.toLocaleString()}
+                                                                {formatCOP(p.price)}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -207,7 +208,7 @@ export const ReturnsPanel: React.FC = () => {
                                         <div className="flex justify-between items-center p-4 bg-rose-50 border border-rose-100 rounded-xl">
                                             <div>
                                                 <div className="font-bold text-rose-900 line-clamp-1">{selectedProduct.name}</div>
-                                                <div className="text-xs text-rose-700 font-medium">{selectedProduct.sku} - ${(selectedProduct.price).toLocaleString()} c/u</div>
+                                                <div className="text-xs text-rose-700 font-medium">{selectedProduct.sku} - {formatCOP(selectedProduct.price)} c/u</div>
                                             </div>
                                             <button 
                                                 onClick={() => setSelectedProduct(null)}
@@ -268,15 +269,15 @@ export const ReturnsPanel: React.FC = () => {
                                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                                                 <div className="flex justify-between items-center mb-2">
                                                     <span className="text-sm font-medium text-slate-500">Subtotal</span>
-                                                    <span className="text-sm font-bold text-slate-700">${(selectedProduct.price * qty).toLocaleString()}</span>
+                                                    <span className="text-sm font-bold text-slate-700">{formatCOP(selectedProduct.price * qty)}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center mb-2">
                                                     <span className="text-sm font-medium text-slate-500">IVA a reversar</span>
-                                                    <span className="text-sm font-bold text-slate-700">${(calculatedIva * qty).toLocaleString()}</span>
+                                                    <span className="text-sm font-bold text-slate-700">{formatCOP(calculatedIva * qty)}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                                                     <span className="font-bold text-slate-800">Saldo a Favor Total</span>
-                                                    <span className="text-lg font-black text-indigo-600">${((selectedProduct.price + calculatedIva) * qty).toLocaleString()}</span>
+                                                    <span className="text-lg font-black text-indigo-600">{formatCOP((selectedProduct.price + calculatedIva) * qty)}</span>
                                                 </div>
                                             </div>
                                         );
@@ -350,7 +351,7 @@ export const ReturnsPanel: React.FC = () => {
                                                     <div className="text-xs text-slate-500 font-mono">{cn.sku}</div>
                                                 </td>
                                                 <td className="p-4 text-center font-bold text-slate-600">{cn.qty}</td>
-                                                <td className="p-4 text-right font-black text-rose-600">${cn.total.toLocaleString()}</td>
+                                                <td className="p-4 text-right font-black text-rose-600">{formatCOP(cn.total)}</td>
                                                 <td className="p-4">
                                                     <div className="text-xs text-slate-700">{cn.document}</div>
                                                     <div className="text-[10px] text-slate-400 font-bold uppercase">{cn.posLocation}</div>

@@ -5,7 +5,8 @@ import {
 } from 'recharts';
 import { TrendingUp, AlertTriangle, Package, DollarSign, Activity, Truck } from 'lucide-react';
 import { SALES_DATA, MOCK_INVENTORY } from '../constants';
-import { InventoryStatus } from '../types';
+import { InventoryStatus, Category } from '../types';
+import { formatCOP } from '../utils/format';
 
 const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -29,7 +30,7 @@ const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
 
 export const Dashboard: React.FC = () => {
   // Calculated metrics
-  const totalValue = MOCK_INVENTORY.reduce((acc, item) => acc + (item.totalStock * (item.category === 'Materia Prima' ? item.unitCost : item.price)), 0);
+  const totalValue = MOCK_INVENTORY.reduce((acc, item) => acc + (item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
   const silentStockCount = MOCK_INVENTORY.filter(i => i.status === InventoryStatus.SILENT).length;
   const activeStockCount = MOCK_INVENTORY.filter(i => i.status === InventoryStatus.ACTIVE).length;
 
@@ -44,7 +45,7 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard 
           title="Valor Total Inventario" 
-          value={`$${(totalValue / 1000).toFixed(1)}k`} 
+          value={formatCOP(totalValue)} 
           change={-2.4} 
           icon={DollarSign} 
           color="bg-blue-600" 

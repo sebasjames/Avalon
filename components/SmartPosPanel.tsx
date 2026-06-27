@@ -757,7 +757,7 @@ export const SmartPosPanel: React.FC = () => {
                                                                         <span className="font-bold text-slate-700">{ingProd?.name || 'Desconocido'}</span>
                                                                         <span className="text-slate-400">x{(ing.quantity * item.qty * multiplier).toFixed(2)}</span>
                                                                     </div>
-                                                                    <span className="font-medium text-slate-500">${ingCost.toLocaleString('es-CO')}</span>
+                                                                    <span className="font-medium text-slate-500">{formatCOP(ingCost)}</span>
                                                                 </li>
                                                             );
                                                         })}
@@ -810,12 +810,12 @@ export const SmartPosPanel: React.FC = () => {
                     <div className="space-y-2 mt-2">
                         <div className="flex justify-between text-slate-400 text-sm font-medium">
                             <span>Subtotal</span>
-                            <span>${subtotal.toLocaleString('es-CO')} COP COP</span>
+                            <span>{formatCOP(subtotal)}</span>
                         </div>
                         {discountPercent > 0 && (
                             <div className="flex justify-between text-emerald-400 text-sm font-bold">
                                 <span>Descuento {activeCustomer?.tier} ({discountPercent}%)</span>
-                                <span>-${discountAmount.toLocaleString('es-CO')} COP COP</span>
+                                <span>-{formatCOP(discountAmount)}</span>
                             </div>
                         )}
                         
@@ -824,20 +824,20 @@ export const SmartPosPanel: React.FC = () => {
                             return (
                                 <div key={rate} className="flex justify-between text-slate-400 text-sm font-medium">
                                     <span>IVA ({rate}%)</span>
-                                    <span>${amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })} COP</span>
+                                    <span>{formatCOP(amount)}</span>
                                 </div>
                             );
                         })}
                         {retenciones.reteFuente > 0 && (
                             <div className="flex justify-between text-rose-400 text-sm font-medium">
                                 <span>ReteFuente ({RETEFUENTE_RATE}%)</span>
-                                <span>-${retenciones.reteFuente.toLocaleString('es-CO', { maximumFractionDigits: 0 })} COP</span>
+                                <span>-{formatCOP(retenciones.reteFuente)}</span>
                             </div>
                         )}
                         {retenciones.reteIca > 0 && (
                             <div className="flex justify-between text-rose-400 text-sm font-medium">
                                 <span>ReteICA</span>
-                                <span>-${retenciones.reteIca.toLocaleString('es-CO', { maximumFractionDigits: 0 })} COP</span>
+                                <span>-{formatCOP(retenciones.reteIca)}</span>
                             </div>
                         )}
                     </div>

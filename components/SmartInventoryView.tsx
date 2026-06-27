@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { formatCOP } from '../utils/format';
 import { InventoryExcelModal } from './InventoryExcelModal';
 import { InventoryStatus, Category } from '../types';
 import { 
@@ -268,7 +269,7 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center">
                                 <div>
                                     <div className="text-xs text-slate-500 font-bold mb-1">Valoración Total</div>
-                                    <div className="text-xl font-black text-slate-800">${value.toLocaleString('es-CO')} COP COP</div>
+                                    <div className="text-xl font-black text-slate-800">{formatCOP(value)}</div>
                                 </div>
                                 <Activity className="w-8 h-8 text-slate-300" />
                             </div>
@@ -1128,7 +1129,7 @@ export const SmartInventoryView: React.FC = () => {
                                                                     onClick={e => e.stopPropagation()}
                                                                 />
                                                             ) : (
-                                                                `$${(product.price || 0).toLocaleString('es-CO')}`
+                                                                formatCOP(product.price || 0)
                                                             )}
                                                         </td>
                                                         <td className="p-4 text-center font-semibold text-slate-600">
@@ -1149,7 +1150,7 @@ export const SmartInventoryView: React.FC = () => {
                                                         </td>
                                                         <td className="p-4 text-center font-semibold text-amber-600">{product.reservedStock}</td>
                                                         <td className="p-4 text-center font-black text-indigo-600 bg-indigo-50/30">{atp}</td>
-                                                        <td className="p-4 text-right font-bold text-slate-700">${val.toLocaleString('es-CO')} COP</td>
+                                                        <td className="p-4 text-right font-bold text-slate-700">{formatCOP(val)}</td>
                                                     </tr>
                                                 );
                                             })
@@ -1268,7 +1269,7 @@ export const SmartInventoryView: React.FC = () => {
                                                         </td>
                                                         <td className="p-3 text-center text-rose-500 font-medium">
                                                             {hasStockChange && <div>{product.totalStock} ud.</div>}
-                                                            {hasPriceChange && <div>${(product.price||0).toLocaleString('es-CO')}</div>}
+                                                            {hasPriceChange && <div>{formatCOP(product.price||0)}</div>}
                                                             {hasBarcodeChange && <div className="text-xs text-slate-500">{product.barcode || 'Sin Barcode'}</div>}
                                                             {hasTaxChange && <div className="text-xs text-slate-500">{product.taxRate || 19}%</div>}
                                                             {hasCategoryChange && <div className="text-xs text-slate-500">{product.category}</div>}
@@ -1277,7 +1278,7 @@ export const SmartInventoryView: React.FC = () => {
                                                         </td>
                                                         <td className="p-3 text-center text-emerald-600 font-bold">
                                                             {hasStockChange && <div>{updates.totalStock} ud.</div>}
-                                                            {hasPriceChange && <div>${(updates.price||0).toLocaleString('es-CO')}</div>}
+                                                            {hasPriceChange && <div>{formatCOP(updates.price||0)}</div>}
                                                             {hasBarcodeChange && <div className="text-xs text-indigo-600">{updates.barcode || 'Sin Barcode'}</div>}
                                                             {hasTaxChange && <div className="text-xs text-indigo-600">{updates.taxRate || 19}%</div>}
                                                             {hasCategoryChange && <div className="text-xs text-indigo-600">{updates.category}</div>}

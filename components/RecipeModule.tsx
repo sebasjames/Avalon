@@ -4,6 +4,7 @@ import { FlaskConical, Plus, Trash2, Search, ArrowRight, Save, DatabaseZap, File
 import { useEnterprise } from '../context/EnterpriseContext';
 import { Product, Recipe, RecipeIngredient } from '../types';
 import { ImportRecipesModal } from './ImportRecipesModal';
+import { formatCOP } from '../utils/format';
 
 export const RecipeModule: React.FC = () => {
     const { inventory, recipes, addRecipe, deleteRecipe } = useEnterprise();
@@ -215,7 +216,7 @@ export const RecipeModule: React.FC = () => {
                                                     <h3 className="font-bold text-slate-800 line-clamp-1" title={getProductName(recipe.finalProductId)}>
                                                         {getProductName(recipe.finalProductId)}
                                                     </h3>
-                                                    <p className="text-xs font-bold text-emerald-600">Costo Base: ${totalCost.toLocaleString()}</p>
+                                                    <p className="text-xs font-bold text-emerald-600">Costo Base: {formatCOP(totalCost)}</p>
                                                 </div>
                                             </div>
 

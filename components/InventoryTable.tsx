@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MOCK_INVENTORY } from '../constants';
 import { InventoryStatus, ABCClass, XYZClass, Category } from '../types';
 import { Search, Filter, AlertCircle, CheckCircle2, Clock, XCircle, X } from 'lucide-react';
+import { formatCOP } from '../utils/format';
 
 const StatusBadge = ({ status }: { status: InventoryStatus }) => {
   switch (status) {
@@ -192,7 +193,7 @@ export const InventoryTable: React.FC = () => {
                     <span className={`${item.agingDays > 90 ? 'text-rose-600 font-bold' : ''}`}>{item.agingDays}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    ${value.toLocaleString('es-CO')} COP COP
+                    {formatCOP(value)}
                   </td>
                 </tr>
               )})}
