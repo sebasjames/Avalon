@@ -18,7 +18,7 @@ export const InventoryHub: React.FC = () => {
         <div className="min-h-screen bg-slate-50 relative overflow-hidden flex flex-col">
             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-indigo-50 to-transparent pointer-events-none z-0"></div>
             
-            <div className="relative z-10 p-4 md:p-8 flex-1 flex flex-col overflow-hidden max-w-[1600px] mx-auto w-full">
+            <div className="relative z-10 p-4 md:p-8 flex-1 flex flex-col overflow-hidden w-full">
                 
                 <header className="flex flex-col xl:flex-row justify-between items-end mb-6 gap-6 relative z-20">
                     <div className="text-center xl:text-left w-full xl:w-auto">
