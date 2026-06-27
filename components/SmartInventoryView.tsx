@@ -1118,7 +1118,7 @@ export const SmartInventoryView: React.FC = () => {
                                                                     onClick={e => e.stopPropagation()}
                                                                 />
                                                             ) : (
-                                                                product.totalStock
+                                                                product.category === Category.SERVICE ? '∞' : product.totalStock
                                                             )}
                                                         </td>
                                                         <td className="p-4 text-center font-semibold text-indigo-600">
@@ -1151,8 +1151,12 @@ export const SmartInventoryView: React.FC = () => {
                                                             )}
                                                         </td>
                                                         <td className="p-4 text-center font-semibold text-amber-600">{product.reservedStock}</td>
-                                                        <td className="p-4 text-center font-black text-indigo-600 bg-indigo-50/30">{atp}</td>
-                                                        <td className="p-4 text-right font-bold text-slate-700">{formatCOP(val)}</td>
+                                                        <td className="p-4 text-center font-black text-indigo-600 bg-indigo-50/30">
+                                                            {product.category === Category.SERVICE ? '∞' : atp}
+                                                        </td>
+                                                        <td className="p-4 text-right font-bold text-slate-700">
+                                                            {product.category === Category.SERVICE ? formatCOP(0) : formatCOP(val)}
+                                                        </td>
                                                     </tr>
                                                 );
                                             })

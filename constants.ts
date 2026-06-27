@@ -175,7 +175,7 @@ export const MOCK_INVENTORY: Product[] = [
     "density": 1,
     "unitCost": 15000,
     "price": 30000,
-    "totalStock": 999999,
+    "totalStock": 0,
     "reservedStock": 0,
     "status": InventoryStatus.ACTIVE,
     "abc": ABCClass.C,

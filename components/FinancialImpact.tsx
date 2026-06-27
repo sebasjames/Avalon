@@ -19,6 +19,7 @@ export const FinancialImpact: React.FC = () => {
 
     // Capital Inmovilizado (Total Inventory Value)
     const totalInventoryValue = inventory.reduce((acc, item) => {
+        if (item.category === Category.SERVICE) return acc;
         const cost = item.category === Category.RAW_MATERIAL ? item.unitCost : (item.unitCost * 0.8); // Estimate internal cost for FG if not explicit
         return acc + (item.totalStock * cost);
     }, 0);

@@ -185,16 +185,18 @@ export const InventoryTable: React.FC = () => {
                   <td className="px-6 py-4">
                     <MatrixBadge abc={item.abc} xyz={item.xyz} />
                   </td>
-                  <td className="px-6 py-4 text-right font-medium">{item.totalStock.toLocaleString('es-CO')}</td>
-                  <td className={`px-6 py-4 text-right font-bold ${atp < 100 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                    {atp.toLocaleString('es-CO')}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className={`${item.agingDays > 90 ? 'text-rose-600 font-bold' : ''}`}>{item.agingDays}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {formatCOP(value)}
-                  </td>
+                   <td className="px-6 py-4 text-right font-medium">
+                     {item.category === Category.SERVICE ? '∞' : item.totalStock.toLocaleString('es-CO')}
+                   </td>
+                   <td className={`px-6 py-4 text-right font-bold ${atp < 100 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                     {item.category === Category.SERVICE ? '∞' : atp.toLocaleString('es-CO')}
+                   </td>
+                   <td className="px-6 py-4 text-right">
+                     <span className={`${item.agingDays > 90 ? 'text-rose-600 font-bold' : ''}`}>{item.agingDays}</span>
+                   </td>
+                   <td className="px-6 py-4 text-right">
+                     {item.category === Category.SERVICE ? formatCOP(0) : formatCOP(value)}
+                   </td>
                 </tr>
               )})}
             </tbody>

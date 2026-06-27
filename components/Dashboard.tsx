@@ -30,7 +30,7 @@ const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
 
 export const Dashboard: React.FC = () => {
   // Calculated metrics
-  const totalValue = MOCK_INVENTORY.reduce((acc, item) => acc + (item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
+  const totalValue = MOCK_INVENTORY.reduce((acc, item) => acc + (item.category === Category.SERVICE ? 0 : item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
   const silentStockCount = MOCK_INVENTORY.filter(i => i.status === InventoryStatus.SILENT).length;
   const activeStockCount = MOCK_INVENTORY.filter(i => i.status === InventoryStatus.ACTIVE).length;
 
