@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Search, Bell, X, Users, ShoppingCart, Calculator, BrainCircuit, Zap } from 'lucide-react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { MOCK_OPPORTUNITIES } from '../constants';
 
 export const GlobalHeader: React.FC = () => {
     const { contacts, getActiveNotifications, setGlobalSelectedContactId, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
     const navigate = useNavigate();
     const location = useLocation();
+    const pendingCount = MOCK_OPPORTUNITIES.filter(o => o.status === 'PENDING').length;
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -145,15 +147,22 @@ export const GlobalHeader: React.FC = () => {
                     <NavLink 
                         to="/action-center" 
                         className={({ isActive }) => 
-                            `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
+                            `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center relative ${
                                 isActive 
                                 ? "bg-orange-500 text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] translate-y-[1px] scale-[0.95]" 
-                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
+                                : pendingCount > 0
+                                    ? "text-amber-500 fill-amber-500 hover:bg-amber-50/50 hover:text-amber-600 active:scale-95 active:translate-y-[1px]"
+                                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
                             }`
                         }
                         title="Centro de Acción / Alertas"
                     >
                         <Zap className="w-5 h-5" />
+                        {pendingCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full scale-75 origin-top-right border border-white">
+                                {pendingCount}
+                            </span>
+                        )}
                     </NavLink>
                 </div>
 

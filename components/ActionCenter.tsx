@@ -23,6 +23,11 @@ export const ActionCenter: React.FC = () => {
     const handleExecute = (id: string) => {
         const action = opportunities.find(o => o.id === id);
         if (action && action.status === 'PENDING') {
+            // Mutate global constant in memory
+            const globalAction = MOCK_OPPORTUNITIES.find(o => o.id === id);
+            if (globalAction) {
+                globalAction.status = 'EXECUTED';
+            }
             const updated = opportunities.map(o => 
                 o.id === id ? { ...o, status: 'EXECUTED' as const } : o
             );
