@@ -362,16 +362,18 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('name')}>
                     Contacto Principal <SortIcon columnKey="name" />
                 </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>
-                    WhatsApp <SortIcon columnKey="whatsapp" />
-                </th>
+                {isAdvancedView && (
+                  <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>
+                      WhatsApp <SortIcon columnKey="whatsapp" />
+                  </th>
+                )}
                 
                 {visibleColumns.includes('tags') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etiquetas</th>}
                 
                 {visibleColumns.includes('document') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">NIT/Cédula</th>}
                 {visibleColumns.includes('email') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Email</th>}
                 
-                {visibleColumns.includes('source') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('source')}>
+                {isAdvancedView && visibleColumns.includes('source') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('source')}>
                     Origen <SortIcon columnKey="source" />
                 </th>}
                 
@@ -469,7 +471,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                     </div>
                   ))}
 
-                  {renderCell('whatsapp', (
+                  {isAdvancedView && renderCell('whatsapp', (
                     <div className="flex items-center gap-1.5 text-xs text-slate-600 whitespace-nowrap">
                       {contact.whatsapp ? (
                         <a 
@@ -524,7 +526,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   
                   {visibleColumns.includes('email') && renderCell('email', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Mail className="w-3 h-3" /> {contact.email}</div>, 'email')}
                   
-                  {visibleColumns.includes('source') && renderSelectCell('source', 
+                  {isAdvancedView && visibleColumns.includes('source') && renderSelectCell('source', 
                     ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'GOOGLE_ADS', 'MANUAL', 'STREET', 'REFERRAL', 'WEBSITE'].map(o => ({value:o, label:o})),
                     <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${sourceBadge.color}`}>
                       <SourceIcon className="w-3 h-3" />
