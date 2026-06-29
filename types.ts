@@ -312,6 +312,10 @@ export interface CrmContact {
   email: string;
   phone: string;
   whatsapp?: string;
+  contact2?: string;
+  phone2?: string;
+  contact3?: string;
+  phone3?: string;
   tier: CustomerTier;
   status: 'LEAD' | 'PROSPECTO' | 'VINCULADO' | 'INACTIVO';
   source: CrmLeadSource;

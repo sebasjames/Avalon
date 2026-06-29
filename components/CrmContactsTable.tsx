@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, ArrowRight, X, Trash2, Users, ArrowUp, ArrowDown, AlertTriangle, SlidersHorizontal, Plus } from 'lucide-react';
+import { Mail, Phone, ArrowRight, X, Trash2, Users, ArrowUp, ArrowDown, AlertTriangle, SlidersHorizontal, Plus, Pencil, Save } from 'lucide-react';
 import { CrmContact, CrmLeadSource, CustomerTier } from '../types';
 
 interface CrmContactsTableProps {
@@ -69,8 +69,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const [isAdvancedView, setIsAdvancedView] = useState(false); // Kept for retrocompatibility with Decision Makers for now
 
-  const [editingCell, setEditingCell] = useState<{ contactId: string, field: string } | null>(null);
-  const [focusedCell, setFocusedCell] = useState<{ contactId: string, field: string } | null>(null);
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   const { crmUsers, reassignContacts, getContactHealthScore, updateContact, cleanGarbageLeads } = useEnterprise();
 
@@ -78,24 +77,10 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   const currentUser = crmUsers.find(u => u.id === 'U-ME') || crmUsers[0]; 
   const canReassign = currentUser.role === 'ADMIN' || currentUser.role === 'MANAGER';
 
-  const handleCellClick = (contactId: string, field: string) => {
-    setEditingCell({ contactId, field });
-  };
-
   const handleSave = (contactId: string, field: string, val: string | number) => {
-    setEditingCell(null);
     updateContact(contactId, { [field]: val });
   };
 
-  const handleSaveDM = (contactId: string, index: number, dmField: string, value: string) => {
-      const contact = contacts.find(c => c.id === contactId);
-      if (!contact) return;
-      const dm = [...(contact.decisionMakers || [])];
-      if (!dm[index]) dm[index] = { name: '', position: '' };
-      dm[index] = { ...dm[index], [dmField]: value };
-      updateContact(contactId, { decisionMakers: dm });
-      setEditingCell(null);
-  };
 
   const AVAILABLE_TAGS = ['VIP', 'En Riesgo', 'Alta Prioridad', 'Nuevo', 'Referido', 'Socio'];
   
@@ -108,39 +93,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   };
 
   const tableColumns = ['company', 'name', 'whatsapp', ...visibleColumns];
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!focusedCell || editingCell) return;
-    
-    const rowIndex = currentContacts.findIndex(c => c.id === focusedCell.contactId);
-    const colIndex = tableColumns.indexOf(focusedCell.field);
-    if (rowIndex === -1 || colIndex === -1) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (rowIndex < currentContacts.length - 1) {
-        setFocusedCell({ contactId: currentContacts[rowIndex + 1].id, field: focusedCell.field });
-      }
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (rowIndex > 0) {
-        setFocusedCell({ contactId: currentContacts[rowIndex - 1].id, field: focusedCell.field });
-      }
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      if (colIndex < tableColumns.length - 1) {
-        setFocusedCell({ contactId: focusedCell.contactId, field: tableColumns[colIndex + 1] });
-      }
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      if (colIndex > 0) {
-        setFocusedCell({ contactId: focusedCell.contactId, field: tableColumns[colIndex - 1] });
-      }
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      setEditingCell(focusedCell);
-    }
-  };
 
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [reassignTargetUser, setReassignTargetUser] = useState('');
@@ -241,24 +193,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     }
   };
 
-  const getBirthdayColor = (birthday?: string) => {
-      if (!birthday) return 'text-slate-400 bg-slate-50 border-slate-200';
-      const today = new Date();
-      const bdate = new Date(birthday);
-      
-      // Calculate next birthday date
-      const nextBday = new Date(today.getFullYear(), bdate.getMonth(), bdate.getDate());
-      if (nextBday.getTime() < today.getTime()) {
-          nextBday.setFullYear(today.getFullYear() + 1);
-      }
-      
-      const diffTime = Math.abs(nextBday.getTime() - today.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-
-      if (diffDays <= 7) return 'text-rose-700 bg-rose-100 border-rose-300 font-bold'; // En menos de 7 días
-      if (diffDays <= 30) return 'text-amber-700 bg-amber-100 border-amber-300 font-bold'; // En menos de un mes
-      return 'text-slate-600 bg-slate-100 border-slate-200'; // Normal
-  };
 
   return (
     <div className="space-y-4">
@@ -341,7 +275,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto outline-none" tabIndex={0} onKeyDown={handleKeyDown}>
+        <div className="overflow-x-auto outline-none" tabIndex={0}>
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
@@ -363,9 +297,23 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                     Contacto Principal <SortIcon columnKey="name" />
                 </th>
                 {isAdvancedView && (
-                  <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>
-                      WhatsApp <SortIcon columnKey="whatsapp" />
-                  </th>
+                  <>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>
+                        WhatsApp <SortIcon columnKey="whatsapp" />
+                    </th>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact2')}>
+                        Contacto 2 <SortIcon columnKey="contact2" />
+                    </th>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone2')}>
+                        Teléfono C. 2 <SortIcon columnKey="phone2" />
+                    </th>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact3')}>
+                        Contacto 3 <SortIcon columnKey="contact3" />
+                    </th>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone3')}>
+                        Teléfono C. 3 <SortIcon columnKey="phone3" />
+                    </th>
+                  </>
                 )}
                 
                 {visibleColumns.includes('tags') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etiquetas</th>}
@@ -383,13 +331,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 
                 {visibleColumns.includes('ownerId') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Responsable</th>}
                 
-                {isAdvancedView && (
-                    <>
-                        <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-indigo-500 uppercase tracking-wider bg-indigo-50/50">Persona Clave 1</th>
-                        <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-indigo-500 uppercase tracking-wider bg-indigo-50/50">Persona Clave 2</th>
-                        <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-indigo-500 uppercase tracking-wider bg-indigo-50/50">Persona Clave 3</th>
-                    </>
-                )}
 
                 {visibleColumns.includes('tier') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('tier')}>
                     Tier <SortIcon columnKey="tier" />
@@ -407,24 +348,22 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 const isSelected = selectedContactIds.includes(contact.id);
                 
                 const renderCell = (field: keyof CrmContact, display: React.ReactNode, type: string = 'text') => {
-                    const isEditing = editingCell?.contactId === contact.id && editingCell.field === field;
-                    const isFocused = focusedCell?.contactId === contact.id && focusedCell.field === field;
+                    const isEditing = editingRowId === contact.id;
                     return (
-                        <td className={`py-1.5 px-3 border-r border-slate-100 cursor-pointer text-[13px] text-slate-700 transition-colors relative ${isFocused ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20' : 'hover:bg-slate-50'}`} onClick={() => { setFocusedCell({ contactId: contact.id, field }); handleCellClick(contact.id, field); }}>
+                        <td className={`py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50`} onClick={(e) => { if (isEditing) e.stopPropagation(); }}>
                             {isEditing ? (
-                                <input autoFocus className="absolute inset-0 border-2 border-indigo-500 px-2 w-full h-full text-[13px] bg-white outline-none z-10" type={type} defaultValue={String(contact[field] || '')} onBlur={e => { handleSave(contact.id, field, e.target.value); setFocusedCell({ contactId: contact.id, field }); }} onKeyDown={e => { if(e.key === 'Enter') { handleSave(contact.id, field, e.currentTarget.value); setEditingCell(null); } if(e.key === 'Escape') setEditingCell(null); e.stopPropagation(); }} />
+                                <input className="absolute inset-0 border-2 border-indigo-500 px-2 w-full h-full text-[13px] bg-white outline-none z-10" type={type} defaultValue={String(contact[field] || '')} onBlur={e => { handleSave(contact.id, field, e.target.value); }} onClick={(e) => e.stopPropagation()} onKeyDown={e => { if(e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} />
                             ) : display}
                         </td>
                     );
                 };
 
                 const renderSelectCell = (field: keyof CrmContact, options: {value:string, label:string}[], display: React.ReactNode) => {
-                    const isEditing = editingCell?.contactId === contact.id && editingCell.field === field;
-                    const isFocused = focusedCell?.contactId === contact.id && focusedCell.field === field;
+                    const isEditing = editingRowId === contact.id;
                     return (
-                        <td className={`py-1.5 px-3 border-r border-slate-100 cursor-pointer text-[13px] text-slate-700 transition-colors relative ${isFocused ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20' : 'hover:bg-slate-50'}`} onClick={() => { setFocusedCell({ contactId: contact.id, field }); handleCellClick(contact.id, field); }}>
+                        <td className={`py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50`} onClick={(e) => { if (isEditing) e.stopPropagation(); }}>
                             {isEditing ? (
-                                <select autoFocus className="absolute inset-0 border-2 border-indigo-500 px-2 w-full h-full text-[13px] bg-white outline-none z-10" defaultValue={String(contact[field] || '')} onBlur={e => { handleSave(contact.id, field, e.target.value); setFocusedCell({ contactId: contact.id, field }); }} onKeyDown={e => { if(e.key === 'Escape' || e.key === 'Enter') setEditingCell(null); e.stopPropagation(); }}>
+                                <select className="absolute inset-0 border-2 border-indigo-500 px-2 w-full h-full text-[13px] bg-white outline-none z-10" defaultValue={String(contact[field] || '')} onBlur={e => { handleSave(contact.id, field, e.target.value); }} onClick={(e) => e.stopPropagation()} onKeyDown={e => { if(e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur(); e.stopPropagation(); }}>
                                     {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                                 </select>
                             ) : display}
@@ -435,7 +374,8 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 return (
                 <tr 
                   key={contact.id} 
-                  className={`hover:bg-slate-50/80 transition-colors group ${isSelected ? 'bg-indigo-50/20' : 'bg-white'}`}
+                  className={`hover:bg-slate-50/80 transition-colors group cursor-pointer ${isSelected ? 'bg-indigo-50/20' : 'bg-white'}`}
+                  onClick={() => { if (editingRowId !== contact.id) onContactClick(contact.id); }}
                 >
                   <td className="py-1.5 px-3 border-r border-slate-100 text-center" onClick={(e) => toggleSelectContact(e, contact.id)}>
                       <input 
@@ -471,37 +411,44 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                     </div>
                   ))}
 
-                  {isAdvancedView && renderCell('whatsapp', (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600 whitespace-nowrap">
-                      {contact.whatsapp ? (
-                        <a 
-                          href={`https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-emerald-600 hover:text-emerald-700 font-bold hover:underline flex items-center gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.019-5.116-2.875-6.973C16.597 1.882 14.122.862 11.49.862c-5.434 0-9.858 4.42-9.863 9.864-.002 1.718.461 3.39 1.34 4.869l-.988 3.606 3.693-.979zm12.387-5.748c-.327-.164-1.938-.956-2.238-1.065-.3-.11-.519-.164-.738.164-.219.329-.848 1.065-1.039 1.285-.19.22-.382.247-.709.082-1.127-.565-1.928-1.006-2.714-2.355-.207-.354-.021-.54.149-.708.154-.152.327-.382.49-.573.164-.19.219-.327.328-.546.11-.22.055-.41-.027-.573-.082-.164-.738-1.776-1.011-2.434-.267-.643-.539-.556-.738-.566-.19-.01-.41-.01-.628-.01-.219 0-.573.082-.875.41-.301.329-1.15 1.122-1.15 2.735s1.177 3.172 1.34 3.39c.164.22 2.313 3.532 5.603 4.954.782.338 1.39.54 1.866.69.787.25 1.5.214 2.067.129.631-.095 1.938-.793 2.21-1.558.273-.766.273-1.422.19-1.558-.081-.137-.3-.22-.628-.383z"/>
-                          </svg>
-                          <span className="font-semibold text-emerald-600">{contact.whatsapp}</span>
-                        </a>
-                      ) : (
-                        <span className="text-slate-400 italic">No asignado</span>
-                      )}
-                    </div>
-                  ))}
+                  {isAdvancedView && (
+                    <>
+                      {renderCell('whatsapp', (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-600 whitespace-nowrap">
+                          {contact.whatsapp ? (
+                            <a 
+                              href={`https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-emerald-600 hover:text-emerald-700 font-bold hover:underline flex items-center gap-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.019-5.116-2.875-6.973C16.597 1.882 14.122.862 11.49.862c-5.434 0-9.858 4.42-9.863 9.864-.002 1.718.461 3.39 1.34 4.869l-.988 3.606 3.693-.979zm12.387-5.748c-.327-.164-1.938-.956-2.238-1.065-.3-.11-.519-.164-.738.164-.219.329-.848 1.065-1.039 1.285-.19.22-.382.247-.709.082-1.127-.565-1.928-1.006-2.714-2.355-.207-.354-.021-.54.149-.708.154-.152.327-.382.49-.573.164-.19.219-.327.328-.546.11-.22.055-.41-.027-.573-.082-.164-.738-1.776-1.011-2.434-.267-.643-.539-.556-.738-.566-.19-.01-.41-.01-.628-.01-.219 0-.573.082-.875.41-.301.329-1.15 1.122-1.15 2.735s1.177 3.172 1.34 3.39c.164.22 2.313 3.532 5.603 4.954.782.338 1.39.54 1.866.69.787.25 1.5.214 2.067.129.631-.095 1.938-.793 2.21-1.558.273-.766.273-1.422.19-1.558-.081-.137-.3-.22-.628-.383z"/>
+                              </svg>
+                              <span className="font-semibold text-emerald-600">{contact.whatsapp}</span>
+                            </a>
+                          ) : (
+                            <span className="text-slate-400 italic">No asignado</span>
+                          )}
+                        </div>
+                      ))}
+                      {renderCell('contact2', <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact2 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
+                      {renderCell('phone2', <span className="text-sm font-medium text-slate-600 whitespace-nowrap">{contact.phone2 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
+                      {renderCell('contact3', <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact3 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
+                      {renderCell('phone3', <span className="text-sm font-medium text-slate-600 whitespace-nowrap">{contact.phone3 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
+                    </>
+                  )}
 
                   {visibleColumns.includes('tags') && (
                       <td 
-                        className={`py-1.5 px-3 border-r border-slate-100 cursor-pointer text-[13px] text-slate-700 transition-colors relative ${focusedCell?.contactId === contact.id && focusedCell?.field === 'tags' ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20' : 'hover:bg-slate-50 bg-white'}`}
-                        onClick={() => { setFocusedCell({ contactId: contact.id, field: 'tags' }); handleCellClick(contact.id, 'tags'); }}
+                        className={`py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50 bg-white`}
+                        onClick={(e) => { if (editingRowId === contact.id) e.stopPropagation(); }}
                       >
-                        {editingCell?.contactId === contact.id && editingCell.field === 'tags' ? (
+                        {editingRowId === contact.id ? (
                             <div className="absolute top-full left-0 mt-1 w-48 bg-white shadow-xl rounded-lg border border-slate-200 z-50 p-2 flex flex-col gap-1">
                                 <div className="flex justify-between items-center mb-1">
-                                  <div className="text-[10px] font-bold text-slate-400 uppercase px-1">Etiquetas</div>
-                                  <button className="text-[10px] text-indigo-600 font-bold hover:underline" onClick={(e) => { e.stopPropagation(); setEditingCell(null); }}>Cerrar</button>
+                                  <div className="text-[10px] font-bold text-slate-400 uppercase px-1">Etiquetas (Auto-guardado)</div>
                                 </div>
                                 {AVAILABLE_TAGS.map(tag => {
                                     const hasTag = contact.tags?.includes(tag);
@@ -552,44 +499,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                     </span>
                   )}
                   
-                  {isAdvancedView && (
-                      <>
-                        {[0,1,2].map(idx => {
-                            const dm = (contact.decisionMakers || [])[idx];
-                            if (!dm) return (
-                                <td key={idx} className="py-3 px-3 bg-indigo-50/20 cursor-pointer hover:bg-indigo-100/50" onClick={() => handleCellClick(contact.id, `dm-${idx}-name`)}>
-                                    {editingCell?.contactId === contact.id && editingCell.field === `dm-${idx}-name` ? (
-                                        <input autoFocus className="border border-indigo-400 p-1 w-full text-xs rounded" placeholder="Nombre..." onBlur={e => handleSaveDM(contact.id, idx, 'name', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveDM(contact.id, idx, 'name', e.currentTarget.value)} />
-                                    ) : <span className="text-xs text-slate-400 italic">Click para añadir</span>}
-                                </td>
-                            );
-                            return (
-                                <td key={idx} className="py-3 px-3 bg-indigo-50/20 whitespace-nowrap cursor-pointer hover:bg-indigo-100/50" onClick={() => handleCellClick(contact.id, `dm-${idx}-name`)}>
-                                    {editingCell?.contactId === contact.id && editingCell.field === `dm-${idx}-name` ? (
-                                        <div className="flex flex-col gap-1">
-                                            <input autoFocus className="border border-indigo-400 p-1 w-full text-[10px] rounded" defaultValue={dm.name} placeholder="Nombre" onBlur={e => handleSaveDM(contact.id, idx, 'name', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveDM(contact.id, idx, 'name', e.currentTarget.value)} />
-                                            <input className="border border-indigo-400 p-1 w-full text-[10px] rounded" defaultValue={dm.position} placeholder="Cargo" onBlur={e => handleSaveDM(contact.id, idx, 'position', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveDM(contact.id, idx, 'position', e.currentTarget.value)} />
-                                            <input type="date" className="border border-indigo-400 p-1 w-full text-[10px] rounded" defaultValue={dm.birthday} onBlur={e => handleSaveDM(contact.id, idx, 'birthday', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveDM(contact.id, idx, 'birthday', e.currentTarget.value)} />
-                                            <input className="border border-indigo-400 p-1 w-full text-[10px] rounded" defaultValue={dm.hobby} placeholder="Hobby" onBlur={e => handleSaveDM(contact.id, idx, 'hobby', e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveDM(contact.id, idx, 'hobby', e.currentTarget.value)} />
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-bold text-slate-800">{dm.name} <span className="font-normal text-slate-500">({dm.position})</span></span>
-                                            <div className="flex gap-2 items-center">
-                                                {dm.birthday && (
-                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getBirthdayColor(dm.birthday)}`}>
-                                                        🎂 {new Date(dm.birthday).toLocaleDateString('es-CO', { month: 'short', day: 'numeric' })}
-                                                    </span>
-                                                )}
-                                                {dm.hobby && <span className="text-[10px] text-slate-500 truncate max-w-[100px]">🎯 {dm.hobby}</span>}
-                                            </div>
-                                        </div>
-                                    )}
-                                </td>
-                            );
-                        })}
-                    </>
-                  )}
+
                   {visibleColumns.includes('tier') && renderSelectCell('tier',
                       ['REGULAR', 'STRATEGIC', 'NEW'].map(o => ({value:o, label:o})),
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
@@ -606,9 +516,20 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   {visibleColumns.includes('lastContactDate') && renderCell('lastContactDate', <span className="text-xs text-slate-500 whitespace-nowrap">{new Date(contact.lastContactDate).toLocaleDateString('es-CO')}</span>, 'date')}
 
                   <td className="py-1.5 px-3 text-center">
-                    <button onClick={(e) => { e.stopPropagation(); onContactClick(contact.id); }} className="p-1 text-slate-400 hover:text-indigo-600 transition-colors inline-flex justify-center w-full bg-transparent hover:bg-indigo-50 rounded">
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-center gap-1">
+                        {editingRowId === contact.id ? (
+                            <button onClick={(e) => { e.stopPropagation(); setEditingRowId(null); }} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded" title="Guardar Fila">
+                                <Save className="w-4 h-4" />
+                            </button>
+                        ) : (
+                            <button onClick={(e) => { e.stopPropagation(); setEditingRowId(contact.id); }} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded" title="Editar Fila">
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        )}
+                        <button onClick={(e) => { e.stopPropagation(); onContactClick(contact.id); }} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded" title="Abrir Perfil">
+                            <ArrowRight className="w-4 h-4" />
+                        </button>
+                    </div>
                   </td>
                 </tr>
               )})}

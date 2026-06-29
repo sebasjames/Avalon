@@ -197,7 +197,38 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                 <Phone className="w-4 h-4 text-slate-400" />
                 <span className="text-slate-700">{contact.phone}</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
+
+              {(contact.contact2 || contact.phone2) && (
+                <div className="pt-3 mt-1 border-t border-slate-100">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Contacto 2</div>
+                  <div className="flex flex-col gap-1.5">
+                    {contact.contact2 && <span className="text-sm font-medium text-slate-700">{contact.contact2}</span>}
+                    {contact.phone2 && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-slate-600">{contact.phone2}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {(contact.contact3 || contact.phone3) && (
+                <div className="pt-3 mt-1 border-t border-slate-100">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Contacto 3</div>
+                  <div className="flex flex-col gap-1.5">
+                    {contact.contact3 && <span className="text-sm font-medium text-slate-700">{contact.contact3}</span>}
+                    {contact.phone3 && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-slate-600">{contact.phone3}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-3 mt-1 border-t border-slate-100 flex items-center gap-3 text-sm">
                 <SourceIcon className="w-4 h-4 text-slate-400" />
                 <div className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${sourceBadge.color}`}>
                   {sourceBadge.label}
