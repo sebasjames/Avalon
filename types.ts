@@ -311,6 +311,7 @@ export interface CrmContact {
   company: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   tier: CustomerTier;
   status: 'LEAD' | 'PROSPECTO' | 'VINCULADO' | 'INACTIVO';
   source: CrmLeadSource;

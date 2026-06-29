@@ -113,13 +113,19 @@ export const CrmFull: React.FC = () => {
     setValidationError(null);
     if (newRegistroType === 'CONTACT') {
       const company = (newPayload.company || '').trim();
+      const name = (newPayload.name || '').trim();
       const docNum = (newPayload.documentNumber || '').trim();
       const email = (newPayload.email || '').trim();
       const address = (newPayload.address || '').trim();
       const phone = (newPayload.phone || '').trim();
+      const whatsapp = (newPayload.whatsapp || '').trim();
 
       if (!company) {
         setValidationError('El Nombre de la Empresa / Razón Social es requerido.');
+        return;
+      }
+      if (!name) {
+        setValidationError('El Nombre de Contacto Principal es requerido.');
         return;
       }
       if (!docNum) {
@@ -156,10 +162,11 @@ export const CrmFull: React.FC = () => {
 
       const nc: CrmContact = {
         id: `C-NEW-${Date.now()}`,
-        name: company,
+        name: name,
         company: company,
         email: email,
         phone: phone,
+        whatsapp: whatsapp || undefined,
         documentType: newPayload.documentType || 'NIT',
         documentNumber: docNum,
         address: address,
@@ -449,11 +456,18 @@ export const CrmFull: React.FC = () => {
               <div className="space-y-4">
                 {newRegistroType === 'CONTACT' ? (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
+                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 mb-1">Nombre de la Empresa *</label>
                             <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Razón Social" onChange={(e) => setNewPayload({...newPayload, company: e.target.value})} />
                         </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Nombre de Contacto Principal *</label>
+                            <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Nombre completo" onChange={(e) => setNewPayload({...newPayload, name: e.target.value})} />
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="text-xs font-bold text-slate-500 mb-1 block">Tipo y No. Documento (DIAN) *</label>
                             <div className="flex gap-2">
@@ -470,11 +484,15 @@ export const CrmFull: React.FC = () => {
                                 <input className="flex-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="123456789-0" onChange={(e) => setNewPayload({...newPayload, documentNumber: e.target.value})} />
                             </div>
                         </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">WhatsApp del Responsable</label>
+                            <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Ej: 3001234567" onChange={(e) => setNewPayload({...newPayload, whatsapp: e.target.value})} />
+                        </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Teléfono Principal *</label>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Teléfono Empresa *</label>
                             <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="+57 300 000 0000" onChange={(e) => setNewPayload({...newPayload, phone: e.target.value})} />
                         </div>
                         <div>

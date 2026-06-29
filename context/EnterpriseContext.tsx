@@ -49,13 +49,13 @@ interface EnterpriseContextType {
     setFullProfileContactId: (id: string | null) => void;
     globalInventorySearch: string;
     setGlobalInventorySearch: (s: string) => void;
-    
+
     // --- Configuración POS ---
     paymentMethods: string[];
     setPaymentMethods: (methods: string[]) => void;
     pointsOfSale: string[];
     setPointsOfSale: (pos: string[]) => void;
-    
+
     // --- Configuración Impuestos ---
     taxRates: TaxRate[];
     setTaxRates: (rates: TaxRate[]) => void;
@@ -92,9 +92,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (!MOCK_INVENTORY.length || !MOCK_CRM_CONTACTS.length) {
             return { txs: [] as AccountingTransaction[], cts: MOCK_CRM_CONTACTS };
         }
-        
+
         const generated: AccountingTransaction[] = [];
-        
+
         // 1. Explicitly seed Caja Menor Transactions (2 reposiciones and 8 egresos)
         generated.push({
             id: 'RC-CM01',
@@ -112,7 +112,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             paymentMethod: 'Caja Menor',
             posLocation: 'Sede Principal Centro'
         });
-        
+
         const cmExpenses = [
             { id: 'CE-CM01', date: '2026-06-03', client: 'Papelería El Cid', doc: 'Factura Papel y Carpetas', desc: 'Papelería de oficina y carpetas de archivo', total: 85000 },
             { id: 'CE-CM02', date: '2026-06-05', client: 'Café Córdoba', doc: 'Recibo Cafetería', desc: 'Café, azúcar y vasos desechables', total: 45000 },
@@ -123,7 +123,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             { id: 'CE-CM07', date: '2026-06-22', client: 'Papelería El Cid', doc: 'Factura Lapiceros', desc: 'Lapiceros y marcadores para bodega', total: 28000 },
             { id: 'CE-CM08', date: '2026-06-24', client: 'Café Córdoba', doc: 'Recibo Café', desc: 'Suministros de cafetería y galletas', total: 38000 }
         ];
-        
+
         cmExpenses.forEach(exp => {
             generated.push({
                 id: exp.id,
@@ -143,41 +143,41 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 posLocation: 'Sede Principal Centro'
             });
         });
-        
+
         // 2. Generate random Sales and Purchases
         let ventaCounter = 1;
         let compraCounter = 1;
         let ajusteCounter = 1;
-        
+
         const methods = [
             'Efectivo', 'Tarjeta', 'Transferencia', 'Nequi', 'Datáfonos (111505)'
         ];
-        
+
         for (let i = 0; i < 200; i++) {
             const rand = Math.random();
             let type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' = 'VENTA';
             if (rand > 0.8 && rand <= 0.95) type = 'COMPRA';
             else if (rand > 0.95) type = 'AJUSTE_MERMA';
-            
+
             const contact = MOCK_CRM_CONTACTS[Math.floor(Math.random() * MOCK_CRM_CONTACTS.length)];
             const product = MOCK_INVENTORY[Math.floor(Math.random() * MOCK_INVENTORY.length)];
-            
+
             const date = new Date(Date.now() - Math.floor(Math.random() * 60 * 24 * 60 * 60 * 1000));
             const dateStr = date.toISOString().split('T')[0];
             const qty = Math.floor(Math.random() * 15) + 1;
-            
+
             let id = '';
             let total = 0;
             let iva = 0;
             let paymentMethod = '';
-            
+
             if (type === 'VENTA') {
                 id = `FV-${ventaCounter.toString().padStart(4, '0')}`;
                 ventaCounter++;
                 total = product.price * qty;
                 const rate = product.taxRate ?? 19;
                 iva = Math.round(total * (rate / 100));
-                
+
                 const isCredit = Math.random() > 0.5;
                 paymentMethod = isCredit ? (Math.random() > 0.5 ? 'Crédito 30 días' : 'Crédito 60 días') : methods[Math.floor(Math.random() * methods.length)];
             } else if (type === 'COMPRA') {
@@ -193,29 +193,29 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 iva = 0;
                 paymentMethod = 'Inventario Físico';
             }
-            
+
             let dueDate: string | undefined;
             let paymentStatus: 'PENDIENTE' | 'PAGADA' | 'EN_MORA' | undefined;
             let balance: number | undefined;
-            
+
             if (type === 'VENTA') {
                 const isCreditMethod = paymentMethod.toLowerCase().includes('cr') && (paymentMethod.toLowerCase().includes('30') || paymentMethod.toLowerCase().includes('60') || paymentMethod.toLowerCase().includes('di') || paymentMethod.toLowerCase().includes('d'));
                 if (isCreditMethod) {
                     const days = paymentMethod.includes('30') ? 30 : 60;
                     const due = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
                     dueDate = due.toISOString().split('T')[0];
-                    
+
                     if (due < new Date()) {
                         paymentStatus = Math.random() > 0.3 ? 'EN_MORA' : 'PAGADA';
                     } else {
                         paymentStatus = Math.random() > 0.7 ? 'PAGADA' : 'PENDIENTE';
                     }
                     balance = paymentStatus === 'PAGADA' ? 0 : total + iva;
-                    
+
                     if (paymentStatus === 'PAGADA' || (paymentStatus === 'PENDIENTE' && Math.random() > 0.5)) {
                         const paidAmount = paymentStatus === 'PAGADA' ? (total + iva) : Math.round((total + iva) * 0.6);
                         balance = (total + iva) - paidAmount;
-                        
+
                         generated.push({
                             id: `RC-${id.split('-')[1]}`,
                             date: new Date(date.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -240,7 +240,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                     dueDate = dateStr;
                 }
             }
-            
+
             generated.push({
                 id,
                 date: dateStr,
@@ -260,15 +260,15 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 balance
             });
         }
-        
+
         // 3. Update customer limits dynamically based on transactions
         const cts = MOCK_CRM_CONTACTS.map(c => {
             const clientTxs = generated.filter(t => t.clientId === c.id);
             const unpaidTxs = clientTxs.filter(t => t.type === 'VENTA' && t.paymentStatus !== 'PAGADA');
-            
+
             const creditLimitUsed = unpaidTxs.reduce((sum, t) => sum + (t.balance || 0), 0);
             const hasOverdueBills = unpaidTxs.some(t => t.paymentStatus === 'EN_MORA' || (t.dueDate && new Date(t.dueDate) < new Date()));
-            
+
             return {
                 ...c,
                 creditLimit: c.name.includes('S.A.') || c.name.includes('Ltda') ? 60000000 : 25000000,
@@ -276,9 +276,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 hasOverdueBills
             };
         });
-        
+
         generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        
+
         return { txs: generated, cts };
     }, []);
 
@@ -290,25 +290,25 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [receipts, setReceipts] = useState<InboundReceipt[]>([]);
     const [dismissedNotifIds, setDismissedNotifIds] = useState<string[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
-    
+
     // --- POS Configurations ---
     const [paymentMethods, setPaymentMethods] = useState<string[]>([
-        'Efectivo', 
-        'Tarjeta', 
-        'Transferencia', 
-        'Nequi', 
-        'Crédito 30 días', 
-        'Crédito 60 días', 
+        'Efectivo',
+        'Tarjeta',
+        'Transferencia',
+        'Nequi',
+        'Crédito 30 días',
+        'Crédito 60 días',
         'Crédito 90 días',
         'Saldo a Favor'
     ]);
     const [pointsOfSale, setPointsOfSale] = useState<string[]>([
-        'Sede Principal Centro', 
-        'Bodega Norte', 
+        'Sede Principal Centro',
+        'Bodega Norte',
         'Ventas Online',
         'Garantías / Averías'
     ]);
-    
+
     // Tintometric Rules
     const [tintometricRules, setTintometricRules] = useState<string[]>([
         'PL 800', 'PM 800', 'TP 60', 'PL 720/10', 'TO 800', 'TO 840/10',
@@ -318,7 +318,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'TINTILLA SEMIPIGMENTARIA',
         'HNS 2A02', 'TS 364', 'COLOR'
     ]);
-    
+
     // Reverse Display Rules
     const [reverseDisplayRules, setReverseDisplayRules] = useState<string[]>([
         'VETRO',
@@ -327,7 +327,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'PROCOQUINAL',
         'PF 45'
     ]);
-    
+
     // Liters to Cuñetes Rules
     const [litersToCunetesRules, setLitersToCunetesRules] = useState<string[]>([
         'TZ 13', 'TZ 29', 'TZ 35', 'TZ 66', 'TZ 99', 'TM 893', 'TM 047',
@@ -345,7 +345,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ]);
     const [rawMaterialCategories, setRawMaterialCategories] = useState<string[]>(['Materia Prima Nacional', 'Materia Prima Importada']);
     const [accountingShortcuts, setAccountingShortcuts] = useState<string[]>(['Datáfonos (111505)', 'Crédito 30 días (130505)', 'Crédito 60 días (130505)', 'Crédito 90 días (130505)', 'Caja Menor (110510)']);
-    
+
     // Tax Rates
     // Tax Rates
     const [taxRates, setTaxRates] = useState<TaxRate[]>([
@@ -358,25 +358,25 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [recipes, setRecipes] = useState<Recipe[]>([
         {
             id: 'REC-1',
-            finalProductId: '4191', 
+            finalProductId: '4191',
             ingredients: [
-                { productId: '202401', quantity: 0.8 }, 
+                { productId: '202401', quantity: 0.8 },
                 { productId: '202402', quantity: 0.2 },
-                { productId: 'SERV-MANO-OBRA', quantity: 1 } 
+                { productId: 'SERV-MANO-OBRA', quantity: 1 }
             ]
         }
     ]);
     const [taxRules, setTaxRules] = useState<TaxRule[]>(MOCK_TAX_RULES);
     const [pricingRules, setPricingRules] = useState<PricingRule[]>(MOCK_PRICING_RULES);
     const [paymentRules, setPaymentRules] = useState<PaymentRule[]>(MOCK_PAYMENT_RULES);
-    
+
     const addRecipe = (recipe: Recipe) => setRecipes(prev => [...prev, recipe]);
     const deleteRecipe = (id: string) => setRecipes(prev => prev.filter(r => r.id !== id));
 
     const [globalSelectedContactId, setGlobalSelectedContactId] = useState<string | null>(null);
     const [fullProfileContactId, setFullProfileContactId] = useState<string | null>(null);
     const [globalInventorySearch, setGlobalInventorySearch] = useState<string>('');
-    
+
     // --- Transactions State ---
     const [transactions, setTransactions] = useState<AccountingTransaction[]>(seedData.txs);
 
@@ -401,13 +401,13 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const processCreditNote = (t: AccountingTransaction) => {
         if (t.type !== 'NOTA_CREDITO') return;
-        
+
         // 1. Añadir la transacción contable
         addTransaction(t);
-        
+
         // 2. Sumar el stock a la bodega seleccionada (en este caso el totalStock global asume todo, pero se documenta posLocation)
         updateInventoryStock(t.sku, t.qty); // qty debe venir positivo
-        
+
         // 3. Sumar el saldo a favor al cliente
         if (t.clientId) {
             setContacts(prev => prev.map(c => {
@@ -537,10 +537,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             });
         }
 
-        const status = issues.some(i => i.severity === 'HIGH') 
-            ? 'ERROR' 
-            : issues.length > 0 
-                ? 'WARNING' 
+        const status = issues.some(i => i.severity === 'HIGH')
+            ? 'ERROR'
+            : issues.length > 0
+                ? 'WARNING'
                 : 'SUCCESS';
 
         const todayStr = new Date().toISOString().split('T')[0];
@@ -556,7 +556,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     const updateInventoryStock = (productId: string, quantityChange: number) => {
-        setInventory(prev => prev.map(p => 
+        setInventory(prev => prev.map(p =>
             p.id === productId ? { ...p, totalStock: p.totalStock + quantityChange } : p
         ));
     };
@@ -595,7 +595,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const wonValue = deals
             .filter(d => d.contactId === contactId && d.stage === 'CLOSED_WON')
             .reduce((sum, d) => sum + d.value, 0);
-        
+
         const { redMax, yellowMax } = crmSettings.clientHealthThresholds;
         if (wonValue <= redMax) return 'RED';
         if (wonValue <= yellowMax) return 'YELLOW';
@@ -624,14 +624,14 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         });
         setAssignmentLogs(prev => [...newLogs, ...prev]);
 
-        setContacts(prev => prev.map(c => 
+        setContacts(prev => prev.map(c =>
             contactIds.includes(c.id) ? { ...c, ownerId: newOwnerId } : c
         ));
-        
+
         if (transferDeals) {
-            setDeals(prev => prev.map(d => 
+            setDeals(prev => prev.map(d =>
                 contactIds.includes(d.contactId) && d.stage !== 'CLOSED_WON' && d.stage !== 'CLOSED_LOST'
-                    ? { ...d, ownerId: newOwnerId } 
+                    ? { ...d, ownerId: newOwnerId }
                     : d
             ));
         }
@@ -659,7 +659,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     const moveContactPostSaleStage = (contactId: string, newStage: CrmPostSaleStage) => {
-        setContacts(prev => prev.map(c => 
+        setContacts(prev => prev.map(c =>
             c.id === contactId ? { ...c, postSaleStage: newStage } : c
         ));
     };
@@ -674,7 +674,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                         const newInv = [...prevInv];
                         const productIdx = Math.floor(Math.random() * newInv.length);
                         const product = newInv[productIdx];
-                        
+
                         // Reservamos 10 unidades como ejemplo real
                         const qtyToReserve = 10;
                         newInv[productIdx] = {
@@ -702,22 +702,22 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                             causal_chain_id: dealId,
                             confidence_level: 'AUTOMATIC'
                         };
-                        
+
                         setEvents(e => [logEntry, ...e]);
-                        
+
                         return newInv;
                     });
-                    
+
                     // Auto-transfer to Post-Sale Pipeline
-                    setContacts(prev => prev.map(c => 
-                        c.id === deal.contactId ? { 
-                            ...c, 
-                            status: 'VINCULADO', 
+                    setContacts(prev => prev.map(c =>
+                        c.id === deal.contactId ? {
+                            ...c,
+                            status: 'VINCULADO',
                             postSaleStage: 'ONBOARDING'
                         } : c
                     ));
                 }
-                
+
                 return { ...deal, stage: newStage as CrmDealStage, lostReason };
             }
             return deal;
@@ -726,23 +726,23 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const processInboundReceipt = (receipt: InboundReceipt) => {
         setReceipts(prev => [receipt, ...prev]);
-        
+
         setInventory(prevInv => {
             const newInv = [...prevInv];
-            
+
             receipt.items.forEach(item => {
                 const productIdx = newInv.findIndex(p => p.sku === item.sku || p.originalSku === item.sku);
-                
+
                 if (productIdx >= 0) {
                     const product = newInv[productIdx];
                     const oldStock = product.totalStock;
                     const newStock = oldStock + item.totalLiters;
-                    
+
                     // Calculamos promedio ponderado
                     const oldTotalValue = oldStock * product.unitCost;
                     const incomingValue = item.totalLiters * item.unitCost;
                     const newAvgCost = newStock > 0 ? (oldTotalValue + incomingValue) / newStock : item.unitCost;
-                    
+
                     newInv[productIdx] = {
                         ...product,
                         totalStock: newStock,
@@ -768,7 +768,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                         causal_chain_id: receipt.id,
                         confidence_level: 'ASSISTED'
                     };
-                    
+
                     setEvents(e => [logEntry, ...e]);
                 } else {
                     const errorLog: SystemEvent = {
@@ -792,7 +792,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                     setEvents(e => [errorLog, ...e]);
                 }
             });
-            
+
             return newInv;
         });
     };
@@ -800,7 +800,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const cleanGarbageLeads = (daysInactive: number) => {
         const thresholdDate = new Date();
         thresholdDate.setDate(thresholdDate.getDate() - daysInactive);
-        
+
         setContacts(prev => prev.map(c => {
             if (c.status === 'LEAD' || c.status === 'PROSPECTO') {
                 if (new Date(c.lastContactDate) < thresholdDate) {
@@ -814,7 +814,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const getActiveNotifications = (): CrmNotification[] => {
         const notifs: CrmNotification[] = [];
         const today = new Date();
-        
+
         contacts.forEach(c => {
             c.decisionMakers?.forEach(dm => {
                 if (dm.birthday) {
@@ -823,7 +823,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                     if (nextBday.getTime() < today.getTime()) {
                         nextBday.setFullYear(today.getFullYear() + 1);
                     }
-                    const diffDays = Math.ceil(Math.abs(nextBday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)); 
+                    const diffDays = Math.ceil(Math.abs(nextBday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                     if (diffDays <= 7) {
                         notifs.push({
                             id: `notif-bd-${c.id}-${dm.name}`,
@@ -863,7 +863,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     return (
-        <EnterpriseContext.Provider value={{ 
+        <EnterpriseContext.Provider value={{
             inventory, deals, contacts, activities, events, receipts, crmUsers, crmSettings,
             moveDealStage, moveContactPostSaleStage, addEvent, addContact, addDeal, addActivity, deleteContacts, reassignContacts,
             processInboundReceipt,
@@ -894,7 +894,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             setFullProfileContactId,
             globalInventorySearch,
             setGlobalInventorySearch,
-            
+
             paymentMethods,
             setPaymentMethods,
             pointsOfSale,

@@ -21,7 +21,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
 }) => {
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 25;
   const [sortConfig, setSortConfig] = useState<{ key: keyof CrmContact, direction: 'asc' | 'desc' } | null>(null);
   
   // Phase 2: Saved Views
@@ -54,10 +54,8 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
 
   // Phase 1: Dynamic columns
   const AVAILABLE_COLUMNS = [
-    { id: 'company', label: 'Empresa' },
     { id: 'tags', label: 'Etiquetas' },
     { id: 'document', label: 'NIT/Cédula' },
-    { id: 'phone', label: 'Teléfono' },
     { id: 'email', label: 'Email' },
     { id: 'source', label: 'Origen' },
     { id: 'status', label: 'Estado' },
@@ -67,7 +65,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     { id: 'lastContactDate', label: 'Últ. Contacto' },
   ];
   
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['company', 'tags', 'document', 'phone', 'source', 'status', 'ownerId']);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['tags', 'document', 'source', 'status', 'ownerId']);
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const [isAdvancedView, setIsAdvancedView] = useState(false); // Kept for retrocompatibility with Decision Makers for now
 
@@ -109,7 +107,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     updateContact(contactId, { tags: newTags });
   };
 
-  const tableColumns = ['name', ...visibleColumns];
+  const tableColumns = ['company', 'name', 'whatsapp', ...visibleColumns];
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!focusedCell || editingCell) return;
@@ -355,18 +353,22 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                         className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
                 </th>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('company')}>
+                    CLIENTE <SortIcon columnKey="company" />
+                </th>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone')}>
+                    TELEFONO DE CLIENTE <SortIcon columnKey="phone" />
+                </th>
                 <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('name')}>
-                    Nombre <SortIcon columnKey="name" />
+                    Contacto Principal <SortIcon columnKey="name" />
+                </th>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>
+                    WhatsApp <SortIcon columnKey="whatsapp" />
                 </th>
                 
-                {visibleColumns.includes('company') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('company')}>
-                    Empresa <SortIcon columnKey="company" />
-                </th>}
-
                 {visibleColumns.includes('tags') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etiquetas</th>}
                 
                 {visibleColumns.includes('document') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">NIT/Cédula</th>}
-                {visibleColumns.includes('phone') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Teléfono</th>}
                 {visibleColumns.includes('email') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Email</th>}
                 
                 {visibleColumns.includes('source') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('source')}>
@@ -442,6 +444,15 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                       />
                   </td>
                   
+                  {renderCell('company', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.company}</span>)}
+
+                  {renderCell('phone', (
+                    <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap">
+                      <Phone className="w-3 h-3 text-slate-400" />
+                      <span>{contact.phone}</span>
+                    </div>
+                  ))}
+
                   {renderCell('name', (
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -458,7 +469,27 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                     </div>
                   ))}
 
-                  {visibleColumns.includes('company') && renderCell('company', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.company}</span>)}
+                  {renderCell('whatsapp', (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600 whitespace-nowrap">
+                      {contact.whatsapp ? (
+                        <a 
+                          href={`https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-emerald-600 hover:text-emerald-700 font-bold hover:underline flex items-center gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.019-5.116-2.875-6.973C16.597 1.882 14.122.862 11.49.862c-5.434 0-9.858 4.42-9.863 9.864-.002 1.718.461 3.39 1.34 4.869l-.988 3.606 3.693-.979zm12.387-5.748c-.327-.164-1.938-.956-2.238-1.065-.3-.11-.519-.164-.738.164-.219.329-.848 1.065-1.039 1.285-.19.22-.382.247-.709.082-1.127-.565-1.928-1.006-2.714-2.355-.207-.354-.021-.54.149-.708.154-.152.327-.382.49-.573.164-.19.219-.327.328-.546.11-.22.055-.41-.027-.573-.082-.164-.738-1.776-1.011-2.434-.267-.643-.539-.556-.738-.566-.19-.01-.41-.01-.628-.01-.219 0-.573.082-.875.41-.301.329-1.15 1.122-1.15 2.735s1.177 3.172 1.34 3.39c.164.22 2.313 3.532 5.603 4.954.782.338 1.39.54 1.866.69.787.25 1.5.214 2.067.129.631-.095 1.938-.793 2.21-1.558.273-.766.273-1.422.19-1.558-.081-.137-.3-.22-.628-.383z"/>
+                          </svg>
+                          <span className="font-semibold text-emerald-600">{contact.whatsapp}</span>
+                        </a>
+                      ) : (
+                        <span className="text-slate-400 italic">No asignado</span>
+                      )}
+                    </div>
+                  ))}
+
                   {visibleColumns.includes('tags') && (
                       <td 
                         className={`py-1.5 px-3 border-r border-slate-100 cursor-pointer text-[13px] text-slate-700 transition-colors relative ${focusedCell?.contactId === contact.id && focusedCell?.field === 'tags' ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20' : 'hover:bg-slate-50 bg-white'}`}
@@ -490,8 +521,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                       </td>
                   )}
                   {visibleColumns.includes('document') && renderCell('document', <span className="text-sm text-slate-600 font-mono text-xs">{contact.documentType || 'NIT'} {contact.documentNumber || 'N/A'}</span>)}
-                  
-                  {visibleColumns.includes('phone') && renderCell('phone', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Phone className="w-3 h-3" /> {contact.phone}</div>)}
                   
                   {visibleColumns.includes('email') && renderCell('email', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Mail className="w-3 h-3" /> {contact.email}</div>, 'email')}
                   
