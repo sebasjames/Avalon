@@ -1,4 +1,4 @@
-export const formatCOP = (num: number, includeDecimals = true): string => {
+export const formatCOP = (num: number, includeDecimals = false): string => {
     if (num === undefined || num === null || isNaN(num)) {
         return includeDecimals ? '$ 0,00 COP' : '$ 0 COP';
     }

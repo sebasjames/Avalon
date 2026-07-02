@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { MOCK_INVENTORY, MOCK_CUSTOMERS, MOCK_SALES_ORDERS } from '../constants';
 import { InventoryStatus, CustomerTier } from '../types';
 import { 
     Calculator, Truck, AlertOctagon, CheckCircle2, 
     TrendingUp, Users, AlertTriangle, PlayCircle, BarChart3,
-    ArrowRight
+    ArrowRight, Search, ChevronDown
 } from 'lucide-react';
 
 export const ATPAllocation: React.FC = () => {
@@ -13,6 +13,38 @@ export const ATPAllocation: React.FC = () => {
     const [simOrderQty, setSimOrderQty] = useState(0);
     const [simCustomerType, setSimCustomerType] = useState<CustomerTier>(CustomerTier.STRATEGIC);
     const [simulationResult, setSimulationResult] = useState<any>(null);
+
+    // Autocomplete/Combobox state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const products = useMemo(() => MOCK_INVENTORY.filter(i => i.category === 'Producto Terminado'), []);
+    
+    const filteredProducts = useMemo(() => {
+        if (!searchQuery) return products;
+        const lowerQuery = searchQuery.toLowerCase();
+        return products.filter(p => 
+            p.name.toLowerCase().includes(lowerQuery) || 
+            p.sku.toLowerCase().includes(lowerQuery)
+        );
+    }, [products, searchQuery]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Get selected product name for display
+    const selectedProductDisplay = useMemo(() => {
+        const p = products.find(p => p.sku === selectedSku);
+        return p ? `${p.name} (${p.sku})` : 'Seleccionar Producto...';
+    }, [selectedSku, products]);
 
     // Get current product context
     const product = MOCK_INVENTORY.find(p => p.sku === selectedSku) || MOCK_INVENTORY[1];
@@ -92,17 +124,52 @@ export const ATPAllocation: React.FC = () => {
             {/* PRODUCT SELECTOR & KPI SUMMARY */}
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="w-full md:w-1/3">
+                    <div className="w-full md:w-1/3 relative" ref={dropdownRef}>
                         <label className="text-xs font-semibold text-slate-500 uppercase">Producto Analizado</label>
-                        <select 
-                            value={selectedSku}
-                            onChange={(e) => { setSelectedSku(e.target.value); setSimulationResult(null); }}
-                            className="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-700 focus:ring-2 focus:ring-blue-500"
+                        <div 
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-700 focus:ring-2 focus:ring-blue-500 flex justify-between items-center cursor-pointer"
                         >
-                            {MOCK_INVENTORY.filter(i => i.category === 'Producto Terminado').map(p => (
-                                <option key={p.sku} value={p.sku}>{p.name} ({p.sku})</option>
-                            ))}
-                        </select>
+                            <span className="truncate">{selectedProductDisplay}</span>
+                            <ChevronDown className="w-4 h-4 text-slate-500" />
+                        </div>
+
+                        {isDropdownOpen && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-hidden flex flex-col">
+                                <div className="p-2 border-b border-slate-100 flex items-center bg-slate-50">
+                                    <Search className="w-4 h-4 text-slate-400 mr-2" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por nombre o SKU..."
+                                        className="w-full bg-transparent border-none focus:outline-none text-sm text-slate-700"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="overflow-y-auto">
+                                    {filteredProducts.length === 0 ? (
+                                        <div className="p-3 text-sm text-slate-500 text-center">No se encontraron productos</div>
+                                    ) : (
+                                        filteredProducts.map(p => (
+                                            <div 
+                                                key={p.sku} 
+                                                onClick={() => {
+                                                    setSelectedSku(p.sku);
+                                                    setSimulationResult(null);
+                                                    setIsDropdownOpen(false);
+                                                    setSearchQuery('');
+                                                }}
+                                                className={`p-2 text-sm cursor-pointer hover:bg-slate-50 border-b border-slate-50 last:border-0 ${p.sku === selectedSku ? 'bg-blue-50/50 font-semibold text-blue-700' : 'text-slate-700'}`}
+                                            >
+                                                {p.name} <span className="text-xs text-slate-400 ml-1">({p.sku})</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-8 w-full md:w-2/3 justify-around">
