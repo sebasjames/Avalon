@@ -210,13 +210,21 @@ export const GlobalHeader: React.FC = () => {
                         to="/intelligence"
                         className={({ isActive }) =>
                             `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${isActive
-                                ? "bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 animate-gradient-shift text-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.25)] translate-y-[1px] scale-[0.95]"
-                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
+                                ? "bg-orange-50/50 translate-y-[1px] scale-[0.95]"
+                                : "hover:bg-slate-100/60 active:scale-95 active:translate-y-[1px]"
                             }`
                         }
                         title="Inteligencia Artificial"
                     >
-                        <BrainCircuit className="w-5 h-5" />
+                        {({ isActive }) => (
+                            <BrainCircuit 
+                                className={`w-5 h-5 animate-pulse transition-all duration-500 ${
+                                    isActive 
+                                    ? "text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" 
+                                    : "text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"
+                                }`} 
+                            />
+                        )}
                     </NavLink>
                     <NavLink
                         to="/action-center"

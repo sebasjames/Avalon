@@ -337,7 +337,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 {visibleColumns.includes('postSaleStage') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etapa KAM</th>}
                 {visibleColumns.includes('lastContactDate') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Últ. Contacto</th>}
 
-                <th className="py-2 px-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Acciones</th>
+                <th className="py-2 px-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center sticky right-0 bg-slate-50 z-20 shadow-[-4px_0_6px_-1px_rgba(0,0,0,0.05)] border-l border-slate-200">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -522,7 +522,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   )}
                   {visibleColumns.includes('lastContactDate') && renderCell('lastContactDate', <span className="text-xs text-slate-500 whitespace-nowrap">{new Date(contact.lastContactDate).toLocaleDateString('es-CO')}</span>, 'date')}
 
-                  <td className="py-1.5 px-3 text-center">
+                  <td className="py-1.5 px-3 text-center sticky right-0 bg-white z-10 shadow-[-4px_0_6px_-1px_rgba(0,0,0,0.05)] border-l border-slate-100 group-hover:bg-slate-50">
                     <div className="flex items-center justify-center gap-1">
                         {editingRowId === contact.id ? (
                             <button onClick={(e) => { e.stopPropagation(); setEditingRowId(null); }} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded" title="Guardar Fila">

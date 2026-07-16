@@ -11,14 +11,13 @@ import { CrmPipeline } from './CrmPipeline';
 import { CrmContactsTable } from './CrmContactsTable';
 import { CrmContactDrawer } from './CrmContactDrawer';
 import { CrmDashboard } from './CrmDashboard';
-import { CrmTeam } from './CrmTeam';
 import { CrmConfig } from './CrmConfig';
 import { CrmPostSalePipeline } from './CrmPostSalePipeline';
 import { CrmProfitabilityModule } from './CrmProfitabilityModule';
 import { CrmClientFullProfile } from './CrmClientFullProfile';
 import { useEnterprise } from '../context/EnterpriseContext';
 
-type CrmTab = 'dashboard' | 'embudo' | 'postventa' | 'contactos' | 'equipo' | 'actividades' | 'configuracion' | 'rentabilidad';
+type CrmTab = 'dashboard' | 'embudo' | 'postventa' | 'contactos' | 'actividades' | 'configuracion' | 'rentabilidad';
 
 export const getSourceBadge = (source: string | CrmLeadSource) => {
   switch (source as CrmLeadSource) {
@@ -246,7 +245,6 @@ export const CrmFull: React.FC = () => {
             { id: 'embudo', label: 'Embudo de Ventas', icon: Target }, 
             { id: 'postventa', label: 'Crecimiento', icon: Heart }, 
             { id: 'rentabilidad', label: 'Rentabilidad', icon: BarChart3 },
-            { id: 'equipo', label: 'Equipo Comercial', icon: Briefcase },
             { id: 'configuracion', label: 'Configuración', icon: Settings }
           ].map((tab) => {
             const Icon = tab.icon;
@@ -323,8 +321,6 @@ export const CrmFull: React.FC = () => {
         {activeTab === 'dashboard' && <CrmDashboard />}
         
         {activeTab === 'rentabilidad' && <CrmProfitabilityModule contacts={filteredContacts} onContactClick={setGlobalSelectedContactId} />}
-
-        {activeTab === 'equipo' && <CrmTeam />}
 
         {activeTab === 'configuracion' && <CrmConfig />}
         
