@@ -290,18 +290,46 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
 
         // 3. Update customer limits dynamically based on transactions
-        const cts = MOCK_CRM_CONTACTS.map(c => {
+        const cts = MOCK_CRM_CONTACTS.map((c, idx) => {
             const clientTxs = generated.filter(t => t.clientId === c.id);
             const unpaidTxs = clientTxs.filter(t => t.type === 'VENTA' && t.paymentStatus !== 'PAGADA');
 
             const creditLimitUsed = unpaidTxs.reduce((sum, t) => sum + (t.balance || 0), 0);
             const hasOverdueBills = unpaidTxs.some(t => t.paymentStatus === 'EN_MORA' || (t.dueDate && new Date(t.dueDate) < new Date()));
 
+            const isGrowing = idx % 3 === 0;
+            const isDecreasing = idx % 3 === 1;
+            const annual = Math.floor(Math.random() * 50000000) + 10000000;
+            
+            let previousYear = annual;
+            if (isGrowing) {
+                previousYear = annual * (Math.random() * 0.4 + 0.2);
+            } else if (isDecreasing) {
+                previousYear = annual * (Math.random() * 1.5 + 1.5);
+            } else {
+                previousYear = annual * (Math.random() * 0.2 + 0.9);
+            }
+            
+            const purchaseHistory: any = c.purchaseHistory || {
+                annual,
+                previousYear,
+                historicalAverage: previousYear,
+                monthly: annual / 12,
+                quarterly: annual / 4,
+                profitabilityMargin: parseFloat((Math.random() * 25 + 10).toFixed(1)),
+                purchasePattern: isGrowing ? 'ESTABLE' : (isDecreasing ? 'BAJANDO' : 'ESTABLE'),
+                evolution: Array.from({length: 12}).map((_, i) => ({
+                    month: `Mes ${i+1}`,
+                    amount: (annual / 12) * (Math.random() * 0.4 + 0.8)
+                }))
+            };
+
             return {
                 ...c,
                 creditLimit: c.name.includes('S.A.') || c.name.includes('Ltda') ? 60000000 : 25000000,
                 creditLimitUsed,
-                hasOverdueBills
+                hasOverdueBills,
+                purchaseHistory
             };
         });
 
