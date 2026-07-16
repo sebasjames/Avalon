@@ -77,10 +77,22 @@ export const DEFAULT_SETTINGS: SystemSettings = {
     uomRules: [
       { id: '1', regexTags: ['GL', 'GALON', 'GALONES'], std: 'GL', factorToLiter: 3.785 },
       { id: '2', regexTags: ['LT', 'LITRO', 'LITROS'], std: 'LT', factorToLiter: 1 },
-      { id: '3', regexTags: ['1\\/4', 'QT', 'CUARTO'], std: 'QT', factorToLiter: 0.946 },
-
-      { id: '4', regexTags: ['CUÑETE', 'CUNETE'], std: 'CUNETE', factorToLiter: 18.925 },
-      { id: '5', regexTags: ['KG', 'KILO', 'KILOGRAMO'], std: 'KG', factorToLiter: 1 }
+      { id: '3', regexTags: ['1\\/4', '1\\/4 GALON', 'QT', 'CUARTO'], std: 'QT', factorToLiter: 0.946 },
+      { id: '4', regexTags: ['1\\/2', '1\\/2 GALON'], std: '1/2 GL', factorToLiter: 1.892 },
+      { id: '5', regexTags: ['CUÑETE', 'CUNETE'], std: 'CUNETE', factorToLiter: 18.925 },
+      { id: '6', regexTags: ['KG', 'KILO', 'KILOGRAMO'], std: 'KG', factorToLiter: 1 },
+      { id: '7', regexTags: ['UN', 'UND', 'UNIDAD'], std: 'UN', factorToLiter: 0 },
+      { id: '8', regexTags: ['TAMBOR'], std: 'TAMBOR', factorToLiter: 208 },
+      { id: '9', regexTags: ['5 LITROS'], std: '5L', factorToLiter: 5 },
+      { id: '10', regexTags: ['500 CC'], std: '500 CC', factorToLiter: 0.5 },
+      { id: '11', regexTags: ['250 CC'], std: '250 CC', factorToLiter: 0.25 },
+      { id: '12', regexTags: ['200 CC'], std: '200 CC', factorToLiter: 0.2 },
+      { id: '13', regexTags: ['50 CC'], std: '50 CC', factorToLiter: 0.05 },
+      { id: '14', regexTags: ['500 GR', '500 GRAMOS'], std: '500 GR', factorToLiter: 0.5 },
+      { id: '15', regexTags: ['100 GR', '100 GRAMOS'], std: '100 GR', factorToLiter: 0.1 },
+      { id: '16', regexTags: ['50 GR', '50 GRAMOS'], std: '50 GR', factorToLiter: 0.05 },
+      { id: '17', regexTags: ['KA'], std: 'KA', factorToLiter: 1 },
+      { id: '18', regexTags: ['TBD'], std: 'TBD', factorToLiter: 0 }
     ],
     globalSkuPattern: '[BRAND][ORIGINAL]',
     skuSeparator: '-'

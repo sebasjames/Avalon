@@ -43,7 +43,7 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
             family: item.family || 'N/A',
             category: item.category || '',
             baseUnit: item.baseUnit || '',
-            density: item.density ? item.density.toString() : 'N/A',
+            density: item.density !== undefined && item.density !== null ? item.density.toString() : '',
             unitCost: item.unitCost ? `$${item.unitCost.toLocaleString('es-CO')}` : '',
             price: item.price ? `$${item.price.toLocaleString('es-CO')}` : '',
             totalStock: item.totalStock?.toString() || '0',

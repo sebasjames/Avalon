@@ -80,7 +80,7 @@ export interface Product {
   family?: string; // e.g. DISOLVENTES, IGNIFUGOS
   brand?: string;
   baseUnit?: 'L' | 'KG' | 'UNIT' | string; // Unidad base de control de inventario
-  density?: number; // Factor Kg/L (Ej. 0.85). Requerido para mezclas.
+  density?: number | string | null; // Factor Kg/L (Ej. 0.85). Requerido para mezclas. Puede ser 'UND' o vacío.
   unitCost: number;
   price: number;
   totalStock: number;
