@@ -176,6 +176,45 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
             </div>
           </section>
 
+          {/* Tags Section */}
+          <section>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+              <Tags className="w-3.5 h-3.5" />
+              Etiquetas
+            </h3>
+            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {contact.tags && contact.tags.map(tag => (
+                    <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-100 group">
+                      #{tag}
+                      <button onClick={() => updateContact(contact.id, { tags: contact.tags?.filter(t => t !== tag) })} className="opacity-50 hover:opacity-100 hover:text-rose-500 rounded-full transition-opacity">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  {(!contact.tags || contact.tags.length === 0) && (
+                    <span className="text-xs text-slate-400 italic">No hay etiquetas asignadas.</span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="text"
+                    placeholder="Escriba una etiqueta y presione Enter..."
+                    className="flex-1 text-sm border border-slate-200 rounded-lg p-2 bg-slate-50 focus:outline-none focus:border-indigo-400 focus:bg-white transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                        const newTag = e.currentTarget.value.trim();
+                        if (!contact.tags?.includes(newTag)) {
+                          updateContact(contact.id, { tags: [...(contact.tags || []), newTag] });
+                        }
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </div>
+            </div>
+          </section>
+
           {/* Action Box: Note OR Task (NEW) */}
           <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <div className="flex border-b border-slate-100 bg-indigo-50 px-4 py-2">
