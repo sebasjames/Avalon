@@ -42,6 +42,11 @@ export const CrmFull: React.FC = () => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [filterTier, setFilterTier] = useState<CustomerTier | 'ALL'>('ALL');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'VINCULADO' | 'INACTIVO' | 'PROSPECTO'>('ALL');
+  const [filterLastContact, setFilterLastContact] = useState<string>('ALL');
+  const [filterTag, setFilterTag] = useState<string>('ALL');
+  const [filterPostSale, setFilterPostSale] = useState<string>('ALL');
+  const [filterHealth, setFilterHealth] = useState<string>('ALL');
+  const [filterCity, setFilterCity] = useState<string>('');
   
   // Interactive Data States from Global Context
   const { contacts, deals, activities, assignmentLogs, crmUsers, globalSelectedContactId, setGlobalSelectedContactId, fullProfileContactId, setFullProfileContactId, moveDealStage, addContact, addDeal, addActivity, deleteContacts } = useEnterprise();
@@ -267,10 +272,14 @@ export const CrmFull: React.FC = () => {
           </button>
           
           {isFiltersOpen && (
-            <div className="absolute top-12 right-0 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 p-4">
-              <h4 className="font-bold text-sm text-slate-900 mb-3">Vistas y Filtros</h4>
+            <div className="absolute top-12 right-0 w-80 max-h-[70vh] overflow-y-auto custom-scrollbar bg-white border border-slate-200 rounded-xl shadow-2xl z-50 p-4">
+              <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-bold text-sm text-slate-900">Filtros Avanzados</h4>
+                  <button onClick={() => setIsFiltersOpen(false)} className="text-slate-400 hover:text-slate-700">
+                      <X className="w-4 h-4" />
+                  </button>
+              </div>
               <div className="space-y-3">
-                {/* Feature 1 implementation */}
                 <div>
                   <label className="text-xs font-semibold text-slate-500 mb-1 block">Propietario / Vendedor</label>
                   <select 
@@ -285,25 +294,94 @@ export const CrmFull: React.FC = () => {
                   </select>
                 </div>
                 <hr className="border-slate-100"/>
-                <div>
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block">Nivel del Cliente (Tier)</label>
-                  <select value={filterTier} onChange={(e) => setFilterTier(e.target.value as any)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20">
-                    <option value="ALL">Cualquiera</option>
-                    <option value="Estratégico">Estratégico</option>
-                    <option value="Regular">Regular</option>
-                    <option value="Nuevo">Nuevo</option>
-                  </select>
+                
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1 block">Estado</label>
+                      <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20 outline-none">
+                        <option value="ALL">Cualquiera</option>
+                        <option value="VINCULADO">Vinculado</option>
+                        <option value="PROSPECTO">Prospecto</option>
+                        <option value="INACTIVO">Inactivo</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1 block">Nivel (Tier)</label>
+                      <select value={filterTier} onChange={(e) => setFilterTier(e.target.value as any)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20 outline-none">
+                        <option value="ALL">Cualquiera</option>
+                        <option value="VIP">VIP</option>
+                        <option value="STRATEGIC">Estratégico</option>
+                        <option value="REGULAR">Regular</option>
+                        <option value="NEW">Nuevo</option>
+                      </select>
+                    </div>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-500 mb-1 block">Estado del Contacto</label>
-                  <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20">
-                    <option value="ALL">Cualquiera</option>
-                    <option value="ACTIVE">Activo</option>
-                    <option value="PROSPECT">Prospecto</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1 block">Últ. Contacto</label>
+                      <select value={filterLastContact} onChange={(e) => setFilterLastContact(e.target.value)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20 outline-none">
+                        <option value="ALL">Cualquiera</option>
+                        <option value="TODAY">Hoy</option>
+                        <option value="7_DAYS">Últimos 7 días</option>
+                        <option value="30_DAYS">+30 días (Riesgo)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1 block">Salud (Semáforo)</label>
+                      <select value={filterHealth} onChange={(e) => setFilterHealth(e.target.value)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20 outline-none">
+                        <option value="ALL">Todas</option>
+                        <option value="GREEN">🟢 Verde (Al día)</option>
+                        <option value="YELLOW">🟡 Amarillo (Alerta)</option>
+                        <option value="RED">🔴 Rojo (Peligro)</option>
+                      </select>
+                    </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1 block">Etiqueta (Tag)</label>
+                      <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20 outline-none">
+                        <option value="ALL">Cualquiera</option>
+                        <option value="VIP">VIP</option>
+                        <option value="En Riesgo">En Riesgo</option>
+                        <option value="Alta Prioridad">Alta Prioridad</option>
+                        <option value="Nuevo">Nuevo</option>
+                        <option value="Referido">Referido</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1 block">Etapa Post-Venta</label>
+                      <select value={filterPostSale} onChange={(e) => setFilterPostSale(e.target.value)} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20 outline-none">
+                        <option value="ALL">Cualquiera</option>
+                        <option value="ONBOARDING">Onboarding</option>
+                        <option value="RENTABILIZACION">Rentabilización</option>
+                        <option value="FIDELIZACION">Fidelización</option>
+                        <option value="MONITOREO">Monitoreo</option>
+                      </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label className="text-xs font-semibold text-slate-500 mb-1 block">Ciudad / Código de Ciudad</label>
+                    <input 
+                        type="text" 
+                        value={filterCity} 
+                        onChange={(e) => setFilterCity(e.target.value)} 
+                        placeholder="Ej. BOG, MED..."
+                        className="w-full text-sm border border-slate-200 rounded-md bg-slate-50 p-1.5 outline-none focus:ring-2 ring-indigo-500/20"
+                    />
+                </div>
+
                 <div className="pt-2">
-                  <button onClick={() => { setFilterTier('ALL'); setFilterStatus('ALL'); setFilterOwner('ALL'); setIsFiltersOpen(false); }} className="text-xs text-slate-500 underline hover:text-slate-800 w-full text-center"> Limpiar Filtros </button>
+                  <button onClick={() => { 
+                      setFilterTier('ALL'); setFilterStatus('ALL'); setFilterOwner('ALL'); 
+                      setFilterLastContact('ALL'); setFilterTag('ALL'); setFilterPostSale('ALL'); 
+                      setFilterHealth('ALL'); setFilterCity(''); 
+                      setIsFiltersOpen(false); 
+                  }} className="text-xs font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded p-2 w-full text-center transition-colors">
+                      Limpiar Filtros
+                  </button>
                 </div>
               </div>
             </div>
@@ -352,6 +430,11 @@ export const CrmFull: React.FC = () => {
             onDeleteContacts={handleDeleteContacts}
             filterTier={filterTier}
             filterStatus={filterStatus}
+            filterLastContact={filterLastContact}
+            filterTag={filterTag}
+            filterPostSale={filterPostSale}
+            filterHealth={filterHealth}
+            filterCity={filterCity}
           />
         )}
         

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, ArrowRight, X, Trash2, Users, ArrowUp, ArrowDown, AlertTriangle, SlidersHorizontal, Plus, Pencil, Save, FileSpreadsheet } from 'lucide-react';
 import { CrmContact, CrmLeadSource, CustomerTier } from '../types';
 
@@ -12,14 +12,47 @@ interface CrmContactsTableProps {
   onDeleteContacts: (contactIds: string[]) => void;
   filterTier: CustomerTier | 'ALL';
   filterStatus: 'ALL' | 'VINCULADO' | 'INACTIVO' | 'PROSPECTO';
+  filterLastContact: string;
+  filterTag: string;
+  filterPostSale: string;
+  filterHealth: string;
+  filterCity: string;
 }
 
 import { useEnterprise } from '../context/EnterpriseContext';
 import { CrmExcelModal } from './CrmExcelModal';
 
 export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
-  contacts, searchQuery, selectedSource, setSelectedSource, getSourceBadge, onContactClick, onDeleteContacts, filterTier, filterStatus
+  contacts, searchQuery, selectedSource, setSelectedSource, getSourceBadge, onContactClick, onDeleteContacts, filterTier, filterStatus, filterLastContact, filterTag, filterPostSale, filterHealth, filterCity
 }) => {
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [tableWidth, setTableWidth] = useState(0);
+
+  useEffect(() => {
+    if (!tableRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+            setTableWidth(entry.contentRect.width);
+        }
+    });
+    observer.observe(tableRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleTopScroll = () => {
+    if (bottomScrollRef.current && topScrollRef.current) {
+      bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+
+  const handleBottomScroll = () => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft;
+    }
+  };
+
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
@@ -54,6 +87,15 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
 
   // Phase 1: Dynamic columns
   const AVAILABLE_COLUMNS = [
+    { id: 'document', label: 'NIT/Cédula' },
+    { id: 'phone', label: 'Teléfono de Cliente' },
+    { id: 'email', label: 'Email de Cliente' },
+    { id: 'address', label: 'Dirección' },
+    { id: 'cityCode', label: 'Ciudad' },
+    { id: 'name', label: 'Contacto Principal' },
+    { id: 'whatsapp', label: 'Whatsapp C. 1' },
+    { id: 'contact2', label: 'Contacto 2' },
+    { id: 'contact3', label: 'Contacto 3' },
     { id: 'tags', label: 'Etiquetas' },
     { id: 'source', label: 'Origen' },
     { id: 'status', label: 'Estado' },
@@ -63,9 +105,8 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     { id: 'lastContactDate', label: 'Últ. Contacto' },
   ];
   
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['tags', 'source', 'status', 'ownerId']);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['document', 'phone', 'email', 'name', 'tags', 'source', 'status', 'ownerId']);
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
-  const [isAdvancedView, setIsAdvancedView] = useState(false); // Kept for retrocompatibility with Decision Makers for now
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
@@ -103,6 +144,28 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     const matchesTier = filterTier === 'ALL' || c.tier === filterTier;
     const matchesStatus = filterStatus === 'ALL' || c.status === filterStatus;
     
+    // New Filters Logic
+    const matchesTag = filterTag === 'ALL' || (c.tags && c.tags.includes(filterTag));
+    const matchesPostSale = filterPostSale === 'ALL' || c.postSaleStage === filterPostSale;
+    const matchesCity = !filterCity || (c.cityCode && c.cityCode.toLowerCase().includes(filterCity.toLowerCase()));
+    const matchesHealth = filterHealth === 'ALL' || getContactHealthScore(c.id) === filterHealth;
+    
+    let matchesLastContact = true;
+    if (filterLastContact !== 'ALL') {
+        const lastContact = new Date(c.lastContactDate);
+        const today = new Date();
+        const diffTime = Math.abs(today.getTime() - lastContact.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        
+        if (filterLastContact === 'TODAY') {
+            matchesLastContact = diffDays <= 1;
+        } else if (filterLastContact === '7_DAYS') {
+            matchesLastContact = diffDays <= 7;
+        } else if (filterLastContact === '30_DAYS') {
+            matchesLastContact = diffDays > 30; // Riesgo
+        }
+    }
+
     let matchesView = true;
     if (activeViewId === 'v2') { // Prospectos
         matchesView = c.status === 'PROSPECTO';
@@ -120,7 +183,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
         }
     }
     
-    return matchesSearch && matchesSource && matchesTier && matchesStatus && matchesView;
+    return matchesSearch && matchesSource && matchesTier && matchesStatus && matchesTag && matchesPostSale && matchesCity && matchesHealth && matchesLastContact && matchesView;
   });
 
   const sortedContacts = React.useMemo(() => {
@@ -255,7 +318,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
             </button>
 
             {isColumnDropdownOpen && (
-                <div className="absolute top-10 right-0 w-48 bg-white border border-slate-200 shadow-lg rounded-lg py-2 z-20">
+                <div className="absolute top-10 right-0 w-48 bg-white border border-slate-200 shadow-lg rounded-lg py-2 z-20 h-64 overflow-y-auto">
                     <div className="px-3 pb-2 mb-2 border-b border-slate-100 text-xs font-bold text-slate-500">Mostrar Columnas</div>
                     {AVAILABLE_COLUMNS.map(col => (
                         <label key={col.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 cursor-pointer text-sm text-slate-700">
@@ -265,23 +328,24 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                     ))}
                 </div>
             )}
-
-            <span className={`text-xs font-bold ml-2 ${isAdvancedView ? 'text-indigo-600' : 'text-slate-500'}`}>Vista Avanzada</span>
-            <button 
-                onClick={() => setIsAdvancedView(!isAdvancedView)} 
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isAdvancedView ? 'bg-indigo-600' : 'bg-slate-300'}`}
-            >
-                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${isAdvancedView ? 'translate-x-4.5' : 'translate-x-1'}`} style={{ transform: isAdvancedView ? 'translateX(18px)' : 'translateX(4px)' }} />
-            </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto outline-none" tabIndex={0}>
-          <table className="w-full text-left border-collapse whitespace-nowrap">
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col">
+        {/* Barra de desplazamiento superior sincronizada */}
+        <div 
+            ref={topScrollRef} 
+            className="overflow-x-auto overflow-y-hidden bg-slate-50 border-b border-slate-200" 
+            onScroll={handleTopScroll}
+        >
+            <div style={{ width: tableWidth > 0 ? tableWidth : '100%', height: '1px' }}></div>
+        </div>
+
+        <div ref={bottomScrollRef} className="overflow-x-auto outline-none" tabIndex={0} onScroll={handleBottomScroll}>
+          <table ref={tableRef} className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="py-2 px-3 border-r border-slate-200 w-10 text-center">
+                <th className="py-2 px-3 border-r border-slate-200 w-10 min-w-[40px] text-center sticky left-0 bg-slate-50 z-30">
                     <input 
                         type="checkbox" 
                         onChange={toggleSelectAll}
@@ -289,50 +353,23 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                         className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
                 </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('company')}>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors sticky left-[40px] bg-slate-50 z-30 shadow-[4px_0_6px_-1px_rgba(0,0,0,0.05)]" onClick={() => requestSort('company')}>
                     CLIENTE <SortIcon columnKey="company" />
                 </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                    NIT/Cédula
-                </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone')}>
-                    TELÉFONO DE CLIENTE <SortIcon columnKey="phone" />
-                </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('email')}>
-                    EMAIL DE CLIENTE <SortIcon columnKey="email" />
-                </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('address')}>
-                    Dirección <SortIcon columnKey="address" />
-                </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('cityCode')}>
-                    Ciudad <SortIcon columnKey="cityCode" />
-                </th>
-                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('name')}>
-                    Contacto Principal <SortIcon columnKey="name" />
-                </th>
-                {isAdvancedView && (
-                  <>
-                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>
-                        Whatsapp C. 1 <SortIcon columnKey="whatsapp" />
-                    </th>
-                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact2')}>
-                        Contacto 2 <SortIcon columnKey="contact2" />
-                    </th>
-                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone2')}>
-                        Teléfono C. 2 <SortIcon columnKey="phone2" />
-                    </th>
-                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact3')}>
-                        Contacto 3 <SortIcon columnKey="contact3" />
-                    </th>
-                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone3')}>
-                        Teléfono C. 3 <SortIcon columnKey="phone3" />
-                    </th>
-                  </>
-                )}
+                
+                {visibleColumns.includes('document') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">NIT/Cédula</th>}
+                {visibleColumns.includes('phone') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone')}>TELÉFONO DE CLIENTE <SortIcon columnKey="phone" /></th>}
+                {visibleColumns.includes('email') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('email')}>EMAIL DE CLIENTE <SortIcon columnKey="email" /></th>}
+                {visibleColumns.includes('address') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('address')}>Dirección <SortIcon columnKey="address" /></th>}
+                {visibleColumns.includes('cityCode') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('cityCode')}>Ciudad <SortIcon columnKey="cityCode" /></th>}
+                {visibleColumns.includes('name') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('name')}>Contacto Principal <SortIcon columnKey="name" /></th>}
+                {visibleColumns.includes('whatsapp') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>Whatsapp C. 1 <SortIcon columnKey="whatsapp" /></th>}
+                {visibleColumns.includes('contact2') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact2')}>Contacto 2 <SortIcon columnKey="contact2" /></th>}
+                {visibleColumns.includes('contact3') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact3')}>Contacto 3 <SortIcon columnKey="contact3" /></th>}
                 
                 {visibleColumns.includes('tags') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etiquetas</th>}
                 
-                {isAdvancedView && visibleColumns.includes('source') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('source')}>
+                {visibleColumns.includes('source') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('source')}>
                     Origen <SortIcon columnKey="source" />
                 </th>}
                 
@@ -358,10 +395,10 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 const SourceIcon = sourceBadge.icon;
                 const isSelected = selectedContactIds.includes(contact.id);
                 
-                const renderCell = (field: keyof CrmContact, display: React.ReactNode, type: string = 'text') => {
+                const renderCell = (field: keyof CrmContact, display: React.ReactNode, type: string = 'text', extraClass: string = '') => {
                     const isEditing = editingRowId === contact.id;
                     return (
-                        <td className={`py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50`} onClick={(e) => { if (isEditing) e.stopPropagation(); }}>
+                        <td className={`py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50 ${extraClass}`} onClick={(e) => { if (isEditing) e.stopPropagation(); }}>
                             {isEditing ? (
                                 <input className="absolute inset-0 border-2 border-indigo-500 px-2 w-full h-full text-[13px] bg-white outline-none z-10" type={type} defaultValue={String(contact[field] || '')} onBlur={e => { handleSave(contact.id, field, e.target.value); }} onClick={(e) => e.stopPropagation()} onKeyDown={e => { if(e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }} />
                             ) : display}
@@ -388,7 +425,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   className={`hover:bg-slate-50/80 transition-colors group cursor-pointer ${isSelected ? 'bg-indigo-50/20' : 'bg-white'}`}
                   onClick={() => { if (editingRowId !== contact.id) onContactClick(contact.id); }}
                 >
-                  <td className="py-1.5 px-3 border-r border-slate-100 text-center" onClick={(e) => toggleSelectContact(e, contact.id)}>
+                  <td className={`py-1.5 px-3 border-r border-slate-100 text-center sticky left-0 z-20 ${isSelected ? 'bg-indigo-50' : 'bg-white group-hover:bg-slate-50'}`} onClick={(e) => toggleSelectContact(e, contact.id)}>
                       <input 
                           type="checkbox" 
                           checked={isSelected}
@@ -397,24 +434,24 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                       />
                   </td>
                   
-                  {renderCell('company', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.company}</span>)}
+                  {renderCell('company', <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">{contact.company}</span>, 'text', `sticky left-[40px] z-20 shadow-[4px_0_6px_-1px_rgba(0,0,0,0.05)] ${isSelected ? 'bg-indigo-50' : 'bg-white group-hover:bg-slate-50'}`)}
 
-                  {renderCell('document', <span className="text-sm text-slate-600 font-mono text-xs whitespace-nowrap">{contact.documentType || 'NIT'} {contact.documentNumber || 'N/A'}</span>)}
+                  {visibleColumns.includes('document') && renderCell('document', <span className="text-sm text-slate-600 font-mono text-xs whitespace-nowrap">{contact.documentType || 'NIT'} {contact.documentNumber || 'N/A'}</span>)}
 
-                  {renderCell('phone', (
+                  {visibleColumns.includes('phone') && renderCell('phone', (
                     <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap">
                       <Phone className="w-3 h-3 text-slate-400" />
                       <span>{contact.phone}</span>
                     </div>
                   ))}
 
-                  {renderCell('email', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Mail className="w-3 h-3" /> {contact.email}</div>, 'email')}
+                  {visibleColumns.includes('email') && renderCell('email', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Mail className="w-3 h-3" /> {contact.email}</div>, 'email')}
 
-                  {renderCell('address', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.address || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
+                  {visibleColumns.includes('address') && renderCell('address', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.address || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
 
-                  {renderCell('cityCode', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.cityCode || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
+                  {visibleColumns.includes('cityCode') && renderCell('cityCode', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.cityCode || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
 
-                  {renderCell('name', (
+                  {visibleColumns.includes('name') && renderCell('name', (
                     <div className="flex items-start gap-3">
                       <div className="relative mt-0.5">
                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">
@@ -439,9 +476,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                     </div>
                   ))}
 
-                  {isAdvancedView && (
-                    <>
-                      {renderCell('whatsapp', (
+                  {visibleColumns.includes('whatsapp') && renderCell('whatsapp', (
                         <div className="flex items-center gap-1.5 text-xs text-slate-600 whitespace-nowrap">
                           {contact.whatsapp ? (
                             <a 
@@ -460,12 +495,37 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                             <span className="text-slate-400 italic">No asignado</span>
                           )}
                         </div>
-                      ))}
-                      {renderCell('contact2', <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact2 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
-                      {renderCell('phone2', <span className="text-sm font-medium text-slate-600 whitespace-nowrap">{contact.phone2 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
-                      {renderCell('contact3', <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact3 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
-                      {renderCell('phone3', <span className="text-sm font-medium text-slate-600 whitespace-nowrap">{contact.phone3 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
-                    </>
+                  ))}
+
+                  {visibleColumns.includes('contact2') && (
+                      <td className="py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50" onClick={(e) => { if (editingRowId === contact.id) e.stopPropagation(); }}>
+                          {editingRowId === contact.id ? (
+                              <div className="flex flex-col gap-1 w-[120px]" onClick={e => e.stopPropagation()}>
+                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Nombre C2" defaultValue={String(contact.contact2 || '')} onBlur={e => handleSave(contact.id, 'contact2', e.target.value)} />
+                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Tel C2" defaultValue={String(contact.phone2 || '')} onBlur={e => handleSave(contact.id, 'phone2', e.target.value)} />
+                              </div>
+                          ) : (
+                              <div className="flex flex-col">
+                                  <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact2 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>
+                                  {contact.phone2 && <span className="text-xs text-slate-500 whitespace-nowrap flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3 text-slate-400"/> {contact.phone2}</span>}
+                              </div>
+                          )}
+                      </td>
+                  )}
+                  {visibleColumns.includes('contact3') && (
+                      <td className="py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50" onClick={(e) => { if (editingRowId === contact.id) e.stopPropagation(); }}>
+                          {editingRowId === contact.id ? (
+                              <div className="flex flex-col gap-1 w-[120px]" onClick={e => e.stopPropagation()}>
+                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Nombre C3" defaultValue={String(contact.contact3 || '')} onBlur={e => handleSave(contact.id, 'contact3', e.target.value)} />
+                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Tel C3" defaultValue={String(contact.phone3 || '')} onBlur={e => handleSave(contact.id, 'phone3', e.target.value)} />
+                              </div>
+                          ) : (
+                              <div className="flex flex-col">
+                                  <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact3 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>
+                                  {contact.phone3 && <span className="text-xs text-slate-500 whitespace-nowrap flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3 text-slate-400"/> {contact.phone3}</span>}
+                              </div>
+                          )}
+                      </td>
                   )}
 
                   {visibleColumns.includes('tags') && (
@@ -498,7 +558,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                       </td>
                   )}
                   
-                  {isAdvancedView && visibleColumns.includes('source') && renderSelectCell('source', 
+                  {visibleColumns.includes('source') && renderSelectCell('source', 
                     ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'GOOGLE_ADS', 'MANUAL', 'STREET', 'REFERRAL', 'WEBSITE'].map(o => ({value:o, label:o})),
                     <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${sourceBadge.color}`}>
                       <SourceIcon className="w-3 h-3" />
