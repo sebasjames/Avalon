@@ -172,7 +172,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     } else if (activeViewId === 'v4') { // Clientes
         matchesView = c.status === 'VINCULADO';
     } else if (activeViewId === 'v3') { // Clientes VIP
-        matchesView = c.tier === 'Estratégico' || (c.tags && c.tags.includes('VIP')) || false;
+        matchesView = c.tier === 'VIP' || (c.tags && c.tags.includes('VIP')) || false;
     } else {
         const customView = savedViews.find(v => v.id === activeViewId);
         if (customView && customView.customFilter) {
