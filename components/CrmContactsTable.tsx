@@ -364,8 +364,18 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 {visibleColumns.includes('cityCode') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('cityCode')}>Ciudad <SortIcon columnKey="cityCode" /></th>}
                 {visibleColumns.includes('name') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('name')}>Contacto Principal <SortIcon columnKey="name" /></th>}
                 {visibleColumns.includes('whatsapp') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>Whatsapp C. 1 <SortIcon columnKey="whatsapp" /></th>}
-                {visibleColumns.includes('contact2') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact2')}>Contacto 2 <SortIcon columnKey="contact2" /></th>}
-                {visibleColumns.includes('contact3') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact3')}>Contacto 3 <SortIcon columnKey="contact3" /></th>}
+                {visibleColumns.includes('contact2') && (
+                  <>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact2')}>Contacto 2 <SortIcon columnKey="contact2" /></th>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone2')}>Teléfono 2 <SortIcon columnKey="phone2" /></th>
+                  </>
+                )}
+                {visibleColumns.includes('contact3') && (
+                  <>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact3')}>Contacto 3 <SortIcon columnKey="contact3" /></th>
+                    <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone3')}>Teléfono 3 <SortIcon columnKey="phone3" /></th>
+                  </>
+                )}
                 
                 {visibleColumns.includes('tags') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etiquetas</th>}
                 
@@ -498,34 +508,16 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   ))}
 
                   {visibleColumns.includes('contact2') && (
-                      <td className="py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50" onClick={(e) => { if (editingRowId === contact.id) e.stopPropagation(); }}>
-                          {editingRowId === contact.id ? (
-                              <div className="flex flex-col gap-1 w-[120px]" onClick={e => e.stopPropagation()}>
-                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Nombre C2" defaultValue={String(contact.contact2 || '')} onBlur={e => handleSave(contact.id, 'contact2', e.target.value)} />
-                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Tel C2" defaultValue={String(contact.phone2 || '')} onBlur={e => handleSave(contact.id, 'phone2', e.target.value)} />
-                              </div>
-                          ) : (
-                              <div className="flex flex-col">
-                                  <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact2 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>
-                                  {contact.phone2 && <span className="text-xs text-slate-500 whitespace-nowrap flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3 text-slate-400"/> {contact.phone2}</span>}
-                              </div>
-                          )}
-                      </td>
+                    <>
+                      {renderCell('contact2', <span className="text-sm text-slate-700 font-medium whitespace-nowrap">{contact.contact2 || <span className="text-slate-400 italic text-xs font-normal">No asignado</span>}</span>)}
+                      {renderCell('phone2', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap">{contact.phone2 ? <><Phone className="w-3 h-3 text-slate-400" /> <span>{contact.phone2}</span></> : <span className="text-slate-400 italic font-normal">No asignado</span>}</div>)}
+                    </>
                   )}
                   {visibleColumns.includes('contact3') && (
-                      <td className="py-1.5 px-3 border-r border-slate-100 text-[13px] text-slate-700 transition-colors relative hover:bg-slate-50" onClick={(e) => { if (editingRowId === contact.id) e.stopPropagation(); }}>
-                          {editingRowId === contact.id ? (
-                              <div className="flex flex-col gap-1 w-[120px]" onClick={e => e.stopPropagation()}>
-                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Nombre C3" defaultValue={String(contact.contact3 || '')} onBlur={e => handleSave(contact.id, 'contact3', e.target.value)} />
-                                  <input className="border-2 border-indigo-500 px-1 w-full text-[12px] bg-white outline-none rounded" placeholder="Tel C3" defaultValue={String(contact.phone3 || '')} onBlur={e => handleSave(contact.id, 'phone3', e.target.value)} />
-                              </div>
-                          ) : (
-                              <div className="flex flex-col">
-                                  <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.contact3 || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>
-                                  {contact.phone3 && <span className="text-xs text-slate-500 whitespace-nowrap flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3 text-slate-400"/> {contact.phone3}</span>}
-                              </div>
-                          )}
-                      </td>
+                    <>
+                      {renderCell('contact3', <span className="text-sm text-slate-700 font-medium whitespace-nowrap">{contact.contact3 || <span className="text-slate-400 italic text-xs font-normal">No asignado</span>}</span>)}
+                      {renderCell('phone3', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap">{contact.phone3 ? <><Phone className="w-3 h-3 text-slate-400" /> <span>{contact.phone3}</span></> : <span className="text-slate-400 italic font-normal">No asignado</span>}</div>)}
+                    </>
                   )}
 
                   {visibleColumns.includes('tags') && (
