@@ -105,7 +105,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     { id: 'lastContactDate', label: 'Últ. Contacto' },
   ];
   
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['document', 'phone', 'email', 'name', 'tags', 'source', 'status', 'ownerId']);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(AVAILABLE_COLUMNS.map(c => c.id));
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
