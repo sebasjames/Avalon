@@ -21199,7 +21199,7 @@ export const MOCK_CRM_CONTACTS: CrmContact[] = [
     "address": "KM. 8.5 AUTOPISTA MEDELLIN BODEGA 28",
     "documentType": "NIT",
     "documentNumber": "901680571 - 9",
-    "tier": "REGULAR",
+    "tier": "VIP",
     "status": "VINCULADO",
     "source": "MANUAL",
     "lastContactDate": "2026-07-14T15:39:22.108Z",

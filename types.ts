@@ -38,6 +38,7 @@ export enum CustomerTier {
   STRATEGIC = 'Estratégico',
   REGULAR = 'Regular',
   NEW = 'Nuevo',
+  VIP = 'VIP',
 }
 
 export interface Customer {

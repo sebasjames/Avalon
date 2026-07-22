@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, ArrowRight, X, Trash2, Users, ArrowUp, ArrowDown, AlertTriangle, SlidersHorizontal, Plus, Pencil, Save } from 'lucide-react';
+import { Mail, Phone, ArrowRight, X, Trash2, Users, ArrowUp, ArrowDown, AlertTriangle, SlidersHorizontal, Plus, Pencil, Save, FileSpreadsheet } from 'lucide-react';
 import { CrmContact, CrmLeadSource, CustomerTier } from '../types';
 
 interface CrmContactsTableProps {
@@ -15,6 +15,7 @@ interface CrmContactsTableProps {
 }
 
 import { useEnterprise } from '../context/EnterpriseContext';
+import { CrmExcelModal } from './CrmExcelModal';
 
 export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   contacts, searchQuery, selectedSource, setSelectedSource, getSourceBadge, onContactClick, onDeleteContacts, filterTier, filterStatus
@@ -54,8 +55,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   // Phase 1: Dynamic columns
   const AVAILABLE_COLUMNS = [
     { id: 'tags', label: 'Etiquetas' },
-    { id: 'document', label: 'NIT/Cédula' },
-    { id: 'email', label: 'Email' },
     { id: 'source', label: 'Origen' },
     { id: 'status', label: 'Estado' },
     { id: 'ownerId', label: 'Responsable' },
@@ -64,11 +63,12 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
     { id: 'lastContactDate', label: 'Últ. Contacto' },
   ];
   
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['tags', 'document', 'source', 'status', 'ownerId']);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['tags', 'source', 'status', 'ownerId']);
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const [isAdvancedView, setIsAdvancedView] = useState(false); // Kept for retrocompatibility with Decision Makers for now
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
   const { crmUsers, reassignContacts, getContactHealthScore, updateContact, cleanGarbageLeads } = useEnterprise();
 
@@ -247,6 +247,9 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 <Trash2 className="w-3 h-3"/> Limpiar Basura (30d)
             </button>
             
+            <button onClick={() => setIsExcelModalOpen(true)} className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md text-xs font-bold hover:bg-emerald-100 transition mr-2">
+                <FileSpreadsheet className="w-3 h-3" /> Excel
+            </button>
             <button onClick={() => setIsColumnDropdownOpen(!isColumnDropdownOpen)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
                 <SlidersHorizontal className="w-3 h-3" /> Columnas
             </button>
@@ -289,8 +292,20 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('company')}>
                     CLIENTE <SortIcon columnKey="company" />
                 </th>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    NIT/Cédula
+                </th>
                 <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('phone')}>
-                    TELEFONO DE CLIENTE <SortIcon columnKey="phone" />
+                    TELÉFONO DE CLIENTE <SortIcon columnKey="phone" />
+                </th>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('email')}>
+                    EMAIL DE CLIENTE <SortIcon columnKey="email" />
+                </th>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('address')}>
+                    Dirección <SortIcon columnKey="address" />
+                </th>
+                <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('cityCode')}>
+                    Ciudad <SortIcon columnKey="cityCode" />
                 </th>
                 <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('name')}>
                     Contacto Principal <SortIcon columnKey="name" />
@@ -298,7 +313,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 {isAdvancedView && (
                   <>
                     <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('whatsapp')}>
-                        WhatsApp <SortIcon columnKey="whatsapp" />
+                        Whatsapp C. 1 <SortIcon columnKey="whatsapp" />
                     </th>
                     <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('contact2')}>
                         Contacto 2 <SortIcon columnKey="contact2" />
@@ -316,9 +331,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                 )}
                 
                 {visibleColumns.includes('tags') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Etiquetas</th>}
-                
-                {visibleColumns.includes('document') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">NIT/Cédula</th>}
-                {visibleColumns.includes('email') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Email</th>}
                 
                 {isAdvancedView && visibleColumns.includes('source') && <th className="py-2 px-3 border-r border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider group cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => requestSort('source')}>
                     Origen <SortIcon columnKey="source" />
@@ -387,12 +399,20 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   
                   {renderCell('company', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.company}</span>)}
 
+                  {renderCell('document', <span className="text-sm text-slate-600 font-mono text-xs whitespace-nowrap">{contact.documentType || 'NIT'} {contact.documentNumber || 'N/A'}</span>)}
+
                   {renderCell('phone', (
                     <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap">
                       <Phone className="w-3 h-3 text-slate-400" />
                       <span>{contact.phone}</span>
                     </div>
                   ))}
+
+                  {renderCell('email', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Mail className="w-3 h-3" /> {contact.email}</div>, 'email')}
+
+                  {renderCell('address', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.address || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
+
+                  {renderCell('cityCode', <span className="text-sm text-slate-600 whitespace-nowrap">{contact.cityCode || <span className="text-slate-400 italic text-xs">No asignado</span>}</span>)}
 
                   {renderCell('name', (
                     <div className="flex items-start gap-3">
@@ -477,9 +497,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                          </div>
                       </td>
                   )}
-                  {visibleColumns.includes('document') && renderCell('document', <span className="text-sm text-slate-600 font-mono text-xs">{contact.documentType || 'NIT'} {contact.documentNumber || 'N/A'}</span>)}
-                  
-                  {visibleColumns.includes('email') && renderCell('email', <div className="flex items-center gap-1 text-xs text-slate-600 whitespace-nowrap"><Mail className="w-3 h-3" /> {contact.email}</div>, 'email')}
                   
                   {isAdvancedView && visibleColumns.includes('source') && renderSelectCell('source', 
                     ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'GOOGLE_ADS', 'MANUAL', 'STREET', 'REFERRAL', 'WEBSITE'].map(o => ({value:o, label:o})),
@@ -508,9 +525,10 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   
 
                   {visibleColumns.includes('tier') && renderSelectCell('tier',
-                      ['REGULAR', 'STRATEGIC', 'NEW'].map(o => ({value:o, label:o})),
+                      ['REGULAR', 'STRATEGIC', 'NEW', 'VIP'].map(o => ({value:o, label:o})),
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                      ${contact.tier === 'STRATEGIC' ? 'bg-purple-100 text-purple-700' : 
+                      ${contact.tier === 'VIP' ? 'bg-amber-100 text-amber-700' :
+                        contact.tier === 'STRATEGIC' ? 'bg-purple-100 text-purple-700' : 
                           contact.tier === 'REGULAR' ? 'bg-blue-100 text-blue-700' : 
                           'bg-slate-100 text-slate-700'}`}>
                       Tier {contact.tier}
@@ -652,6 +670,13 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
               </div>
           </div>
       )}
+
+      <CrmExcelModal 
+          isOpen={isExcelModalOpen} 
+          onClose={() => setIsExcelModalOpen(false)} 
+          data={filteredContacts}
+          crmUsers={crmUsers}
+      />
     </div>
   );
 };
