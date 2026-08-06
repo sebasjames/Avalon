@@ -20,6 +20,8 @@ export const ReturnsPanel: React.FC = () => {
     const [processing, setProcessing] = useState(false);
     const [success, setSuccess] = useState(false);
     const [historySearch, setHistorySearch] = useState('');
+    const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+    const [authId, setAuthId] = useState('');
 
     const filteredContacts = contacts.filter(c => 
         c.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
@@ -34,6 +36,7 @@ export const ReturnsPanel: React.FC = () => {
     const handleProcessReturn = () => {
         if (!selectedContact || !selectedProduct || qty <= 0) return;
         
+        setShowConfirmPopup(false);
         setProcessing(true);
         setTimeout(() => {
             const totalValue = selectedProduct.price * qty;
@@ -66,6 +69,7 @@ export const ReturnsPanel: React.FC = () => {
                 setReason('');
                 setContactSearch('');
                 setProductSearch('');
+                setAuthId('');
             }, 3000);
         }, 1000);
     };
@@ -285,7 +289,7 @@ export const ReturnsPanel: React.FC = () => {
                                 </div>
 
                                 <button 
-                                    onClick={handleProcessReturn}
+                                    onClick={() => setShowConfirmPopup(true)}
                                     disabled={!selectedContact || !selectedProduct || qty <= 0 || processing}
                                     className="w-full mt-6 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
                                 >
@@ -293,6 +297,65 @@ export const ReturnsPanel: React.FC = () => {
                                     {!processing && <ArrowRight size={18} />}
                                 </button>
                             </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Confirm Popup Modal */}
+                <AnimatePresence>
+                    {showConfirmPopup && (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+                        >
+                            <motion.div 
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+                            >
+                                <div className="p-6">
+                                    <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-4">
+                                        <RefreshCcw size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-800 mb-2">¿Confirmar Devolución?</h3>
+                                    <p className="text-slate-600 text-sm mb-4">
+                                        Estás a punto de generar una Nota Crédito por <strong>{formatCOP((selectedProduct!.price + Math.round(selectedProduct!.price * ((selectedProduct!.taxRate ?? 19) / 100))) * qty)}</strong> a favor de <strong>{selectedContact?.name}</strong>. Esta acción afectará el saldo del cliente y el inventario en la bodega <strong>{location}</strong>.
+                                    </p>
+                                    <p className="text-slate-600 text-sm font-bold">¿Deseas proceder?</p>
+                                    
+                                    <div className="pt-4 border-t border-slate-200 mt-4">
+                                        <label className="block text-xs font-bold text-slate-600 mb-2 uppercase">Firma de Autorización (ID / PIN)</label>
+                                        <input 
+                                            type="password" 
+                                            placeholder="Ingrese su PIN de usuario..."
+                                            value={authId}
+                                            onChange={(e) => setAuthId(e.target.value)}
+                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-center tracking-widest"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-end gap-3">
+                                    <button 
+                                        onClick={() => {
+                                            setShowConfirmPopup(false);
+                                            setAuthId('');
+                                        }}
+                                        className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-xl transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        onClick={handleProcessReturn}
+                                        disabled={authId.trim().length < 3}
+                                        className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                                    >
+                                        Sí, Confirmar
+                                    </button>
+                                </div>
+                            </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>

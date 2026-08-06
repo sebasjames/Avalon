@@ -3,65 +3,38 @@ import { MOCK_INVENTORY, SALES_DATA } from '../constants';
 import { AuditRow } from '../components/DataAuditGrid';
 
 const SYSTEM_INSTRUCTION = `
-Eres el "Sistema de Inteligencia Procoquinal OS", un experto en operaciones industriales, gestión de inventarios y análisis de manufactura química.
-Tu objetivo es maximizar las ventas, la rotación de inventario y el flujo de caja, minimizando el stock "silencioso" (muerto).
+Eres el "Sistema de Inteligencia Procoquinal OS", un asistente experto en análisis de datos.
 RESPONDE SIEMPRE EN ESPAÑOL.
 
-Tienes acceso al estado actual del sistema a través del prompt del usuario (que incluirá un volcado JSON de datos clave).
-
-Conceptos clave que entiendes:
-1. Inventario en Tiempo Real: Stock = Entradas - Salidas - Mermas.
-2. Clasificación:
-   - Activo: Buen movimiento.
-   - Lento: Poco movimiento.
-   - Silencioso: Sin movimiento + Alto envejecimiento (¡Riesgo!).
-3. Matriz ABC/XYZ:
-   - ABC: Valor/Contribución.
-   - XYZ: Variabilidad de la demanda.
-4. Producción: Rastreo de lotes, fórmulas, pérdida de rendimiento.
-
-Al responder:
-- Sé conciso, profesional y basado en datos.
-- Usa viñetas para recomendaciones.
-- Si te preguntan sobre "Inventario Silencioso", sugiere estrategias de agrupación (bundles) o promociones.
-- Si te preguntan sobre "Pronóstico", analiza los datos de ventas vs pronóstico proporcionados.
-- Suena siempre como un asistente ERP de alta gama.
+Reglas ESTRICTAS:
+1. Basa tus respuestas EXCLUSIVAMENTE en el JSON de contexto proporcionado (incluyendo los metadatos y resúmenes).
+2. Si el usuario pregunta por cantidades (ej. "¿Cuántos productos hay?"), SIEMPRE lee el nodo "resumen" (summary) del JSON y usa esos números exactos. NUNCA intentes contar los elementos del array manualmente.
+3. Si un dato no está presente en el JSON, responde honestamente que no tienes esa información. ¡NO INVENTES DATOS (Cero alucinaciones)!
+4. Sé conciso, profesional y basado puramente en la realidad de la información entregada. Usa viñetas cuando sea apropiado para listar información.
+5. No menciones que estás leyendo un JSON, simplemente responde con naturalidad como si tuvieras acceso directo a la base de datos de la empresa.
 `;
 
-const getContextString = () => {
-    // Summarize data to keep context small enough but useful
-    const inventorySummary = MOCK_INVENTORY.map(p => ({
-        sku: p.sku,
-        name: p.name,
-        status: p.status,
-        aging: p.agingDays,
-        stock: p.totalStock,
-        atp: p.totalStock - p.reservedStock,
-        abc: p.abc,
-        xyz: p.xyz
-    }));
-    
-    return JSON.stringify({
-        inventory: inventorySummary,
-        salesHistory: SALES_DATA,
-        date: new Date().toISOString().split('T')[0]
-    });
+export const getApiKey = () => {
+    return localStorage.getItem('gemini_api_key') || import.meta.env?.VITE_GEMINI_API_KEY || '';
 };
 
-export const generateInsight = async (userPrompt: string): Promise<string> => {
+export const setApiKey = (key: string) => {
+    localStorage.setItem('gemini_api_key', key);
+};
+
+export const generateInsight = async (userPrompt: string, contextData: any = null): Promise<string> => {
     try {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = getApiKey();
         
-        // If no API key, use the high-quality mock logic
         if (!apiKey) {
-            return getMockInsight(userPrompt);
+            return "Error: No se ha configurado la API Key de Gemini. Por favor, ingresa tu clave en el módulo de configuración o ingesta.";
         }
 
         const ai = new GoogleGenAI({ apiKey });
-        const context = getContextString();
+        const context = contextData ? JSON.stringify(contextData) : "No hay datos de contexto adicionales proporcionados.";
         
         const fullPrompt = `
-        [CONTEXTO DE DATOS DEL SISTEMA]:
+        [CONTEXTO DE DATOS DEL SISTEMA (EN TIEMPO REAL)]:
         ${context}
         
         [CONSULTA DEL USUARIO]:
@@ -81,90 +54,14 @@ export const generateInsight = async (userPrompt: string): Promise<string> => {
 
     } catch (error) {
         console.error("Gemini API Error:", error);
-        // Fallback to mock on error as well for "perfect" demo
-        return getMockInsight(userPrompt);
+        return "Hubo un error al procesar tu solicitud con Gemini. Revisa la consola para más detalles.";
     }
 };
 
-const getMockInsight = (prompt: string): string => {
-    const p = prompt.toLowerCase();
-    
-    if (p.includes('silencioso') || p.includes('riesgos')) {
-        return `### Análisis de Inventario Silencioso (Riesgo Alto)
-
-He detectado **1 ítem crítico** en estado Silencioso que requiere acción inmediata:
-
-*   **SKU: RM-PIGM-RED (Pigmento Rojo Óxido de Hierro)**
-    *   **Envejecimiento:** 140 días sin movimiento.
-    *   **Stock Inmovilizado:** 4,000 unidades.
-    *   **Clasificación:** C-Z (Bajo valor, alta variabilidad).
-    *   **Impacto Financiero:** Aproximadamente $32,000 USD en capital de trabajo bloqueado.
-
-**Recomendaciones:**
-1.  **Liquidación:** Ofrecer un descuento del 40% a clientes del sector construcción para liberar espacio en bodega.
-2.  **Sustitución:** Verificar si este pigmento puede ser utilizado en fórmulas de productos de alta rotación (como el Primer Universal) mediante un ajuste de color.
-3.  **Donación/Scrap:** Si no hay consumo proyectado en los próximos 30 días, considerar la baja contable para optimizar beneficios fiscales.`;
-    }
-
-    if (p.includes('rendimiento') || p.includes('abc')) {
-        return `### Análisis de Rendimiento ABC/XYZ
-
-Basado en el historial de ventas y valor de inventario, esta es la distribución de rendimiento:
-
-*   **Clase A (Estratégicos):** 
-    *   **RM-POLY-001 (Resina X-200):** Rendimiento excelente. Demanda estable (X). Mantener niveles de stock actuales.
-    *   **RM-SOLV-099 (Acetona):** Alta rotación. Se recomienda revisar el Lead Time del proveedor para evitar quiebres.
-*   **Clase B (Variables):**
-    *   **FG-COAT-550 (Sellador Pro 550):** Demanda variable (Y). Actualmente en estado **Lento**. Se recomienda una revisión de precios.
-*   **Clase C (Críticos):**
-    *   **FG-PRIM-200:** Bajo margen y baja rotación. Evaluar descontinuación.
-
-**Insight Clave:** El 80% de tu flujo de caja depende de solo 3 SKUs. Cualquier interrupción en el suministro de la Resina X-200 detendría el 45% de la producción proyectada.`;
-    }
-
-    if (p.includes('bundle') || p.includes('estrategia')) {
-        return `### Estrategia de Bundles Sugerida
-
-Para movilizar el inventario **Lento** y **Silencioso**, sugiero los siguientes paquetes promocionales:
-
-1.  **"Pack Renovación Industrial":**
-    *   **Ítem Gancho:** Sellador Industrial Pro 550 (Lento).
-    *   **Ítem Silencioso:** Pigmento Rojo Óxido (Silencioso).
-    *   **Estrategia:** Incluir 5kg de pigmento gratis por cada 100L de sellador.
-2.  **"Kit de Preparación Rápida":**
-    *   **Ítem A:** Primer Universal Gris (Lento).
-    *   **Ítem B:** Acetona Grado Técnico (Activo).
-    *   **Estrategia:** Descuento del 15% en el Primer al comprar el kit completo.
-
-**Objetivo:** Liberar un total de **$45,000 USD** en capital de trabajo en un ciclo de 15 días.`;
-    }
-
-    if (p.includes('salud') || p.includes('calcular')) {
-        return `### Diagnóstico de Salud del Inventario
-
-**Puntaje de Salud: 72/100 (Regular)**
-
-*   **Disponibilidad (ATP):** 88% (Bueno).
-*   **Rotación Promedio:** 4.2 veces al año (Bajo para el sector).
-*   **Capital Atrapado:** $1.2M USD en productos con >60 días de antigüedad.
-*   **Precisión de Pronóstico:** 92% en el último mes.
-
-**Acciones Prioritarias:**
-1.  Atender el exceso de stock en la categoría de Materias Primas.
-2.  Reducir el Lead Time promedio de 45 a 30 días negociando con proveedores locales.
-3.  Implementar un sistema de alertas tempranas para productos que superen los 45 días sin ventas.`;
-    }
-
-    return `Entiendo tu consulta sobre "${prompt}". 
-
-Analizando los datos de Procoquinal OS, puedo confirmarte que el sistema se encuentra operando con una eficiencia del 85%. 
-
-¿Te gustaría que profundice en algún área específica como el **Inventario Silencioso**, el **Análisis ABC** o las **Sugerencias de Compra**?`;
-};
 
 export const parseAlbaranImage = async (base64Image: string, mimeType: string): Promise<AuditRow[]> => {
     try {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = getApiKey();
         if (!apiKey) {
             console.warn("No API key, returning mock data");
             return [
@@ -235,3 +132,201 @@ Solo devuelve JSON válido.
         throw error;
     }
 };
+
+export interface ExtractedProduct {
+    rawSku: string;
+    rawName: string;
+    mappedSku: string;
+    qty: number;
+    cost: number;
+    status: 'MATCH' | 'REVIEW' | 'ERROR';
+    confidence: number;
+}
+
+export interface ExtractedLandedCost {
+    rawConcept: string;
+    provider: string;
+    rawAmount: number;
+    retefuenteAmount?: number;
+    reteicaAmount?: number;
+    mappedCategory: string;
+}
+
+export interface CrossReferenceRow {
+    targetDocument: string;
+    sourceDocument: string;
+    concept: string;
+    targetAmount: number;
+    sourceAmount: number;
+    difference: number;
+    isValid: boolean;
+}
+
+export interface InvoiceMetadata {
+    doNumber: string;
+    totalFOB_Documents: number;
+    totalFOB_Inferred: number;
+    invoiceNumbers: string[];
+    discrepancies: string[];
+    crossReferences: CrossReferenceRow[];
+    currency: string;
+    invoiceDate: string;
+    estimatedTRM: number;
+}
+
+export interface ExtractedDocument {
+    docType: string;
+    issuer: string;
+    docNumber: string;
+    keyExtractedData: string[];
+    status: string;
+}
+
+export interface InvoiceExtractionResult {
+    products: ExtractedProduct[];
+    landedCosts: ExtractedLandedCost[];
+    extractedDocuments: ExtractedDocument[];
+    metadata: InvoiceMetadata;
+}
+
+export const processInvoicesWithGemini = async (files: { data: string, mimeType: string }[], inventory: any[]): Promise<InvoiceExtractionResult> => {
+    try {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            throw new Error("No hay API Key configurada. Ingresa tu API Key de Gemini para usar la Ingesta Inteligente.");
+        }
+
+        const ai = new GoogleGenAI({ apiKey });
+        
+        const catalogContext = inventory.map(item => `{ sku: "${item.sku}", name: "${item.name}" }`).join('\n');
+
+        const prompt = `
+Eres un agente experto en auditoría aduanera, extracción de importaciones y normalización de datos.
+Te he pasado uno o más documentos (PDFs/Imágenes) correspondientes a una importación.
+
+Tu objetivo es analizar TODOS los documentos de forma conjunta, hacer un cruce de auditoría y normalizar los productos basándote EXCLUSIVAMENTE en el siguiente catálogo interno:
+<CATALOGO_INTERNO>
+${catalogContext}
+</CATALOGO_INTERNO>
+
+Reglas Estrictas:
+1. MERCANCÍA (products): Extrae los productos de las facturas comerciales del exterior. Identifica el nombre original (rawName) y código original (rawSku).
+   - Intenta mapear el producto con el <CATALOGO_INTERNO>. Si estás muy seguro, pon status="MATCH" y asigna el "mappedSku".
+   - Si tienes dudas, pon status="REVIEW". Si no encuentras nada parecido, pon status="ERROR" y mappedSku="".
+   - "cost" debe ser el costo unitario FOB.
+   - EXPLICACIÓN DETALLADA OBLIGATORIA ("aiExplanation"): Por CADA producto, debes generar un objeto que explique paso a paso cómo hallaste su costo y qué documentos utilizaste, para pintar un panel lateral de desglose exacto.
+       * "baseCostOrigin": Explicación literal de dónde salió el costo base. Ej: "Factura Y-10022, Fila 4".
+       * "baseCostFob": El costo FOB original (número).
+       * "trmApplied": La TRM usada (número).
+       * "apportionmentFormula": Fórmula teórica de cómo se calcularía el costo final. Ej: "FOB (12.50 USD * TRM) + Proporción de peso/volumen sobre $3,500,000 COP de Gastos Nacionalización".
+       * "sourceDocuments": Array de strings con los nombres de todos los documentos implicados en el análisis de este producto (Ej. ["Factura Y-10022", "Declaración de Importación DIM-09"]).
+2. GASTOS DE NACIONALIZACIÓN Y LOGÍSTICA (landedCosts): Extrae EXHAUSTIVAMENTE TODOS los cobros, tasas e impuestos encontrados en los documentos (Agenciamiento aduanero, fletes internacionales e internos, bodegajes, puertos, liberación de BL, seguros, aranceles, IVA de importación, tributos aduaneros, gastos bancarios, etc.).
+   - REGLA DE DESGLOSE: ¡NUNCA agrupes facturas! Si una agencia (SIA) te cobra Honorarios y Reembolso de Terceros, extrae CADA servicio de terceros como una fila independiente.
+   - REGLA DE DEDUPLICACIÓN: Si detectas que una Agencia te cobra un Reembolso de Transporte, y también tienes la factura original de la Transportadora adjunta, extrae el cobro SOLO UNA VEZ usando la factura original como respaldo y la de la Agencia como cobro.
+   - "rawConcept": Especifica el cobro detalladamente (ej. "Bodegaje Zona Franca", "Tributos DIAN", "Honorarios Agencia").
+   - "provider": Nombre del proveedor, aduana o entidad que lo cobra.
+   - "rawAmount": El monto BRUTO total cobrado antes de aplicar retenciones (usualmente en COP).
+   - "retefuenteAmount": Si existe una Retención en la Fuente descontada en la factura, anota el valor absoluto descontado aquí. Si no hay, pon 0.
+   - "reteicaAmount": Si existe una Retención de ICA descontada en la factura, anota el valor absoluto aquí. Si no hay, pon 0.
+   - "mappedCategory": Clasifica en: "Flete Internacional", "Seguro", "Tributos/Aranceles DIAN", "Bodegajes/Puerto", "Agenciamiento Aduanero", "Flete Terrestre Interno", "Otros Gastos".
+3. METADATA DE AUDITORÍA: Extrae el número de Declaración de Importación (DO) si existe.
+   - Extrae la "currency" (divisa) principal de las facturas comerciales (ej. USD, EUR, RMB, COP). Si no estás seguro asume USD.
+   - Extrae la fecha de expedición de la factura principal en formato YYYY-MM-DD ("invoiceDate").
+   - A partir de la fecha ("invoiceDate") y la divisa ("currency"), estima cuál era la Tasa de Cambio (TRM) a Pesos Colombianos (COP) en esa fecha exacta o aproximada ("estimatedTRM"). Si es en COP, la TRM es 1.
+   - Suma el valor total FOB explícito en los documentos ("totalFOB_Documents"). Este valor estará en la "currency" detectada.
+   - Calcula el total FOB sumando qty*cost de los productos extraídos ("totalFOB_Inferred").
+   - Compara y registra cualquier discrepancia ("discrepancies") entre lo cobrado, lo facturado y las cuentas locales (ej. retenciones, tasas de cambio).
+   - SLOT FILLING - CRUCES DOCUMENTALES ("crossReferences"): Por CADA cobro de terceros detectado, DEBES rellenar una celda de cruce estructurado validando matemáticamente:
+       * "targetDocument": Factura que consolida el cobro (Ej. "Agencia Aduanas MYA-123").
+       * "sourceDocument": Factura original del tercero (Ej. "Transportes Rápidos #445").
+       * "concept": Concepto cruzado (Ej. "Reembolso Transporte Internacional").
+       * "targetAmount": Monto cobrado en la factura consolidada.
+       * "sourceAmount": Monto soportado en la factura original.
+       * "difference": targetAmount - sourceAmount.
+       * "isValid": true si difference es 0 o si está justificada contablemente, false si hay un descuadre. CRÍTICO: Si la agencia de aduanas cobra Pagos a Terceros y no anexan las facturas soportes, genera la fila con sourceDocument="FALTA SOPORTE", sourceAmount=0, difference=targetAmount, isValid=false.
+4. RESUMEN DE DOCUMENTOS LECTURADOS (extractedDocuments): Crea un resumen ULTRA DETALLADO de cada documento analizado. PROHIBIDO hacer resúmenes genéricos como "Se encontraron 25 productos".
+   - "docType": Tipo (ej. "Factura Comercial", "Factura Transporte", "Declaración Importación").
+   - "issuer": Quién lo emite (ej. Proveedor, SIA, Transportadora).
+   - "docNumber": Número del documento.
+   - "keyExtractedData": Array de strings ULTRA DETALLADO. Desglosa la información financiera línea por línea de lo que encontraste importante. Ejemplos obligatorios:
+       * "Desglose financiero: Subtotal $1,000,000 COP, Retefuente (11%) -$110,000 COP, ReteICA (0.966%) -$9,660 COP. Total Neto: $880,340 COP."
+       * "Mercancía identificada: 12 unidades de Resina Epóxica (SKU: 9021) a 12.50 USD c/u. 50 unidades de Endurecedor (SKU: 5044) a 5.00 USD c/u."
+       * "Auditoría Cruzada: ✅ Este cobro de Transporte (Factura #445) ampara exactamente el ítem 3 cobrado en la factura de la Agencia de Aduanas (MYA-123)."
+   - "status": Pon siempre "PROCESADO" si lograste leer la data.
+
+Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
+{
+  "extractedDocuments": [
+    { "docType": "Factura Agenciamiento", "issuer": "SIA XYZ", "docNumber": "FC-9912", "keyExtractedData": ["Desglose: Honorarios $1,500,000 COP", "Retenciones: Retefuente (11%) -$165,000 COP, ReteICA (0.966%) -$14,490 COP", "Neto a pagar: $1,320,510 COP", "✅ Documento cruzado con éxito contra los pagos de aduana"], "status": "PROCESADO" }
+  ],
+  "products": [
+    { 
+      "rawSku": "cod-prov", "rawName": "nombre-prov", "mappedSku": "sku-interno", "qty": 100, "cost": 15.5, "status": "MATCH", "confidence": 0.95,
+      "aiExplanation": {
+        "baseCostOrigin": "Factura Comercial Y-10022, Fila 2",
+        "baseCostFob": 15.5,
+        "trmApplied": 4120,
+        "apportionmentFormula": "FOB (15.5 USD * 4120 TRM) + 5% participación por valor en gastos logísticos totales",
+        "sourceDocuments": ["Factura Comercial Y-10022", "BL #998371"]
+      }
+    }
+  ],
+  "landedCosts": [
+    { "rawConcept": "Tributos Aduaneros y Arancel", "provider": "DIAN", "rawAmount": 2500000, "retefuenteAmount": 0, "reteicaAmount": 0, "mappedCategory": "Tributos/Aranceles DIAN" },
+    { "rawConcept": "Honorarios Agenciamiento", "provider": "SIA Ltda", "rawAmount": 1500000, "retefuenteAmount": 165000, "reteicaAmount": 14490, "mappedCategory": "Agenciamiento Aduanero" }
+  ],
+  "metadata": {
+    "doNumber": "0748",
+    "totalFOB_Documents": 12500.00,
+    "totalFOB_Inferred": 12500.00,
+    "invoiceNumbers": ["6301"],
+    "discrepancies": ["No hay discrepancias"],
+    "crossReferences": [
+      {
+        "targetDocument": "Factura Agenciamiento FC-9912",
+        "sourceDocument": "Factura Naviera #5566",
+        "concept": "Liberación de BL",
+        "targetAmount": 350000,
+        "sourceAmount": 350000,
+        "difference": 0,
+        "isValid": true
+      }
+    ],
+    "currency": "USD",
+    "invoiceDate": "2024-03-15",
+    "estimatedTRM": 3950.50
+  }
+}
+`;
+
+        const contents = [
+            prompt,
+            ...files.map(f => ({
+                inlineData: {
+                    data: f.data,
+                    mimeType: f.mimeType
+                }
+            }))
+        ];
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: contents
+        });
+
+        const text = response.text || "{}";
+        const jsonMatch = text.match(/\`\`\`json\n([\s\S]*?)\n\`\`\`/) || text.match(/\{[\s\S]*\}/);
+        
+        if (jsonMatch) {
+            const rawJson = jsonMatch[1] || jsonMatch[0];
+            return JSON.parse(rawJson);
+        }
+        
+        return JSON.parse(text);
+
+    } catch (error) {
+        console.error("Error processing invoices:", error);
+        throw error;
+    }
+};
+

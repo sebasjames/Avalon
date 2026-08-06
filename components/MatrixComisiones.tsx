@@ -11,9 +11,10 @@ interface Rule {
   type: 'Porcentaje' | 'Fijo' | 'Multiplicador';
   baseVariable: 'Recaudo' | 'Facturación' | 'Producto' | 'Familia' | 'Tarea CRM';
   value: number;
-  target: 'Todos' | 'Oro/Diamante' | 'Plata/Bronce' | 'Selección Manual';
+  target: 'Todos' | 'Oro/Diamante' | 'Plata/Bronce' | 'Selección Manual' | 'Clientes Nuevos';
   active: boolean;
   cap?: number; // Optional maximum cap
+  validityMonths?: number; // Optional validity period for temporary bonuses
 }
 
 export const MatrixComisiones: React.FC = () => {
@@ -219,17 +220,31 @@ export const MatrixComisiones: React.FC = () => {
 
                     {/* Target */}
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Asignación</label>
+                      <label className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Asignación / Filtro</label>
                       <select 
                         value={rule.target}
                         onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, target: e.target.value as any } : r))}
                         className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       >
-                        <option value="Todos">Todos los Agentes</option>
+                        <option value="Todos">Todos los Clientes/Agentes</option>
+                        <option value="Clientes Nuevos">Solo Clientes Nuevos</option>
                         <option value="Oro/Diamante">Solo Rango Oro/Diamante</option>
                         <option value="Plata/Bronce">Solo Rango Plata/Bronce</option>
                         <option value="Selección Manual">Selección Manual...</option>
                       </select>
+
+                      {rule.target === 'Clientes Nuevos' && (
+                        <div className="mt-2 animate-in fade-in slide-in-from-top-1 bg-indigo-900/30 p-2 rounded-lg border border-indigo-500/30">
+                          <label className="text-[10px] text-indigo-300 uppercase tracking-wider font-bold">Validez (Meses desde Creación)</label>
+                          <input 
+                            type="number" 
+                            min="1"
+                            value={rule.validityMonths || 3}
+                            onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, validityMonths: parseInt(e.target.value) || 3 } : r))}
+                            className="w-full mt-1 bg-slate-800 border border-indigo-500/50 text-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-indigo-400"
+                          />
+                        </div>
+                      )}
                     </div>
 
                   </div>

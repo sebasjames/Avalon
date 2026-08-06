@@ -11,6 +11,7 @@ interface EnterpriseContextType {
     receipts: InboundReceipt[];
     crmUsers: CrmUser[];
     crmSettings: CrmSettings;
+    updateCrmSettings: (updates: Partial<CrmSettings>) => void;
     moveDealStage: (dealId: string, newStage: CrmDealStage | 'CLOSED_LOST', lostReason?: string) => void;
     moveContactPostSaleStage: (contactId: string, newStage: CrmPostSaleStage) => void;
     addEvent: (event: SystemEvent) => void;
@@ -106,6 +107,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         { id: '2', name: 'Contabilidad Jefatura', email: 'conta@avalon.com', baseRole: 'Contabilidad', customPermissions: {} as any },
     ]);
     const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
+    const [importDossiers, setImportDossiers] = useState<ImportDossier[]>([]);
+    const [crmSettings, setCrmSettings] = useState<CrmSettings>(MOCK_CRM_SETTINGS);
+    const updateCrmSettings = (updates: Partial<CrmSettings>) => setCrmSettings(prev => ({ ...prev, ...updates }));
 
     const addSystemUser = (user: SystemUser) => setSystemUsers(prev => [...prev, user]);
     const updateSystemUser = (id: string, updates: Partial<SystemUser>) => setSystemUsers(prev => prev.map(u => u.id === id ? { ...u, ...updates } : u));
@@ -114,6 +118,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const addSupplier = (supplier: Supplier) => setSuppliers(prev => [...prev, supplier]);
     const updateSupplier = (id: string, updates: Partial<Supplier>) => setSuppliers(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
     const deleteSupplier = (id: string) => setSuppliers(prev => prev.filter(s => s.id !== id));
+
+    const addImportDossier = (dossier: ImportDossier) => setImportDossiers(prev => [...prev, dossier]);
 
     // --- Unified Mock Data Generator ---
     const seedData = useMemo(() => {
@@ -170,6 +176,25 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 paymentMethod: 'Caja Menor',
                 posLocation: 'Sede Principal Centro'
             });
+        });
+
+        // 1.5 Inject a mock NOTA_CREDITO to test Commission Deductions
+        // We will assign it to a client owned by U-CARLOS (e.g. Restaurante La Parilla or similar if we have one)
+        // Let's just use the first CRM contact name (which is usually handled by CARLOS in mock data)
+        const mockTargetClient = MOCK_CRM_CONTACTS.find(c => c.ownerId === 'U-001')?.company || 'Cliente Prueba NC';
+        generated.push({
+            id: 'NC-2026-001',
+            date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days ago
+            type: 'NOTA_CREDITO',
+            client: mockTargetClient,
+            document: 'Nota Crédito por Devolución Parcial',
+            productName: 'Devolución de Producto',
+            sku: '-',
+            qty: 1,
+            total: 1000000, // 1,000,000 COP deduction
+            iva: 190000,
+            paymentMethod: 'Aplicación NC',
+            posLocation: 'Sede Principal Centro'
         });
 
         // 2. Generate random Sales and Purchases
@@ -342,7 +367,6 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [activities, setActivities] = useState<CrmActivity[]>(MOCK_CRM_ACTIVITIES);
     const [events, setEvents] = useState<SystemEvent[]>(MOCK_EVENT_LOG);
     const [crmUsers, setCrmUsers] = useState<CrmUser[]>(MOCK_CRM_USERS);
-    const [crmSettings, setCrmSettings] = useState<CrmSettings>(MOCK_CRM_SETTINGS);
     const [receipts, setReceipts] = useState<InboundReceipt[]>([]);
     const [dismissedNotifIds, setDismissedNotifIds] = useState<string[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
@@ -403,7 +427,6 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [rawMaterialCategories, setRawMaterialCategories] = useState<string[]>(['Materia Prima Nacional', 'Materia Prima Importada']);
     const [accountingShortcuts, setAccountingShortcuts] = useState<string[]>(['Datáfonos (111505)', 'Crédito 30 días (130505)', 'Crédito 60 días (130505)', 'Crédito 90 días (130505)', 'Caja Menor (110510)']);
 
-    // Tax Rates
     // Tax Rates
     const [taxRates, setTaxRates] = useState<TaxRate[]>([
         { id: 't1', name: 'IVA General', percentage: 19, isActive: true, isDefault: true },
@@ -620,7 +643,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const addEvent = (event: SystemEvent) => setEvents(prev => [event, ...prev]);
     const addContact = (contact: CrmContact) => setContacts(prev => [contact, ...prev]);
-    const addDeal = (deal: CrmDeal) => setDeals(prev => [deal, ...prev]);
+    const addDeal = (deal: CrmDeal) => {
+        setDeals(prev => [...prev, deal]);
+    };
     const addActivity = (activity: CrmActivity) => setActivities(prev => [activity, ...prev]);
     const deleteContacts = (ids: string[]) => setContacts(prev => prev.filter(c => !ids.includes(c.id)));
 
@@ -983,7 +1008,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             suppliers,
             addSupplier,
             updateSupplier,
-            deleteSupplier
+            deleteSupplier,
+            importDossiers,
+            addImportDossier,
+            updateCrmSettings
         }}>
             {children}
         </EnterpriseContext.Provider>

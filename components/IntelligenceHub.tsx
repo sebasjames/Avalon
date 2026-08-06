@@ -4,6 +4,7 @@ import { generateInsight } from '../services/geminiService';
 import { Send, Bot, User, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 interface Message {
   role: 'user' | 'system';
@@ -23,6 +24,8 @@ export const IntelligenceHub: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasRunAutoPrompt = useRef(false);
+  
+  const { inventory, transactions, deals, contacts } = useEnterprise();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,7 +55,20 @@ export const IntelligenceHub: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await generateInsight(prompt);
+      const contextData = {
+        resumen: {
+            totalProductosEnInventario: inventory.length,
+            totalTransaccionesRegistradas: transactions.length,
+            totalContactosCRM: contacts.length,
+            totalNegociosPipeline: deals.length,
+            valorTotalInventarioCOP: inventory.reduce((acc, i) => acc + (i.unitCost * i.totalStock), 0)
+        },
+        inventory: inventory.map(i => ({ sku: i.sku, name: i.name, stock: i.totalStock, reserved: i.reservedStock, cost: i.unitCost })),
+        transactions: transactions.slice(0, 100), // Enviar las ultimas 100 por tokens
+        crmPipeline: deals
+      };
+
+      const response = await generateInsight(prompt, contextData);
       
       // Add system message with typing effect
       const systemMsg: Message = { role: 'system', content: response, isTyping: true };

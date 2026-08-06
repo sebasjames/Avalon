@@ -26,6 +26,16 @@ export const CrmDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Alert: Conciliación Contable (L.C. Rules) */}
+      {(new Date().getDate() >= 1 && new Date().getDate() <= 6) && (
+        <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-amber-100 border border-amber-200 rounded-xl p-4 flex items-center gap-3 text-amber-800 shadow-sm">
+          <Clock className="w-6 h-6 text-amber-600" />
+          <div>
+            <h4 className="font-bold">Período de Conciliación Contable Activo</h4>
+            <p className="text-xs font-medium opacity-90">Estamos en los primeros 6 días del mes. Los pagos y depósitos de fin de mes anterior están en proceso de verificación (liquidación de comisiones el día 15).</p>
+          </div>
+        </motion.div>
+      )}
       {overdueActivities.length > 0 && (
         <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-rose-100 border border-rose-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3 text-rose-700">

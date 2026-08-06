@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Clock, DollarSign, Target, Activity, FileText, CheckCircle, Search, Eye, TrendingUp, TrendingDown, Briefcase, BarChart2 } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Clock, DollarSign, Target, Activity, FileText, CheckCircle, Search, Eye, TrendingUp, TrendingDown, Briefcase, BarChart2, Star, Users } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { getSourceBadge } from './CrmFull';
+import { CrmDealCreateModal } from './CrmDealCreateModal';
 
 interface CrmClientFullProfileProps {
   contactId: string;
@@ -10,7 +11,8 @@ interface CrmClientFullProfileProps {
 }
 
 export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ contactId, onBack }) => {
-  const { contacts, deals, activities, crmUsers, assignmentLogs, getContactHealthScore } = useEnterprise();
+  const { contacts, deals, activities, crmUsers, assignmentLogs, getContactHealthScore, taxRules, pricingRules, paymentRules } = useEnterprise();
+  const [isDealModalOpen, setIsDealModalOpen] = useState(false);
   const contact = contacts.find(c => c.id === contactId);
 
   if (!contact) return <div className="p-8">Contacto no encontrado.</div>;
@@ -162,8 +164,17 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                         <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2"><Target className="w-5 h-5 text-indigo-500"/> Negocios y Oportunidades (Embudo)</h3>
-                            <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800">+ Crear Trato</button>
+                            <button onClick={() => setIsDealModalOpen(true)} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">+ Crear Trato</button>
                         </div>
+                        {contact.tier === 'Nuevo' && (
+                            <div className="px-5 py-3 bg-indigo-50 border-b border-indigo-100 flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
+                                <Star className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <h4 className="text-sm font-bold text-indigo-800">Bono de Apertura Activo</h4>
+                                    <p className="text-xs text-indigo-600 mt-0.5">Tienes incentivos especiales activos al cerrar tratos con este cliente por ser "Cliente Nuevo". ¡Aprovecha los multiplicadores durante sus primeros meses!</p>
+                                </div>
+                            </div>
+                        )}
                         <div className="divide-y divide-slate-100">
                             {contactDeals.length > 0 ? contactDeals.map(deal => (
                                 <div key={deal.id} className="p-4 hover:bg-slate-50 transition-colors flex justify-between items-center">
@@ -174,6 +185,11 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
                                                 {deal.stage}
                                             </span>
                                             <span className="text-xs text-slate-500 flex items-center gap-1"><Calendar className="w-3 h-3"/> Creado: {new Date(deal.createdAt).toLocaleDateString()}</span>
+                                            {deal.splits && deal.splits.length > 1 && (
+                                                <span className="text-xs text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 rounded-full flex items-center gap-1 font-bold" title="Comisión Compartida">
+                                                    <Users className="w-3 h-3" /> Compartido
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -258,6 +274,13 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
             </div>
         </div>
       </div>
+      
+      <CrmDealCreateModal
+        isOpen={isDealModalOpen}
+        onClose={() => setIsDealModalOpen(false)}
+        contactId={contact.id}
+        companyName={contact.company}
+      />
     </motion.div>
   );
 };

@@ -37,7 +37,8 @@ export const Configuration: React.FC = () => {
     paymentMethods, setPaymentMethods, pointsOfSale, setPointsOfSale, taxRates, setTaxRates,
     taxRules, setTaxRules, pricingRules, setPricingRules, paymentRules, setPaymentRules,
     systemUsers, addSystemUser, updateSystemUser, deleteSystemUser,
-    suppliers, addSupplier, updateSupplier, deleteSupplier
+    suppliers, addSupplier, updateSupplier, deleteSupplier,
+    crmSettings, setCrmSettings
   } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
   const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores'>('inventario');
@@ -1401,6 +1402,31 @@ export const Configuration: React.FC = () => {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                  </section>
+
+                  {/* Reglas de CRM */}
+                  <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Reglas Comerciales y CRM</h2>
+                            <p className="text-sm text-slate-500">Configuración global de comportamiento comercial.</p>
+                        </div>
+                    </div>
+                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p className="font-bold text-slate-800">Asignación Automática de Leads (Round Robin)</p>
+                            <p className="text-xs text-slate-500 mt-1">Distribuye equitativamente nuevos prospectos entre comerciales</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                className="sr-only peer" 
+                                checked={!!crmSettings.autoAssignLeads}
+                                onChange={(e) => setCrmSettings({...crmSettings, autoAssignLeads: e.target.checked})}
+                            />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
                     </div>
                   </section>
                 </div>

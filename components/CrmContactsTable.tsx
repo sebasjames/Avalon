@@ -475,8 +475,12 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-slate-900 whitespace-nowrap">{contact.name}</span>
-                        {(contact.hobby || contact.birthday || contact.observations) && (
+                        {(contact.hobby || contact.birthday || contact.observations || contact.inactivityRisk || contact.dispatchBlocked || contact.vipApprovalPending || contact.gracePeriodAlert) && (
                           <div className="flex flex-col mt-0.5 text-[10px] text-slate-500 gap-0.5">
+                            {contact.dispatchBlocked && <span className="flex items-center gap-1 font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded w-max">🛑 DESPACHOS SUSPENDIDOS</span>}
+                            {contact.vipApprovalPending && <span className="flex items-center gap-1 font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded w-max">⚠️ Mora VIP - Requiere Aprobación L.C.</span>}
+                            {contact.gracePeriodAlert && !contact.dispatchBlocked && !contact.vipApprovalPending && <span className="flex items-center gap-1 font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded w-max">⏳ En periodo de gracia</span>}
+                            {contact.inactivityRisk && <span className="flex items-center gap-1 font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded w-max">⚠️ Riesgo Inactividad (&gt;6 meses)</span>}
                             {contact.hobby && <span className="flex items-center gap-1">🏆 {contact.hobby}</span>}
                             {contact.birthday && <span className="flex items-center gap-1">🎂 {contact.birthday}</span>}
                             {contact.observations && <span className="flex items-center gap-1 max-w-[200px] truncate" title={contact.observations}>📝 {contact.observations}</span>}
@@ -542,10 +546,11 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                             </div>
                         ) : null}
                          <div className="flex flex-wrap gap-1 max-w-[150px]">
+                           {contact.inactivityRisk && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">⚠️ Riesgo Inactividad</span>}
                            {contact.tags?.map(t => (
                               <span key={t} className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700">{t}</span>
                            ))}
-                           {(!contact.tags || contact.tags.length === 0) && <span className="text-xs text-slate-300">-</span>}
+                           {(!contact.tags || contact.tags.length === 0) && !contact.inactivityRisk && <span className="text-xs text-slate-300">-</span>}
                          </div>
                       </td>
                   )}
@@ -577,13 +582,16 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   
 
                   {visibleColumns.includes('tier') && renderSelectCell('tier',
-                      ['REGULAR', 'STRATEGIC', 'NEW', 'VIP'].map(o => ({value:o, label:o})),
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                      ['REGULAR', 'STRATEGIC', 'NEW', 'VIP', 'POTENTIAL', 'ATTENTION', 'DECREASE'].map(o => ({value:o, label:o})),
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase
                       ${contact.tier === 'VIP' ? 'bg-amber-100 text-amber-700' :
                         contact.tier === 'STRATEGIC' ? 'bg-purple-100 text-purple-700' : 
-                          contact.tier === 'REGULAR' ? 'bg-blue-100 text-blue-700' : 
-                          'bg-slate-100 text-slate-700'}`}>
-                      Tier {contact.tier}
+                        contact.tier === 'POTENTIAL' ? 'bg-emerald-100 text-emerald-700' :
+                        contact.tier === 'ATTENTION' ? 'bg-rose-100 text-rose-700' :
+                        contact.tier === 'DECREASE' ? 'bg-slate-200 text-slate-500' :
+                        contact.tier === 'REGULAR' ? 'bg-blue-100 text-blue-700' : 
+                        'bg-slate-100 text-slate-700'}`}>
+                      {contact.tier}
                       </span>
                   )}
                   {visibleColumns.includes('postSaleStage') && renderSelectCell('postSaleStage',

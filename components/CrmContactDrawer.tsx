@@ -11,7 +11,7 @@ interface CrmContactDrawerProps {
   contactAssignmentLogs: CrmAssignmentLog[];
   getSourceBadge: (source: string) => { label: string; color: string; icon: any };
   onClose: () => void;
-  onAddNote: (contactId: string, noteText: string, activityType: string, scheduledDate?: string, nextAction?: string, nextActionDate?: string) => void;
+  onAddNote: (contactId: string, noteText: string, activityType: string, scheduledDate?: string, nextAction?: string, nextActionDate?: string, expenseAmount?: number) => void;
 }
 
 export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
@@ -22,6 +22,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
   const [taskDate, setTaskDate] = useState('');
   const [nextAction, setNextAction] = useState('');
   const [nextActionDate, setNextActionDate] = useState('');
+  const [expenseAmount, setExpenseAmount] = useState<string>('');
   const { setFullProfileContactId, taxRules, pricingRules, paymentRules, updateContact } = useEnterprise();
 
   const [mockFiles, setMockFiles] = useState([
@@ -47,11 +48,13 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
 
   const handleSend = () => {
     if (noteText.trim()) {
-      onAddNote(contact.id, noteText.trim(), activityType, taskDate, nextAction, nextActionDate);
+      const expense = activityType === 'VISIT' && expenseAmount ? parseInt(expenseAmount.replace(/\D/g, ''), 10) : undefined;
+      onAddNote(contact.id, noteText.trim(), activityType, taskDate, nextAction, nextActionDate, expense);
       setNoteText('');
       setTaskDate('');
       setNextAction('');
       setNextActionDate('');
+      setExpenseAmount('');
     }
   };
 
@@ -215,6 +218,77 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
             </div>
           </section>
 
+          {/* Credit and Wallet Section */}
+          <section>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+              <Briefcase className="w-3.5 h-3.5" />
+              Cartera y Crédito (COVINOC)
+            </h3>
+            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+               <div>
+                  <label className="text-xs font-bold text-slate-500 block mb-1">Cupo de Crédito ($)</label>
+                  <input 
+                    type="number" 
+                    value={contact.creditLimit || ''} 
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      updateContact(contact.id, { creditLimit: val });
+                    }} 
+                    className={`text-sm border rounded-lg p-2 w-full focus:outline-none focus:border-indigo-400 transition-colors ${contact.creditLimit && contact.creditLimit > 120000000 ? 'border-rose-400 bg-rose-50 text-rose-700' : 'border-slate-200 bg-slate-50 text-slate-700'}`} 
+                  />
+                  {contact.creditLimit && contact.creditLimit > 120000000 && (
+                     <p className="text-[10px] font-bold text-rose-600 mt-1">⚠️ El cupo excede el límite máximo de $120.000.000.</p>
+                  )}
+               </div>
+            </div>
+          </section>
+
+          {/* Strategic Attributes Section */}
+          <section>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+              <Trophy className="w-3.5 h-3.5" />
+              Atributos Estratégicos
+            </h3>
+            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm grid grid-cols-1 gap-3">
+               <label className="flex items-start gap-2 cursor-pointer group">
+                  <input type="checkbox" checked={contact.highGrowthPotential || false} onChange={(e) => updateContact(contact.id, { highGrowthPotential: e.target.checked })} className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-700">Potencial Crecimiento</span>
+                    <span className="text-[10px] text-slate-500">Proyección alta a 2 años.</span>
+                  </div>
+               </label>
+               <label className="flex items-start gap-2 cursor-pointer group">
+                  <input type="checkbox" checked={contact.exclusiveProjects || false} onChange={(e) => updateContact(contact.id, { exclusiveProjects: e.target.checked })} className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-700">Proyectos Exclusivos</span>
+                    <span className="text-[10px] text-slate-500">Trabaja con firmas/constructoras reconocidas.</span>
+                  </div>
+               </label>
+               <label className="flex items-start gap-2 cursor-pointer group">
+                  <input type="checkbox" checked={contact.highPrestige || false} onChange={(e) => updateContact(contact.id, { highPrestige: e.target.checked })} className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-700">Prestigio de Marca</span>
+                    <span className="text-[10px] text-slate-500">Reconocimiento que aporta valor.</span>
+                  </div>
+               </label>
+               <label className="flex items-start gap-2 cursor-pointer group">
+                  <input type="checkbox" checked={contact.displacedCompetitor || false} onChange={(e) => updateContact(contact.id, { displacedCompetitor: e.target.checked })} className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-700">Desplazó Competidor</span>
+                    <span className="text-[10px] text-slate-500">Logro comercial significativo.</span>
+                  </div>
+               </label>
+               <div className="mt-2">
+                 <label className="text-xs font-bold text-slate-500 block mb-1">Tipo de Negocio</label>
+                 <select value={contact.businessType || 'MICROEMPRESARIO'} onChange={(e) => updateContact(contact.id, { businessType: e.target.value as any })} className="w-full text-sm border-slate-200 rounded-md bg-slate-50 p-1.5 focus:ring-2 ring-indigo-500/20 outline-none">
+                    <option value="MICROEMPRESARIO">Microempresario (3+ empleados)</option>
+                    <option value="DISTRIBUIDOR">Distribuidor</option>
+                    <option value="DIY">Hágalo Usted Mismo (DIY)</option>
+                 </select>
+               </div>
+            </div>
+          </section>
+
           {/* Action Box: Note OR Task (NEW) */}
           <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <div className="flex border-b border-slate-100 bg-indigo-50 px-4 py-2">
@@ -226,7 +300,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                   <label className="text-xs font-bold text-slate-500">Tipo de Gestión</label>
                   <select value={activityType} onChange={(e) => setActivityType(e.target.value)} className="w-full mt-1 border border-slate-200 rounded-md p-1.5 text-sm outline-none focus:border-indigo-500">
                     <option value="CALL">Llamada</option>
-                    <option value="VISIT">Visita</option>
+                    <option value="VISIT">Visita Presencial</option>
                     <option value="WHATSAPP">WhatsApp</option>
                     <option value="EMAIL">Correo</option>
                     <option value="QUOTE">Cotización</option>
@@ -240,6 +314,23 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                   <input type="datetime-local" value={taskDate} onChange={(e) => setTaskDate(e.target.value)} className="w-full mt-1 border border-slate-200 rounded-md p-1.5 text-sm outline-none focus:border-indigo-500" />
                 </div>
               </div>
+
+              {activityType === 'VISIT' && (
+                <div className="mb-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg">
+                  <label className="text-xs font-bold text-indigo-800">Inversión Comercial (Viáticos/Gastos)</label>
+                  <p className="text-[10px] text-indigo-600 mb-1">Registra si hubo gastos de viaje, representación, etc.</p>
+                  <div className="relative">
+                    <span className="absolute left-2 top-1.5 text-slate-500 text-sm font-bold">$</span>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. 150000" 
+                      value={expenseAmount} 
+                      onChange={(e) => setExpenseAmount(e.target.value)} 
+                      className="w-full pl-6 border border-indigo-200 rounded-md p-1.5 text-sm outline-none focus:border-indigo-500 bg-white" 
+                    />
+                  </div>
+                </div>
+              )}
 
               <textarea
                 value={noteText}

@@ -49,7 +49,7 @@ export const CrmFull: React.FC = () => {
   const [filterCity, setFilterCity] = useState<string>('');
   
   // Interactive Data States from Global Context
-  const { contacts, deals, activities, assignmentLogs, crmUsers, globalSelectedContactId, setGlobalSelectedContactId, fullProfileContactId, setFullProfileContactId, moveDealStage, addContact, addDeal, addActivity, deleteContacts } = useEnterprise();
+  const { contacts, deals, activities, assignmentLogs, crmUsers, globalSelectedContactId, setGlobalSelectedContactId, fullProfileContactId, setFullProfileContactId, moveDealStage, addContact, addDeal, addActivity, deleteContacts, crmSettings } = useEnterprise();
   
   // Custom Filter State
   const [filterOwner, setFilterOwner] = useState<string>('all');
@@ -93,7 +93,7 @@ export const CrmFull: React.FC = () => {
       }
   };
 
-  const handleAddNote = (contactId: string, noteText: string, activityType: string, scheduledDate?: string, nextAction?: string, nextActionDate?: string) => {
+  const handleAddNote = (contactId: string, noteText: string, activityType: string, scheduledDate?: string, nextAction?: string, nextActionDate?: string, expenseAmount?: number) => {
     const newActivity: CrmActivity = {
       id: `ACT-NEW-${Date.now()}`,
       type: activityType as any,
@@ -104,7 +104,8 @@ export const CrmFull: React.FC = () => {
       status: scheduledDate ? 'PENDING' : 'COMPLETED',
       ownerId: 'U-ME',
       nextAction,
-      nextActionDate
+      nextActionDate,
+      expenseAmount
     };
     addActivity(newActivity);
   };
@@ -123,6 +124,8 @@ export const CrmFull: React.FC = () => {
     const address = (newPayload.address || '').trim();
     const phone = (newPayload.phone || '').trim();
     const whatsapp = (newPayload.whatsapp || '').trim();
+    const city = (newPayload.city || '').trim();
+    const dataConsent = !!newPayload.dataConsent;
 
     if (!company) {
       setValidationError('El Nombre de la Empresa / Razón Social es requerido.');
@@ -152,8 +155,16 @@ export const CrmFull: React.FC = () => {
       setValidationError('El Correo Electrónico ingresado tiene errores de formato (debe contener @ y un dominio).');
       return;
     }
-    if (!phone) {
-      setValidationError('El Teléfono Principal es requerido.');
+    if (!phone && !whatsapp) {
+      setValidationError('El Teléfono Principal o WhatsApp es requerido.');
+      return;
+    }
+    if (!city) {
+      setValidationError('La Ciudad es requerida.');
+      return;
+    }
+    if (!dataConsent) {
+      setValidationError('Debe confirmar que el cliente ha aceptado la Política de Tratamiento de Datos.');
       return;
     }
 
@@ -184,7 +195,9 @@ export const CrmFull: React.FC = () => {
       hobby: newPayload.hobby || undefined,
       birthday: newPayload.birthday || undefined,
       observations: newPayload.observations || undefined,
-      decisionMakers: newPayload.decisionMakers || []
+      decisionMakers: newPayload.decisionMakers || [],
+      city: city,
+      dataConsent: dataConsent
     };
     addContact(nc);
 
@@ -205,14 +218,53 @@ export const CrmFull: React.FC = () => {
 
     setIsModalOpen(false);
     setNewPayload({});
+    setIsModalOpen(false);
+    setNewPayload({});
     setValidationError(null);
+  };
+
+  const handleSimulateWhatsAppLead = () => {
+    let assignedOwnerId = 'U-ME';
+    
+    if (crmSettings.autoAssignLeads) {
+      const salesReps = crmUsers.filter(u => u.role === 'SALES_REP' || u.role === 'MANAGER' || u.role === 'ADMIN');
+      if (salesReps.length > 0) {
+        const lastWhatsappLead = [...contacts].reverse().find(c => c.source === 'WHATSAPP');
+        let nextIndex = 0;
+        if (lastWhatsappLead) {
+          const lastOwnerIndex = salesReps.findIndex(u => u.id === lastWhatsappLead.ownerId);
+          if (lastOwnerIndex !== -1) {
+            nextIndex = (lastOwnerIndex + 1) % salesReps.length;
+          }
+        }
+        assignedOwnerId = salesReps[nextIndex].id;
+      }
+    }
+
+    const nc: CrmContact = {
+      id: `C-WA-${Date.now()}`,
+      name: `Lead WA ${Math.floor(Math.random() * 1000)}`,
+      company: 'Por definir',
+      email: '',
+      phone: '',
+      whatsapp: '3000000000',
+      documentNumber: '',
+      source: 'WHATSAPP',
+      status: 'PROSPECTO',
+      tier: 'NEW',
+      lastContactDate: new Date().toISOString(),
+      ownerId: assignedOwnerId
+    };
+    
+    addContact(nc);
+    alert(`Nuevo Lead de WhatsApp simulado.\n\nAsignado a: ${crmUsers.find(u => u.id === assignedOwnerId)?.name || assignedOwnerId}${crmSettings.autoAssignLeads ? ' (Asignación Automática - Round Robin)' : ' (Asignación Manual a Usuario Actual)'}`);
   };
 
   const handleAddDecisionMaker = () => {
       const current = newPayload.decisionMakers || [];
       setNewPayload({
           ...newPayload,
-          decisionMakers: [...current, { name: '', position: '', hobby: '', birthday: '' }]
+          decisionMakers: [...current, { name: '', position: '', hobby: '', birthday: '', influenceRole: 'OTRO' }]
       });
   };
 
@@ -311,6 +363,9 @@ export const CrmFull: React.FC = () => {
                         <option value="ALL">Cualquiera</option>
                         <option value="VIP">VIP</option>
                         <option value="STRATEGIC">Estratégico</option>
+                        <option value="POTENTIAL">Potencial</option>
+                        <option value="ATTENTION">Atención</option>
+                        <option value="DECREASE">Disminuir</option>
                         <option value="REGULAR">Regular</option>
                         <option value="NEW">Nuevo</option>
                       </select>
@@ -388,9 +443,14 @@ export const CrmFull: React.FC = () => {
           )}
 
           {activeTab === 'contactos' && (
-            <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm shadow-sm shadow-indigo-200">
-              <Plus className="w-4 h-4" /> Nuevo Registro
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={handleSimulateWhatsAppLead} className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors font-bold text-sm shadow-sm border border-emerald-200">
+                <Globe className="w-4 h-4" /> Simular Lead WhatsApp
+              </button>
+              <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm shadow-sm shadow-indigo-200">
+                <Plus className="w-4 h-4" /> Nuevo Registro
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -582,7 +642,7 @@ export const CrmFull: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 mb-1">Correo Electrónico *</label>
                             <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="correo@empresa.com" type="email" onChange={(e) => setNewPayload({...newPayload, email: e.target.value})} />
@@ -590,6 +650,10 @@ export const CrmFull: React.FC = () => {
                         <div>
                             <label className="block text-xs font-bold text-slate-500 mb-1">Dirección Física *</label>
                             <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Calle 12 # 34 - 56" onChange={(e) => setNewPayload({...newPayload, address: e.target.value})} />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Ciudad *</label>
+                            <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Ej. Bogotá" onChange={(e) => setNewPayload({...newPayload, city: e.target.value})} />
                         </div>
                     </div>
 
@@ -620,7 +684,13 @@ export const CrmFull: React.FC = () => {
                             {(newPayload.decisionMakers || []).map((dm: any, i: number) => (
                                 <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-200 relative">
                                     <button onClick={() => handleRemoveDecisionMaker(i)} className="absolute top-2 right-2 p-1 text-slate-400 hover:text-rose-500 rounded-md hover:bg-rose-50"><Trash2 className="w-4 h-4"/></button>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 gap-3 mt-2">
+                                        <select className="border border-slate-300 rounded-md p-2 text-xs bg-white col-span-2 text-indigo-700 font-semibold" value={dm.influenceRole || 'OTRO'} onChange={(e) => handleDecisionMakerChange(i, 'influenceRole', e.target.value)}>
+                                            <option value="OTRO">Rol: Otro / No definido</option>
+                                            <option value="USUARIO_FINAL">💡 Usuario Final (Pintores, Lijadores, Polichadores)</option>
+                                            <option value="COMERCIAL_DISENO">💡 Comercial / Diseño (Ventas, Diseñadores)</option>
+                                            <option value="DIRECTIVO">💡 Directivo / Gerencia (Directores, Dueños)</option>
+                                        </select>
                                         <input className="border border-slate-300 rounded-md p-2 text-xs" placeholder="Nombre Completo" value={dm.name} onChange={(e) => handleDecisionMakerChange(i, 'name', e.target.value)} />
                                         <input className="border border-slate-300 rounded-md p-2 text-xs" placeholder="Cargo (Ej. Gerente de Compras)" value={dm.position} onChange={(e) => handleDecisionMakerChange(i, 'position', e.target.value)} />
                                         <input className="border border-slate-300 rounded-md p-2 text-xs" placeholder="Hobby o Intereses" value={dm.hobby} onChange={(e) => handleDecisionMakerChange(i, 'hobby', e.target.value)} />
@@ -634,6 +704,12 @@ export const CrmFull: React.FC = () => {
                         </div>
                     </div>
                   </div>
+              <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" className="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" checked={!!newPayload.dataConsent} onChange={(e) => setNewPayload({...newPayload, dataConsent: e.target.checked})} />
+                    <span className="text-sm text-slate-700 font-medium">Confirmo que el cliente ha otorgado su consentimiento para el manejo y tratamiento de datos personales (Habeas Data) según las políticas de la empresa. *</span>
+                </label>
+              </div>
               <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100">
                 <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
                 <button onClick={handleCreateRegistro} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-200 hover:bg-emerald-700 transition-colors">Guardar Registro</button>

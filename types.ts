@@ -377,6 +377,11 @@ export interface PaymentRule {
   days?: number; // e.g., 30, 60, 90
 }
 
+export interface DealSplit {
+  userId: string;
+  percentage: number;
+}
+
 export interface CrmDeal {
   id: string;
   title: string;
@@ -390,6 +395,8 @@ export interface CrmDeal {
   notes?: string;
   lostReason?: string;
   purchaseExpectation?: string;
+  isNonCommissionable?: boolean;
+  splits?: DealSplit[];
 }
 
 export interface CrmActivity {
@@ -404,6 +411,7 @@ export interface CrmActivity {
   ownerId: string;
   nextAction?: string;
   nextActionDate?: string;
+  expenseAmount?: number;
 }
 
 export interface CrmAssignmentLog {
@@ -506,6 +514,10 @@ export interface CrmSettings {
     redMax: number;
     yellowMax: number;
   };
+  whaleAlertThreshold?: number;
+  maxCollectionDaysForCommission?: number;
+  lateCollectionPenaltyPercent?: number;
+  autoAssignLeads?: boolean;
 }
 
 export interface AccountingTransaction {

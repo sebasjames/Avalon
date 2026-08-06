@@ -56,6 +56,37 @@ export const CrmConfig: React.FC = () => {
           </div>
         </div>
 
+        {/* Políticas de Comisión */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 col-span-1 md:col-span-2">
+          <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4"><Target className="w-4 h-4 text-indigo-500"/> Políticas de Comisión y Cuenta Directa</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block">Umbral de Venta Ballena ($)</label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-400">$</span>
+                <input type="number" defaultValue={crmSettings.whaleAlertThreshold} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Alertar si un trato supera este monto (para escalarlo a Dirección).</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block">Plazo Máx. Recaudo (Días)</label>
+              <div className="flex items-center gap-2">
+                <input type="number" defaultValue={crmSettings.maxCollectionDaysForCommission} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+                <span className="text-sm font-medium text-slate-500">Días</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Pagar comisión solo si el cliente paga la factura dentro de este plazo.</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block">Penalidad por Mora (%)</label>
+              <div className="flex items-center gap-2">
+                <input type="number" defaultValue={crmSettings.lateCollectionPenaltyPercent} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+                <span className="text-sm font-medium text-slate-500">%</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Si pagan después del plazo máximo, se descuenta este porcentaje a la comisión.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Etapas del Embudo */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 col-span-1 md:col-span-2">
           <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4"><Tag className="w-4 h-4 text-indigo-500"/> Etapas del Embudo y Orígenes</h3>

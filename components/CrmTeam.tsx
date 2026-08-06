@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEnterprise } from '../context/EnterpriseContext';
-import { User, Target, BarChart2, Calendar, Phone, Mail, X, Activity, TrendingDown, TrendingUp } from 'lucide-react';
+import { User, Target, BarChart2, Calendar, Phone, Mail, X, Activity, TrendingDown, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { CrmUser } from '../types';
 
 export const CrmTeam: React.FC = () => {
@@ -19,6 +19,35 @@ export const CrmTeam: React.FC = () => {
           const won = userDeals.filter(d => d.stage === 'CLOSED_WON').reduce((s, d) => s + d.value, 0);
           const pipeline = userDeals.filter(d => d.stage !== 'CLOSED_WON' && d.stage !== 'CLOSED_LOST').reduce((s, d) => s + d.value, 0);
           const pct = Math.min((won / user.quota) * 100, 100);
+
+          // Lógica de Adopción de L.C.
+          const now = new Date();
+          const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          
+          const userContacts = contacts.filter(c => c.ownerId === user.id);
+          const orphanedContacts = userContacts.filter(c => new Date(c.lastContactDate) < thirtyDaysAgo).length;
+          
+          const userActivities = activities.filter(a => a.ownerId === user.id);
+          const recentActivities = userActivities.filter(a => new Date(a.date) > sevenDaysAgo).length;
+          const visitsThisMonth = userActivities.filter(a => a.type === 'VISIT' && new Date(a.date).getMonth() === now.getMonth()).length;
+
+          let adoptionStatus = 'OPTIMAL';
+          let statusColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+          let statusText = 'Adopción Óptima';
+          let StatusIcon = CheckCircle;
+
+          if (recentActivities === 0) {
+            adoptionStatus = 'RISK';
+            statusColor = 'bg-rose-100 text-rose-700 border-rose-200';
+            statusText = 'Riesgo Crítico de Uso';
+            StatusIcon = AlertCircle;
+          } else if (orphanedContacts > 3) {
+            adoptionStatus = 'WARNING';
+            statusColor = 'bg-amber-100 text-amber-700 border-amber-200';
+            statusText = 'Alerta: Clientes Huérfanos';
+            StatusIcon = AlertCircle;
+          }
 
           return (
             <motion.div 
@@ -62,6 +91,24 @@ export const CrmTeam: React.FC = () => {
                   <div className="text-right">
                     <p className="text-[10px] uppercase font-bold text-slate-400">Tratos</p>
                     <p className="font-bold text-slate-700">{userDeals.length}</p>
+                  </div>
+                </div>
+
+                {/* Monitor de Adopción */}
+                <div className="pt-3 border-t border-slate-100">
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider w-fit mb-2 ${statusColor}`}>
+                    <StatusIcon className="w-3.5 h-3.5" />
+                    {statusText}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Visitas Mes</p>
+                      <p className="font-bold text-slate-800">{visitsThisMonth}</p>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Huérfanos (&gt;30d)</p>
+                      <p className={`font-bold ${orphanedContacts > 3 ? 'text-rose-600' : 'text-slate-800'}`}>{orphanedContacts}</p>
+                    </div>
                   </div>
                 </div>
               </div>

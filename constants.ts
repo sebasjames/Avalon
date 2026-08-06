@@ -21171,20 +21171,24 @@ export const MOCK_EVENT_LOG: SystemEvent[] = [
 // --- COMMERCIAL RULES MOCK DATA ---
 export const MOCK_TAX_RULES: TaxRule[] = [
   { id: 'TAX-001', name: 'Régimen Común', taxRateOverride: 19 },
-  { id: 'TAX-002', name: 'Zona Franca', taxRateOverride: 0 }
+  { id: 'TAX-002', name: 'Exento: Zona Franca', taxRateOverride: 0 },
+  { id: 'TAX-003', name: 'Exento: Tratamiento Aduanero Especial', taxRateOverride: 0 }
 ];
 
 export const MOCK_PRICING_RULES: PricingRule[] = [
-  { id: 'PR-001', name: 'Minorista (Sin Descuento)', discountPercentage: 0 },
-  { id: 'PR-002', name: 'Mayorista (10%)', discountPercentage: 10 },
-  { id: 'PR-003', name: 'Estratégico VIP (15%)', discountPercentage: 15 }
+  { id: 'PR-001', name: 'Lista Almacenes y Contado', discountPercentage: 0 },
+  { id: 'PR-002', name: 'Lista a Crédito', discountPercentage: 0 },
+  { id: 'PR-003', name: 'Descuento VIP (3%)', discountPercentage: 3 },
+  { id: 'PR-004', name: 'Descuento VIP (4%)', discountPercentage: 4 },
+  { id: 'PR-005', name: 'Descuento VIP (5%)', discountPercentage: 5 },
+  { id: 'PR-006', name: 'Descuento VIP (6%)', discountPercentage: 6 }
 ];
 
 export const MOCK_PAYMENT_RULES: PaymentRule[] = [
   { id: 'PAY-001', name: 'Contado Estricto', type: 'CONTADO' },
-  { id: 'PAY-002', name: 'Crédito a 30 Días', type: 'CREDITO', days: 30 },
-  { id: 'PAY-003', name: 'Crédito a 60 Días', type: 'CREDITO', days: 60 },
-  { id: 'PAY-004', name: 'Crédito a 90 Días', type: 'CREDITO', days: 90 }
+  { id: 'PAY-002', name: 'Crédito a 15 Días', type: 'CREDITO', days: 15 },
+  { id: 'PAY-003', name: 'Crédito a 30 Días', type: 'CREDITO', days: 30 },
+  { id: 'PAY-004', name: 'Crédito a 60 Días', type: 'CREDITO', days: 60 }
 ];
 
 // --- CRM MOCK DATA ---
@@ -22934,6 +22938,10 @@ export const MOCK_CRM_SETTINGS: CrmSettings = {
     maxHoursUncontactedLead: 48,
     maxDaysInStage: 15
   },
+  whaleAlertThreshold: 50000000,
+  maxCollectionDaysForCommission: 60,
+  lateCollectionPenaltyPercent: 100,
+  autoAssignLeads: true,
   globalGoals: {
     monthlyRevenue: 40000000000,
     monthlyDeals: 50

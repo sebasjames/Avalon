@@ -139,7 +139,14 @@ export const ComisionesLogros: React.FC = () => {
       const repActivities = activities.filter(a => a.ownerId === repUser && a.status === 'COMPLETED');
       const crmBonus = repActivities.length * 15000; // $15,000 COP per CRM completed task
       
-      const totalComm = commissionEarned + crmBonus;
+      // Calculate devoluciones (Notas Crédito)
+      const calculatedReturns = repTransactions
+          .filter(t => t.type === 'NOTA_CREDITO')
+          .reduce((sum, t) => sum + t.total, 0);
+          
+      const commissionDeducted = Math.round(calculatedReturns * commissionRate);
+      
+      const totalComm = commissionEarned + crmBonus - commissionDeducted;
 
       return {
           ...baseAgent,
@@ -150,10 +157,12 @@ export const ComisionesLogros: React.FC = () => {
               pendingCollection: calculatedPending,
               commissionEarned: totalComm,
               commissionFrozen: commissionFrozen,
+              returnsDeducted: commissionDeducted,
           },
           commissionDistribution: [
               { name: 'Comisión Base (1.5%)', value: commissionEarned, color: '#10b981' },
               { name: 'Micropagos (CRM Activo)', value: crmBonus, color: '#8b5cf6' },
+              ...(commissionDeducted > 0 ? [{ name: 'Deducciones (Notas Crédito)', value: -commissionDeducted, color: '#f43f5e' }] : [])
           ]
       };
   }, [selectedAgentId, transactions, contacts, activities]);
@@ -393,18 +402,29 @@ export const ComisionesLogros: React.FC = () => {
                                 <div className="text-2xl font-bold text-emerald-400">${player.transparencyData.commissionEarned.toLocaleString('es-CO')} COP</div>
                                 <div className="text-xs text-slate-500 mt-1">Basado en ${player.transparencyData.totalCollected.toLocaleString('es-CO')} COP de recaudo real.</div>
                             </div>
+
+                            {player.transparencyData.returnsDeducted > 0 && (
+                                <div className="bg-slate-900/50 rounded-xl p-4 border border-rose-600/30">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-sm text-rose-300 font-bold">Deducción por Devoluciones (Notas Crédito)</span>
+                                        <AlertCircle className="w-4 h-4 text-rose-500" />
+                                    </div>
+                                    <div className="text-xl font-bold text-rose-500">-${player.transparencyData.returnsDeducted.toLocaleString('es-CO')} COP</div>
+                                    <div className="text-xs text-slate-400 mt-1">Reverso automático de comisión por devoluciones de clientes en este periodo.</div>
+                                </div>
+                            )}
                             
-                            <div className="bg-slate-900/50 rounded-xl p-4 border border-rose-500/20 relative overflow-hidden group cursor-pointer hover:border-rose-500/50 transition-colors">
+                            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-500/20 relative overflow-hidden group cursor-pointer hover:border-slate-500/50 transition-colors">
                                 <div className="flex justify-between items-center mb-1 relative z-10">
                                     <span className="text-sm text-slate-400">Comisión Congelada (En Limbo)</span>
-                                    <Lock className="w-4 h-4 text-rose-500" />
+                                    <Lock className="w-4 h-4 text-slate-500" />
                                 </div>
-                                <div className="text-2xl font-bold text-rose-400 relative z-10">${player.transparencyData.commissionFrozen.toLocaleString('es-CO')} COP</div>
+                                <div className="text-2xl font-bold text-slate-400 relative z-10">${player.transparencyData.commissionFrozen.toLocaleString('es-CO')} COP</div>
                                 <div className="text-xs text-slate-500 mt-1 relative z-10">Facturas pendientes: ${player.transparencyData.pendingCollection.toLocaleString('es-CO')} COP</div>
                                 
                                 {/* Hover Action */}
-                                <div className="absolute inset-0 bg-rose-500/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-[1px]">
-                                    <span className="text-rose-300 text-sm font-bold flex items-center gap-1">
+                                <div className="absolute inset-0 bg-slate-500/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-[1px]">
+                                    <span className="text-slate-300 text-sm font-bold flex items-center gap-1">
                                         Ver Facturas Pendientes <ChevronRight className="w-4 h-4" />
                                     </span>
                                 </div>
