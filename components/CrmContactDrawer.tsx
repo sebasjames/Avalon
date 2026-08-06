@@ -23,7 +23,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
   const [nextAction, setNextAction] = useState('');
   const [nextActionDate, setNextActionDate] = useState('');
   const [expenseAmount, setExpenseAmount] = useState<string>('');
-  const { setFullProfileContactId, taxRules, pricingRules, paymentRules, updateContact } = useEnterprise();
+  const { setFullProfileContactId, taxRules, pricingRules, paymentRules, updateContact, updateDeal, crmUsers } = useEnterprise();
 
   const [mockFiles, setMockFiles] = useState([
     { id: 'f1', name: 'Cotizacion_Procoquinal_v2.pdf', size: '1.2 MB', date: 'Hoy' },
@@ -647,6 +647,97 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                 }
               }) : (
                 <p className="text-sm text-slate-500 italic ml-6">No hay timeline registrado.</p>
+              )}
+            </div>
+          </section>
+
+          {/* Deals & Splits Section */}
+          <section>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1">
+              <Briefcase className="w-3.5 h-3.5" />
+              Negocios y Oportunidades (Splits)
+            </h3>
+            <div className="space-y-3">
+              {contactDeals.length === 0 ? (
+                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-center">
+                  <p className="text-sm text-slate-500 italic">No hay negocios asociados a este contacto.</p>
+                </div>
+              ) : (
+                contactDeals.map(deal => (
+                  <div key={deal.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-sm">{deal.title}</h4>
+                        <span className="text-xs text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">{deal.stage}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-slate-900">${deal.value.toLocaleString('es-CO')}</div>
+                        <div className="text-[10px] text-slate-500">Prob: {deal.probability}%</div>
+                      </div>
+                    </div>
+                    
+                    {/* Splits Area */}
+                    <div className="mt-2 pt-3 border-t border-slate-100">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Comisiones Compartidas (Splits)</span>
+                        <button 
+                          onClick={() => {
+                            const newSplits = [...(deal.splits || []), { userId: crmUsers[0]?.id || '', percentage: 50 }];
+                            updateDeal(deal.id, { splits: newSplits });
+                          }}
+                          className="text-[10px] bg-slate-100 text-slate-600 hover:bg-slate-200 px-2 py-1 rounded font-bold transition-colors flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Añadir Split
+                        </button>
+                      </div>
+                      
+                      {deal.splits && deal.splits.length > 0 ? (
+                        <div className="space-y-2 mt-2">
+                          {deal.splits.map((split, sIdx) => (
+                            <div key={sIdx} className="flex items-center gap-2">
+                              <select 
+                                value={split.userId}
+                                onChange={(e) => {
+                                  const newSplits = [...deal.splits!];
+                                  newSplits[sIdx].userId = e.target.value;
+                                  updateDeal(deal.id, { splits: newSplits });
+                                }}
+                                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                              >
+                                {crmUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                              </select>
+                              <div className="flex items-center gap-1">
+                                <input 
+                                  type="number" 
+                                  value={split.percentage} 
+                                  onChange={(e) => {
+                                    const newSplits = [...deal.splits!];
+                                    newSplits[sIdx].percentage = Number(e.target.value);
+                                    updateDeal(deal.id, { splits: newSplits });
+                                  }}
+                                  className="w-16 text-center bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none font-mono"
+                                />
+                                <span className="text-xs font-bold text-slate-400">%</span>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  const newSplits = deal.splits!.filter((_, i) => i !== sIdx);
+                                  updateDeal(deal.id, { splits: newSplits });
+                                }}
+                                className="text-rose-400 hover:text-rose-600 p-1"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 italic">No hay splits. El creador recibe el 100%.</p>
+                      )}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </section>

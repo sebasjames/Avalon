@@ -17,6 +17,7 @@ interface EnterpriseContextType {
     addEvent: (event: SystemEvent) => void;
     addContact: (contact: CrmContact) => void;
     addDeal: (deal: CrmDeal) => void;
+    updateDeal: (dealId: string, updates: Partial<CrmDeal>) => void;
     addActivity: (activity: CrmActivity) => void;
     deleteContacts: (ids: string[]) => void;
     reassignContacts: (contactIds: string[], newOwnerId: string, transferDeals: boolean) => void;
@@ -650,6 +651,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const addDeal = (deal: CrmDeal) => {
         setDeals(prev => [...prev, deal]);
     };
+    const updateDeal = (dealId: string, updates: Partial<CrmDeal>) => {
+        setDeals(prev => prev.map(d => d.id === dealId ? { ...d, ...updates } : d));
+    };
     const addActivity = (activity: CrmActivity) => setActivities(prev => [activity, ...prev]);
     const deleteContacts = (ids: string[]) => setContacts(prev => prev.filter(c => !ids.includes(c.id)));
 
@@ -951,7 +955,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return (
         <EnterpriseContext.Provider value={{
             inventory, deals, contacts, activities, events, receipts, crmUsers, crmSettings,
-            moveDealStage, moveContactPostSaleStage, addEvent, addContact, addDeal, addActivity, deleteContacts, reassignContacts,
+            moveDealStage, moveContactPostSaleStage, addEvent, addContact, addDeal, updateDeal, addActivity, deleteContacts, reassignContacts,
             processInboundReceipt,
             getContactHealthScore,
             updateHealthThresholds,

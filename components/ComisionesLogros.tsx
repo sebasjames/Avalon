@@ -10,90 +10,82 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, L
 const agentsData = [
   {
     id: 1,
-    name: "Ana Silva",
+    name: "Ana Silva (Escenario Ideal & Split)",
     rank: "Vendedor Diamante",
     xp: 8500,
     nextRankXp: 10000,
     avatar: "AS",
     level: 42,
-    quota: 100000,
-    currentSales: 115000,
+    quota: 100000000,
+    currentSales: 115000000,
     commissionDistribution: [
-      { name: 'Comisión Base (1%)', value: 1250, color: '#10b981' },
-      { name: 'Bono Escalonado (Extra 2%)', value: 850, color: '#f59e0b' },
-      { name: 'Micropagos (CRM)', value: 150, color: '#8b5cf6' },
-      { name: 'Bono Producto Estrella', value: 300, color: '#ec4899' },
+      { name: 'Comisión Base (1%)', value: 1150000, color: '#10b981' },
+      { name: 'Comisión Compartida (Split 50%)', value: 450000, color: '#3b82f6' },
+      { name: 'Micropagos (CRM Completo)', value: 150000, color: '#8b5cf6' },
     ],
     transparencyData: {
-      totalBilled: 125000,
-      totalCollected: 50000,
-      pendingCollection: 75000,
-      commissionEarned: 2550,
-      commissionFrozen: 1500,
+      totalBilled: 160000000,
+      totalCollected: 120000000,
+      pendingCollection: 40000000,
+      commissionEarned: 1750000,
+      commissionFrozen: 400000, // Por recaudos pendientes
     },
     trophies: [
-      { id: 1, title: 'Cazador B2B', desc: 'Cierra 3 tratos corporativos en un mes.', reward: '+$100', unlocked: true, icon: Target, color: 'text-amber-500', bg: 'bg-amber-100' },
-      { id: 2, title: 'Detective de Datos', desc: 'Completa 5 perfiles 100% en el CRM.', reward: '+$50', unlocked: true, icon: Star, color: 'text-violet-500', bg: 'bg-violet-100' },
-      { id: 3, title: 'Racha de Cierre', desc: 'Vende durante 7 días consecutivos.', reward: '2x Multiplicador', unlocked: false, icon: Flame, color: 'text-slate-400', bg: 'bg-slate-100' },
-      { id: 4, title: 'Salvavidas', desc: 'Reactiva 2 clientes inactivos (>6 meses).', reward: '+$200', unlocked: false, icon: AlertCircle, color: 'text-slate-400', bg: 'bg-slate-100' },
+      { id: 1, title: 'Cazador B2B', desc: 'Cierra 3 tratos corporativos en un mes.', reward: '+$100,000', unlocked: true, icon: Target, color: 'text-amber-500', bg: 'bg-amber-100' },
+      { id: 2, title: 'Trabajo en Equipo', desc: 'Cierra trato compartido.', reward: '+$50,000', unlocked: true, icon: Users, color: 'text-blue-500', bg: 'bg-blue-100' },
     ]
   },
   {
     id: 2,
-    name: "Carlos Ruiz",
+    name: "Carlos Ruiz (Mora & Notas Crédito)",
     rank: "Vendedor Plata",
     xp: 3200,
     nextRankXp: 5000,
     avatar: "CR",
     level: 18,
-    quota: 80000,
-    currentSales: 65000,
+    quota: 80000000,
+    currentSales: 95000000,
     commissionDistribution: [
-      { name: 'Comisión Base (1%)', value: 650, color: '#10b981' },
-      { name: 'Micropagos (CRM)', value: 50, color: '#8b5cf6' },
-      { name: 'Bono Producto Estrella', value: 100, color: '#ec4899' },
+      { name: 'Comisión Base (1%)', value: 950000, color: '#10b981' },
+      { name: 'Penalidad por Mora (-0.5%)', value: -120000, color: '#ef4444' },
+      { name: 'Deducción Notas Crédito', value: -300000, color: '#f97316' },
     ],
     transparencyData: {
-      totalBilled: 65000,
-      totalCollected: 26000,
-      pendingCollection: 39000,
-      commissionEarned: 800,
-      commissionFrozen: 500,
+      totalBilled: 95000000,
+      totalCollected: 70000000,
+      pendingCollection: 25000000,
+      commissionEarned: 530000,
+      commissionFrozen: 250000,
+      returnsDeducted: 300000,
     },
     trophies: [
-      { id: 1, title: 'Cazador B2B', desc: 'Cierra 3 tratos corporativos en un mes.', reward: '+$100', unlocked: false, icon: Target, color: 'text-slate-400', bg: 'bg-slate-100' },
-      { id: 2, title: 'Detective de Datos', desc: 'Completa 5 perfiles 100% en el CRM.', reward: '+$50', unlocked: true, icon: Star, color: 'text-violet-500', bg: 'bg-violet-100' },
-      { id: 3, title: 'Racha de Cierre', desc: 'Vende durante 7 días consecutivos.', reward: '2x Multiplicador', unlocked: false, icon: Flame, color: 'text-slate-400', bg: 'bg-slate-100' },
-      { id: 4, title: 'Salvavidas', desc: 'Reactiva 2 clientes inactivos (>6 meses).', reward: '+$200', unlocked: false, icon: AlertCircle, color: 'text-slate-400', bg: 'bg-slate-100' },
+      { id: 4, title: 'Salvavidas', desc: 'Reactiva 2 clientes inactivos (>6 meses).', reward: '+$200,000', unlocked: true, icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-100' },
     ]
   },
   {
     id: 3,
-    name: "Laura Gómez",
+    name: "Laura Gómez (Whale & Apertura)",
     rank: "Vendedor Oro",
     xp: 6800,
     nextRankXp: 10000,
     avatar: "LG",
     level: 35,
-    quota: 120000,
-    currentSales: 125000,
+    quota: 120000000,
+    currentSales: 350000000,
     commissionDistribution: [
-      { name: 'Comisión Base (1%)', value: 1250, color: '#10b981' },
-      { name: 'Bono Escalonado (Extra 2%)', value: 1050, color: '#f59e0b' },
-      { name: 'Micropagos (CRM)', value: 200, color: '#8b5cf6' },
+      { name: 'Comisión Base (1%)', value: 1200000, color: '#10b981' },
+      { name: 'Whale Limit (Tope Dirección)', value: 0, color: '#94a3b8' },
+      { name: 'Bono Apertura (Cliente Nuevo)', value: 800000, color: '#06b6d4' },
     ],
     transparencyData: {
-      totalBilled: 125000,
-      totalCollected: 85000,
-      pendingCollection: 40000,
-      commissionEarned: 2500,
-      commissionFrozen: 800,
+      totalBilled: 350000000,
+      totalCollected: 350000000,
+      pendingCollection: 0,
+      commissionEarned: 2000000,
+      commissionFrozen: 0,
     },
     trophies: [
-      { id: 1, title: 'Cazador B2B', desc: 'Cierra 3 tratos corporativos en un mes.', reward: '+$100', unlocked: true, icon: Target, color: 'text-amber-500', bg: 'bg-amber-100' },
-      { id: 2, title: 'Detective de Datos', desc: 'Completa 5 perfiles 100% en el CRM.', reward: '+$50', unlocked: true, icon: Star, color: 'text-violet-500', bg: 'bg-violet-100' },
-      { id: 3, title: 'Racha de Cierre', desc: 'Vende durante 7 días consecutivos.', reward: '2x Multiplicador', unlocked: true, icon: Flame, color: 'text-rose-500', bg: 'bg-rose-100' },
-      { id: 4, title: 'Salvavidas', desc: 'Reactiva 2 clientes inactivos (>6 meses).', reward: '+$200', unlocked: false, icon: AlertCircle, color: 'text-slate-400', bg: 'bg-slate-100' },
+      { id: 1, title: 'Cazador de Ballenas', desc: 'Trae un negocio >200M.', reward: 'VIP', unlocked: true, icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-100' },
     ]
   }
 ];
@@ -105,67 +97,8 @@ export const ComisionesLogros: React.FC = () => {
 
   const player = useMemo(() => {
       const baseAgent = agentsData.find(a => a.id === selectedAgentId) || agentsData[0];
-      
-      const repOwnerId = selectedAgentId === 1 ? 'U-001' : selectedAgentId === 2 ? 'U-002' : 'U-003';
-      const repUser = selectedAgentId === 1 ? 'U-CARLOS' : selectedAgentId === 2 ? 'U-MARIA' : 'U-ME';
-      
-      const repContacts = contacts.filter(c => c.ownerId === repOwnerId);
-      const repContactNames = new Set(repContacts.map(c => c.name));
-      const repCompanyNames = new Set(repContacts.map(c => c.company).filter(Boolean));
-      
-      const isRepTransaction = (t: any) => {
-          return repContactNames.has(t.client) || repCompanyNames.has(t.client);
-      };
-
-      const repTransactions = transactions.filter(isRepTransaction);
-      
-      const calculatedBilled = repTransactions
-          .filter(t => t.type === 'VENTA')
-          .reduce((sum, t) => sum + t.total, 0);
-          
-      const calculatedCollected = repTransactions
-          .filter(t => t.type === 'VENTA' && !t.paymentMethod.toLowerCase().includes('crédito') && !t.paymentMethod.toLowerCase().includes('credito'))
-          .reduce((sum, t) => sum + t.total, 0) +
-          repTransactions
-          .filter(t => (t.type as string === 'PAGO_RECIBIDO') && t.paymentMethod !== 'Caja Menor') // ignore petty cash replenishments
-          .reduce((sum, t) => sum + t.total, 0);
-          
-      const calculatedPending = Math.max(0, calculatedBilled - calculatedCollected);
-      
-      const commissionRate = 0.015;
-      const commissionEarned = Math.round(calculatedCollected * commissionRate);
-      const commissionFrozen = Math.round(calculatedPending * commissionRate);
-      
-      const repActivities = activities.filter(a => a.ownerId === repUser && a.status === 'COMPLETED');
-      const crmBonus = repActivities.length * 15000; // $15,000 COP per CRM completed task
-      
-      // Calculate devoluciones (Notas Crédito)
-      const calculatedReturns = repTransactions
-          .filter(t => t.type === 'NOTA_CREDITO')
-          .reduce((sum, t) => sum + t.total, 0);
-          
-      const commissionDeducted = Math.round(calculatedReturns * commissionRate);
-      
-      const totalComm = commissionEarned + crmBonus - commissionDeducted;
-
-      return {
-          ...baseAgent,
-          currentSales: calculatedBilled,
-          transparencyData: {
-              totalBilled: calculatedBilled,
-              totalCollected: calculatedCollected,
-              pendingCollection: calculatedPending,
-              commissionEarned: totalComm,
-              commissionFrozen: commissionFrozen,
-              returnsDeducted: commissionDeducted,
-          },
-          commissionDistribution: [
-              { name: 'Comisión Base (1.5%)', value: commissionEarned, color: '#10b981' },
-              { name: 'Micropagos (CRM Activo)', value: crmBonus, color: '#8b5cf6' },
-              ...(commissionDeducted > 0 ? [{ name: 'Deducciones (Notas Crédito)', value: -commissionDeducted, color: '#f43f5e' }] : [])
-          ]
-      };
-  }, [selectedAgentId, transactions, contacts, activities]);
+      return baseAgent;
+  }, [selectedAgentId]);
   
   // Close dropdown on outside click
   useEffect(() => {
@@ -376,8 +309,8 @@ export const ComisionesLogros: React.FC = () => {
                             style={{ left: `calc(${Math.min(progressPercent, 100)}% - 24px)` }}
                         >
                             <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-transparent border-b-white mb-1"></div>
-                            <div className="bg-white text-slate-900 text-xs font-black px-2 py-1 rounded shadow-lg">
-                                ${(player.currentSales / 1000).toFixed(1)}k
+                            <div className="bg-white text-slate-900 text-xs font-black px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                                ${(player.currentSales / 1000000).toFixed(1)} Millones
                             </div>
                         </div>
                     </div>
