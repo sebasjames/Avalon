@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { X, Mail, Phone, Users, Plus, Calendar, Clock, Send, Paperclip, FileText, Download, UploadCloud, Trophy, CheckCircle2, TrendingUp, BarChart2, Eye, Tags, LineChart, BarChart, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, Mail, Phone, Users, Plus, Calendar, Clock, Send, Paperclip, FileText, Download, UploadCloud, Trophy, CheckCircle2, TrendingUp, BarChart2, Eye, Tags, LineChart, BarChart, ChevronDown, ChevronRight, Briefcase } from 'lucide-react';
 import { CrmContact, CrmDeal, CrmActivity, CustomerTier, CrmAssignmentLog } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
 

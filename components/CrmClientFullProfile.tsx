@@ -166,7 +166,7 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
                             <h3 className="font-bold text-slate-800 flex items-center gap-2"><Target className="w-5 h-5 text-indigo-500"/> Negocios y Oportunidades (Embudo)</h3>
                             <button onClick={() => setIsDealModalOpen(true)} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">+ Crear Trato</button>
                         </div>
-                        {contact.tier === 'Nuevo' && (
+                        {contact.tier === 'NEW' && (
                             <div className="px-5 py-3 bg-indigo-50 border-b border-indigo-100 flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
                                 <Star className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                                 <div>
@@ -184,7 +184,7 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${deal.stage === 'CLOSED_WON' ? 'bg-emerald-100 text-emerald-700' : deal.stage === 'CLOSED_LOST' ? 'bg-rose-100 text-rose-700' : 'bg-indigo-100 text-indigo-700'}`}>
                                                 {deal.stage}
                                             </span>
-                                            <span className="text-xs text-slate-500 flex items-center gap-1"><Calendar className="w-3 h-3"/> Creado: {new Date(deal.createdAt).toLocaleDateString()}</span>
+                                            <span className="text-xs text-slate-500 flex items-center gap-1"><Calendar className="w-3 h-3"/> Cierre: {new Date(deal.expectedCloseDate).toLocaleDateString()}</span>
                                             {deal.splits && deal.splits.length > 1 && (
                                                 <span className="text-xs text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 rounded-full flex items-center gap-1 font-bold" title="Comisión Compartida">
                                                     <Users className="w-3 h-3" /> Compartido

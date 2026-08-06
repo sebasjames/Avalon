@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { GoogleGenAI } from "@google/genai";
 import { MOCK_INVENTORY, SALES_DATA } from '../constants';
 import { AuditRow } from '../components/DataAuditGrid';

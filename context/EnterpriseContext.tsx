@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { MOCK_INVENTORY, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_CONTACTS, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier } from '../types';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier } from '../types';
 
 interface EnterpriseContextType {
     inventory: Product[];
@@ -80,8 +80,8 @@ interface EnterpriseContextType {
     auditReports: AuditReport[];
     runAuditAction: () => void;
     clearNotifications: () => void;
-    activeRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad';
-    setActiveRole: (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad') => void;
+    activeRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS';
+    setActiveRole: (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS') => void;
 
     // --- RBAC ---
     systemUsers: SystemUser[];
@@ -94,12 +94,16 @@ interface EnterpriseContextType {
     addSupplier: (supplier: Supplier) => void;
     updateSupplier: (id: string, updates: Partial<Supplier>) => void;
     deleteSupplier: (id: string) => void;
+
+    // --- Import Dossiers ---
+    importDossiers: ImportDossier[];
+    addImportDossier: (dossier: ImportDossier) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
 
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad'>('admin');
+    const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS'>('admin');
     const [inventory, setInventory] = useState<Product[]>(MOCK_INVENTORY);
     const [deals, setDeals] = useState<CrmDeal[]>(MOCK_CRM_DEALS);
     const [systemUsers, setSystemUsers] = useState<SystemUser[]>([

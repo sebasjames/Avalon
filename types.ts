@@ -34,11 +34,22 @@ export enum BatchStatus {
   COMPLETED = 'Completado',
 }
 
-export enum CustomerTier {
-  STRATEGIC = 'Estratégico',
-  REGULAR = 'Regular',
-  NEW = 'Nuevo',
-  VIP = 'VIP',
+export type CustomerTier = 'STRATEGIC' | 'REGULAR' | 'NEW' | 'VIP' | 'POTENTIAL' | 'ATTENTION' | 'DECREASE';
+
+export const CustomerTier = {
+  STRATEGIC: 'STRATEGIC' as const,
+  REGULAR: 'REGULAR' as const,
+  NEW: 'NEW' as const,
+  VIP: 'VIP' as const,
+  POTENTIAL: 'POTENTIAL' as const,
+  ATTENTION: 'ATTENTION' as const,
+  DECREASE: 'DECREASE' as const,
+};
+
+export enum BusinessType {
+  MICROEMPRESARIO = 'Microempresario',
+  DISTRIBUIDOR = 'Distribuidor',
+  DIY = 'DIY',
 }
 
 export interface Customer {
@@ -286,9 +297,9 @@ export interface SystemEvent {
 
 // --- CRM TYPES ---
 
-export type CrmDealStage = 'PROSPECTO' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'CLOSED_WON' | 'CLOSED_LOST';
+export type CrmDealStage = 'LEAD' | 'PROSPECTO' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'CLOSED_WON' | 'CLOSED_LOST';
 export type CrmPostSaleStage = 'ONBOARDING' | 'RENTABILIZACION' | 'FIDELIZACION' | 'MONITOREO';
-export type CrmLeadSource = 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'GOOGLE_ADS' | 'MANUAL' | 'STREET' | 'REFERRAL' | 'WEBSITE';
+export type CrmLeadSource = 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'GOOGLE_ADS' | 'MANUAL' | 'STREET' | 'REFERRAL' | 'WEBSITE' | 'WHATSAPP';
 
 export type PurchasePattern = 'ESTACIONAL' | 'DICIEMBRE' | 'TRIMESTRAL' | 'RECURRENTE' | 'IRREGULAR';
 
@@ -331,6 +342,7 @@ export interface CrmContact {
   postSaleStage?: CrmPostSaleStage;
   documentType?: 'NIT' | 'CC' | 'CE' | 'PASAPORTE';
   documentNumber?: string;
+  document?: string;
   decisionMakers?: { name: string; position: string; hobby?: string; birthday?: string }[];
   purchaseHistory?: CrmPurchaseHistory;
   taxRuleId?: string;
@@ -347,6 +359,17 @@ export interface CrmContact {
   hobby?: string; // Aficiones
   birthday?: string; // Fecha de cumpleaños
   observations?: string; // Observaciones
+  highGrowthPotential?: boolean;
+  exclusiveProjects?: boolean;
+  highPrestige?: boolean;
+  displacedCompetitor?: boolean;
+  businessType?: BusinessType;
+  dispatchBlocked?: boolean;
+  vipApprovalPending?: boolean;
+  inactivityRisk?: boolean;
+  gracePeriodAlert?: boolean;
+  healthScore?: number;
+  city?: string;
 }
 
 export interface CrmView {
@@ -412,6 +435,9 @@ export interface CrmActivity {
   nextAction?: string;
   nextActionDate?: string;
   expenseAmount?: number;
+  documentType?: string;
+  documentNumber?: string;
+  decisionMakers?: { name: string; position: string; hobby?: string; birthday?: string }[];
 }
 
 export interface CrmAssignmentLog {
@@ -578,8 +604,17 @@ export interface SystemUser {
   id: string;
   name: string;
   email: string;
-  baseRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad';
+  baseRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS';
   customPermissions: Record<PermissionKey, boolean>;
+}
+
+export interface ImportDossier {
+  id: string;
+  poNumber: string;
+  supplierId: string;
+  status: 'TRANSITO' | 'ADUANA' | 'NACIONALIZADO';
+  eta: string;
+  totalValue: number;
 }
 
 export interface Supplier {
