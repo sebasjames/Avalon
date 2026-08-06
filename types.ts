@@ -50,6 +50,9 @@ export enum BusinessType {
   MICROEMPRESARIO = 'Microempresario',
   DISTRIBUIDOR = 'Distribuidor',
   DIY = 'DIY',
+  GRANDE = 'Grande',
+  MEDIANA = 'Mediana',
+  PEQUENA = 'Pequeña',
 }
 
 export interface Customer {

@@ -284,6 +284,9 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                     <option value="MICROEMPRESARIO">Microempresario (3+ empleados)</option>
                     <option value="DISTRIBUIDOR">Distribuidor</option>
                     <option value="DIY">Hágalo Usted Mismo (DIY)</option>
+                    <option value="GRANDE">Grande</option>
+                    <option value="MEDIANA">Mediana</option>
+                    <option value="PEQUENA">Pequeña</option>
                  </select>
                </div>
             </div>
