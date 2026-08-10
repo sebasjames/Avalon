@@ -31,6 +31,7 @@ import { SmartPosPanel } from './components/SmartPosPanel';
 import { AccountingModule } from './components/AccountingModule';
 import { ReturnsPanel } from './components/ReturnsPanel';
 import { EnterpriseProvider } from './context/EnterpriseContext';
+import { AuthGate } from './components/AuthGate';
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -70,6 +71,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
+    <AuthGate>
     <EnterpriseProvider>
     <HashRouter>
       <div className="flex min-h-screen bg-slate-50 font-sans">
@@ -137,6 +139,7 @@ const App: React.FC = () => {
       </div>
     </HashRouter>
     </EnterpriseProvider>
+    </AuthGate>
   );
 };
 

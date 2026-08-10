@@ -215,6 +215,8 @@ export const AccountingModule: React.FC = () => {
         return auditReports[0];
     }, [auditReports, selectedReportId]);
 
+    const [isProcessingAI, setIsProcessingAI] = useState(false);
+
     // 24-hour daily scheduler check
     useEffect(() => {
         const lastAudit = localStorage.getItem('avalon_last_audit_timestamp');
@@ -1753,54 +1755,131 @@ export const AccountingModule: React.FC = () => {
                                                 </p>
                                                 <input
                                                     type="file"
-                                                    accept=".xlsx, .xls"
-                                                    onChange={(e) => {
+                                                    accept=".xlsx, .xls, .pdf, image/jpeg, image/png, image/webp"
+                                                    onChange={async (e) => {
                                                         const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            setBankFileName(file.name);
-                                                            const reader = new FileReader();
-                                                            reader.onload = (evt) => {
-                                                                const bstr = evt.target?.result;
-                                                                if (!bstr) return;
+                                                        if (!file) return;
+                                                        setIsProcessingAI(true);
+                                                        setBankFileName(file.name);
+                                                        
+                                                        try {
+                                                            const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+                                                            if (isExcel) {
+                                                                const bstr = await new Promise<string>((resolve) => {
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = (evt) => resolve(evt.target?.result as string);
+                                                                    reader.readAsBinaryString(file);
+                                                                });
                                                                 const wb = XLSX.read(bstr, { type: 'binary' });
                                                                 const wsname = wb.SheetNames[0];
-                                                                const ws = wb.Sheets[wsname];
-                                                                const data = XLSX.utils.sheet_to_json(ws);
-                                                                const parsed = data.map((row: any, idx) => {
-                                                                    let date = '';
-                                                                    let desc = '';
-                                                                    let amount = 0;
-                                                                    let ref = '';
-                                                                    Object.keys(row).forEach(key => {
-                                                                        const k = key.toLowerCase().trim();
-                                                                        if (k.includes('fecha') || k.includes('date')) date = String(row[key]);
-                                                                        if (k.includes('desc') || k.includes('concepto') || k.includes('detalle') || k.includes('info')) desc = String(row[key]);
-                                                                        if (k.includes('monto') || k.includes('valor') || k.includes('deposito') || k.includes('crédito') || k.includes('abono') || k.includes('amount') || k.includes('ingreso') || k.includes('neto') || k.includes('importe')) {
-                                                                            amount = Number(row[key]) || 0;
+                                                                
+                                                                // Parse all columns perfectly
+                                                                const rawData = XLSX.utils.sheet_to_json<any>(wb.Sheets[wsname]);
+                                                                
+                                                                const mappedData = rawData.map((row, idx) => {
+                                                                    const rowKeys = Object.keys(row);
+                                                                    const findKey = (keywords: string[]) => rowKeys.find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+                                                                    
+                                                                    const dateKey = findKey(['fecha', 'date']);
+                                                                    const descKey = findKey(['concepto', 'descripción', 'detalle', 'description', 'observacion', 'tipo']);
+                                                                    const amountKey = findKey(['monto', 'valor', 'amount', 'total', 'abono', 'cargo', 'ingreso']);
+                                                                    const refKey = findKey(['ref', 'documento', 'comprobante', 'transaccion', 'id']);
+                                                                    
+                                                                    const extraData: Record<string, any> = {};
+                                                                    rowKeys.forEach(k => {
+                                                                        if (k !== dateKey && k !== descKey && k !== amountKey && k !== refKey) {
+                                                                            extraData[k] = row[k];
                                                                         }
-                                                                        if (k.includes('ref') || k.includes('documento') || k.includes('nro') || k.includes('comprobante')) ref = String(row[key]);
                                                                     });
+                                                                    
                                                                     return {
-                                                                        id: `bank-${idx}`,
-                                                                        date: date || new Date().toISOString().split('T')[0],
-                                                                        description: desc || 'Transacción de Extracto',
-                                                                        amount: Math.abs(amount),
-                                                                        ref: ref || `REF-${Math.floor(100000 + Math.random() * 900000)}`
+                                                                        id: `bank-${Date.now()}-${idx}`,
+                                                                        date: dateKey && row[dateKey] ? String(row[dateKey]) : new Date().toISOString().split('T')[0],
+                                                                        description: descKey ? String(row[descKey]) : 'Transacción de Extracto',
+                                                                        amount: amountKey ? Math.abs(Number(String(row[amountKey]).replace(/[^0-9.-]+/g,""))) || 0 : 0,
+                                                                        ref: refKey ? String(row[refKey]) : `REF-${Math.floor(100000 + Math.random() * 900000)}`,
+                                                                        extraData
                                                                     };
                                                                 });
-                                                                setBankTransactions(parsed);
-                                                            };
-                                                            reader.readAsBinaryString(file);
+                                                                
+                                                                setBankTransactions(mappedData);
+                                                                setIsProcessingAI(false);
+                                                                return; // Termina aquí para excel
+                                                            }
+
+                                                            // Si NO es Excel, usamos IA
+                                                            let promptText = `Eres un asistente experto contable financiero. Extrae los movimientos (transacciones) de este extracto bancario de ${reconciliationType}.
+Devuelve EXCLUSIVAMENTE un arreglo JSON válido sin markdown adicional con este formato exacto:
+[
+  {
+    "date": "YYYY-MM-DD",
+    "description": "concepto o descripción de la transacción",
+    "amount": 123456, // número entero, SIEMPRE POSITIVO absoluto (sin comas ni símbolos)
+    "ref": "número de referencia o documento",
+    "extraData": {
+       // Agrega aquí CUALQUIER columna extra que encuentres. Por ejemplo: Retefuente, ReteIVA, Comisiones, Monto Bruto, Monto Neto, etc. Mantén su nombre original como clave y su valor numérico o texto.
+    }
+  }
+]`;
+                                                            let parts: any[] = [];
+                                                            const base64Data = await new Promise<string>((resolve) => {
+                                                                const reader = new FileReader();
+                                                                reader.onload = (evt) => {
+                                                                    const result = evt.target?.result as string;
+                                                                    resolve(result.split(',')[1]);
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            });
+                                                            parts = [
+                                                                { text: promptText },
+                                                                { inlineData: { mimeType: file.type || 'application/pdf', data: base64Data } }
+                                                            ];
+                                                            
+                                                            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+                                                            if (!apiKey) throw new Error('API Key de Gemini no configurada.');
+                                                            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ contents: [{ parts }] })
+                                                            });
+                                                            
+                                                            const result = await response.json();
+                                                            if (result.error) throw new Error(result.error.message);
+                                                            
+                                                            let textResponse = result.candidates[0].content.parts[0].text;
+                                                            const jsonString = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+                                                            const parsedData = JSON.parse(jsonString);
+                                                            
+                                                            const mappedData = parsedData.map((item: any, idx: number) => ({
+                                                                id: `bank-${Date.now()}-${idx}`,
+                                                                date: item.date || new Date().toISOString().split('T')[0],
+                                                                description: item.description || 'Transacción de Extracto',
+                                                                amount: Math.abs(Number(item.amount) || 0),
+                                                                ref: item.ref || `REF-${Math.floor(100000 + Math.random() * 900000)}`,
+                                                                extraData: item.extraData || {}
+                                                            }));
+                                                            
+                                                            setBankTransactions(mappedData);
+                                                        } catch (error: any) {
+                                                            console.error('Error procesando con IA:', error);
+                                                            alert(`Hubo un error procesando el documento con IA: ${error.message || error}`);
+                                                            setBankFileName('');
+                                                        } finally {
+                                                            setIsProcessingAI(false);
                                                         }
+                                                        
+                                                        // Reset file input so it can trigger again for same file
+                                                        e.target.value = '';
                                                     }}
                                                     className="hidden"
                                                     id="bank-excel-file-extended"
                                                 />
                                                 <label
                                                     htmlFor="bank-excel-file-extended"
-                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all"
+                                                    className={`text-white text-xs font-black py-2.5 px-4 rounded-xl cursor-pointer transition-all ${isProcessingAI ? 'bg-indigo-400 cursor-wait' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                                                 >
-                                                    Seleccionar Archivo Excel
+                                                    {isProcessingAI ? 'Analizando con IA...' : 'Seleccionar Archivo (Excel/PDF/Imagen)'}
                                                 </label>
                                             </div>
                                         ) : (
@@ -1810,38 +1889,66 @@ export const AccountingModule: React.FC = () => {
                                                     <span className="shrink-0">{bankTransactions.filter(b => !reconciledList.some(r => r.bank?.id === b.id)).length} libres</span>
                                                 </div>
 
-                                                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-                                                    {bankTransactions
-                                                        .filter(b => !reconciledList.some(r => r.bank?.id === b.id))
-                                                        .map(b => {
-                                                            const isLinked = Array.from(suggestedMatches.values()).some(m => m.id === b.id);
-                                                            return (
-                                                                <div
-                                                                    key={b.id}
-                                                                    className={`p-4 rounded-xl border transition-all ${
-                                                                        isLinked 
-                                                                            ? 'border-emerald-200 bg-emerald-50/20' 
-                                                                            : 'border-slate-200 bg-white hover:border-slate-300'
-                                                                    }`}
-                                                                >
-                                                                    <div className="flex justify-between items-start">
-                                                                        <div>
-                                                                            <div className="text-xs font-mono text-slate-400">{b.date}</div>
-                                                                            <div className="font-black text-slate-800 mt-0.5">{b.description}</div>
-                                                                            <div className="text-[10px] text-slate-500 font-mono mt-1">Ref: {b.ref}</div>
-                                                                        </div>
-                                                                        <div className="text-right">
-                                                                            <div className="font-black text-emerald-700">${b.amount.toLocaleString('es-CO')}</div>
-                                                                            <span className={`inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold ${
-                                                                                isLinked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                                                                            } uppercase`}>
-                                                                                {isLinked ? 'Sugerido' : 'Disponible'}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
+                                                <div className="flex-1 overflow-auto bg-white rounded-xl border border-slate-200 custom-scrollbar relative">
+                                                    {isProcessingAI && (
+                                                        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                                                            <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+                                                            <p className="text-sm font-bold text-slate-700">La Inteligencia Artificial está procesando...</p>
+                                                            <p className="text-xs text-slate-500 max-w-xs text-center mt-1">Extrayendo fechas, referencias y montos automáticamente</p>
+                                                        </div>
+                                                    )}
+                                                    {(() => {
+                                                        const uniqueExtraKeys = Array.from(
+                                                            new Set(
+                                                                bankTransactions.flatMap(b => Object.keys(b.extraData || {}))
+                                                            )
+                                                        ).filter(k => k !== '__rowNum__' && k.trim() !== '');
+
+                                                        return (
+                                                            <table className="w-full text-left border-collapse min-w-[500px]">
+                                                                <thead className="sticky top-0 bg-slate-50 shadow-sm z-0">
+                                                                    <tr>
+                                                                        <th className="px-4 py-2.5 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200">Fecha</th>
+                                                                        <th className="px-4 py-2.5 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200">Concepto / Descripción</th>
+                                                                        <th className="px-4 py-2.5 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200">Referencia</th>
+                                                                        {uniqueExtraKeys.map(k => (
+                                                                            <th key={k} className="px-4 py-2.5 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200 text-right whitespace-nowrap">{k}</th>
+                                                                        ))}
+                                                                        <th className="px-4 py-2.5 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200 text-right">Monto Principal</th>
+                                                                        <th className="px-4 py-2.5 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200 text-center">Estado</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-slate-100">
+                                                                    {bankTransactions
+                                                                        .filter(b => !reconciledList.some(r => r.bank?.id === b.id))
+                                                                        .map(b => {
+                                                                            const isLinked = Array.from(suggestedMatches.values()).some(m => m.id === b.id);
+                                                                            return (
+                                                                                <tr key={b.id} className={`hover:bg-slate-50 transition-colors ${isLinked ? 'bg-emerald-50/20' : ''}`}>
+                                                                                    <td className="px-4 py-3 text-xs font-mono text-slate-500 whitespace-nowrap">{b.date}</td>
+                                                                                    <td className="px-4 py-3 text-sm font-black text-slate-800">{b.description}</td>
+                                                                                    <td className="px-4 py-3 text-xs text-slate-400 font-mono">{b.ref}</td>
+                                                                                    {uniqueExtraKeys.map(k => {
+                                                                                        const val = b.extraData?.[k];
+                                                                                        const isNum = typeof val === 'number' || (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '');
+                                                                                        const displayVal = isNum ? `$${Number(val).toLocaleString('es-CO')}` : (val || '-');
+                                                                                        return (
+                                                                                            <td key={k} className="px-4 py-3 text-xs font-mono text-slate-500 text-right whitespace-nowrap">{displayVal}</td>
+                                                                                        );
+                                                                                    })}
+                                                                                    <td className="px-4 py-3 text-sm font-black text-emerald-700 text-right whitespace-nowrap">${b.amount.toLocaleString('es-CO')}</td>
+                                                                                    <td className="px-4 py-3 text-center">
+                                                                                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isLinked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
+                                                                                            {isLinked ? 'Sugerido' : 'Libre'}
+                                                                                        </span>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
+                                                                </tbody>
+                                                            </table>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </div>
                                         )}
