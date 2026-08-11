@@ -9,20 +9,23 @@ interface Rule {
   id: string;
   name: string;
   type: 'Porcentaje' | 'Fijo' | 'Multiplicador';
-  baseVariable: 'Recaudo' | 'Facturación' | 'Producto' | 'Familia' | 'Tarea CRM';
+  baseVariable: 'Recaudo' | 'Facturación' | 'Facturación Neta (Menos Retención)' | 'Producto' | 'Familia' | 'Tarea CRM';
   value: number;
-  target: 'Todos' | 'Oro/Diamante' | 'Plata/Bronce' | 'Selección Manual' | 'Clientes Nuevos';
+  target: 'Todos' | 'Oro/Diamante' | 'Plata/Bronce' | 'Selección Manual' | 'Clientes Nuevos' | 'Clientes Especiales (1%)';
   active: boolean;
   cap?: number; // Optional maximum cap
   validityMonths?: number; // Optional validity period for temporary bonuses
+  hasAgingPenalty?: boolean; // Tiempos de recaudo (0-30d 100%, 31-60d 50%, >90d 0%)
+  hasDiscountPenalty?: boolean; // Castigo por Descuento (>5% descuento = baja comisión)
+  minVolumeThreshold?: number; // Condicional: Solo si representa > X% de la venta total
 }
 
 export const MatrixComisiones: React.FC = () => {
   const [rules, setRules] = useState<Rule[]>([
-    { id: '1', name: 'Comisión Base (General)', type: 'Porcentaje', baseVariable: 'Recaudo', value: 1.0, target: 'Todos', active: true },
-    { id: '2', name: 'Bono Acelerador', type: 'Porcentaje', baseVariable: 'Facturación', value: 0.5, target: 'Oro/Diamante', active: true, cap: 2000 },
-    { id: '3', name: 'Reto Datos Completos', type: 'Fijo', baseVariable: 'Tarea CRM', value: 50, target: 'Todos', active: false },
-    { id: '4', name: 'Impulso Desengrasantes', type: 'Porcentaje', baseVariable: 'Familia', value: 3.0, target: 'Todos', active: true, cap: 500 },
+    { id: '1', name: 'Comisión Estándar (2%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 2.0, target: 'Todos', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
+    { id: '2', name: 'Comisión Clientes Especiales (1%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 1.0, target: 'Clientes Especiales (1%)', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
+    { id: '3', name: 'Bono Volumen CARPOLY (>30%)', type: 'Porcentaje', baseVariable: 'Familia', value: 3.0, target: 'Todos', active: true, minVolumeThreshold: 30 },
+    { id: '4', name: 'Compensación Quiebre de Stock (Manual)', type: 'Fijo', baseVariable: 'Selección Manual' as any, value: 50000, target: 'Selección Manual', active: false },
   ]);
 
   // --- SIMULATION LOGIC ---
@@ -31,6 +34,7 @@ export const MatrixComisiones: React.FC = () => {
     totalRecaudo: 400000,
     totalFacturacion: 650000,
     ventasDesengrasantes: 45000,
+    ventasCarpoly: 200000, // For CARPOLY test (30.7% of total)
     tareasCrmEstimadas: 150 // instances
   };
 
@@ -43,8 +47,29 @@ export const MatrixComisiones: React.FC = () => {
     } else if (rule.baseVariable === 'Facturación' && rule.type === 'Porcentaje') {
       cost = historical.totalFacturacion * (rule.value / 100);
       if (rule.target === 'Oro/Diamante') cost = cost * 0.4; // assume 40% of sales are from top tier
+    } else if (rule.baseVariable === 'Facturación Neta (Menos Retención)' && rule.type === 'Porcentaje') {
+      // Logic from Excel: Retención 2.5% if > 895,000
+      // Assuming avg ticket size or simulating based on total. We will simulate a rough aggregate:
+      const retencionAvg = historical.totalFacturacion * 0.025; 
+      const facturacionNeta = historical.totalFacturacion - retencionAvg;
+      cost = facturacionNeta * (rule.value / 100);
+      if (rule.target === 'Clientes Especiales (1%)') cost = cost * 0.15; // Assume 15% volume is special clients
     } else if (rule.baseVariable === 'Familia' && rule.type === 'Porcentaje') {
-      cost = historical.ventasDesengrasantes * (rule.value / 100);
+      // Simulate that this rule is CARPOLY for demo purposes if it has threshold
+      const familiaSales = rule.minVolumeThreshold ? historical.ventasCarpoly : historical.ventasDesengrasantes;
+      
+      // Volume threshold condition check
+      let qualifies = true;
+      if (rule.minVolumeThreshold) {
+        const percentageOfTotal = (familiaSales / historical.totalFacturacion) * 100;
+        if (percentageOfTotal <= rule.minVolumeThreshold) {
+          qualifies = false;
+        }
+      }
+
+      if (qualifies) {
+        cost = familiaSales * (rule.value / 100);
+      }
     } else if (rule.baseVariable === 'Tarea CRM' && rule.type === 'Fijo') {
       cost = historical.tareasCrmEstimadas * rule.value;
     }
@@ -52,6 +77,18 @@ export const MatrixComisiones: React.FC = () => {
     // Apply cap if exists
     if (rule.cap && cost > rule.cap * 10 /* rough estimate of team size */) {
       cost = rule.cap * 10; 
+    }
+    
+    // Apply aging penalty simulation
+    // Assume distribution: 70% paid <30 days (100%), 20% 31-60 days (50%), 10% >90 days (0%)
+    if (rule.hasAgingPenalty) {
+      cost = cost * (0.70 * 1.0 + 0.20 * 0.5 + 0.10 * 0.0);
+    }
+
+    // Apply discount penalty simulation
+    // Assume 20% of sales are aggressively discounted (>5%), dropping their commission payout by 50%
+    if (rule.hasDiscountPenalty) {
+      cost = cost * (0.80 * 1.0 + 0.20 * 0.5);
     }
     
     return Math.round(cost);
@@ -159,7 +196,8 @@ export const MatrixComisiones: React.FC = () => {
                         className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       >
                         <option value="Recaudo">Recaudo (Dinero en Banco)</option>
-                        <option value="Facturación">Facturación Total</option>
+                        <option value="Facturación">Facturación Total Bruta</option>
+                        <option value="Facturación Neta (Menos Retención)">Facturación Neta (Sin Impuestos)</option>
                         <option value="Producto">SKU Específico</option>
                         <option value="Familia">Familia de Producto</option>
                         <option value="Tarea CRM">Completar Datos (CRM)</option>
@@ -185,6 +223,22 @@ export const MatrixComisiones: React.FC = () => {
                             <option>Limpiadores Generales</option>
                             <option>Cuidado Automotriz</option>
                           </select>
+                        </div>
+                      )}
+
+                      {/* Volume Threshold Condition */}
+                      {(rule.baseVariable === 'Producto' || rule.baseVariable === 'Familia') && (
+                        <div className="mt-2 animate-in fade-in slide-in-from-top-1 bg-amber-900/30 p-2 rounded-lg border border-amber-500/30">
+                          <label className="text-[10px] text-amber-400 uppercase tracking-wider font-bold">Condición: Venta Mínima (%)</label>
+                          <input 
+                            type="number" 
+                            min="0"
+                            placeholder="Ej. 30"
+                            value={rule.minVolumeThreshold || ''}
+                            onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, minVolumeThreshold: e.target.value ? parseInt(e.target.value) : undefined } : r))}
+                            className="w-full mt-1 bg-slate-800 border border-amber-500/50 text-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-amber-400"
+                          />
+                          <p className="text-[9px] text-amber-500/70 mt-1 leading-tight">La regla solo aplica si la venta de esta familia supera este % sobre la facturación total mensual.</p>
                         </div>
                       )}
                     </div>
@@ -227,6 +281,7 @@ export const MatrixComisiones: React.FC = () => {
                         className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       >
                         <option value="Todos">Todos los Clientes/Agentes</option>
+                        <option value="Clientes Especiales (1%)">Clientes Especiales (Tasa Castigada)</option>
                         <option value="Clientes Nuevos">Solo Clientes Nuevos</option>
                         <option value="Oro/Diamante">Solo Rango Oro/Diamante</option>
                         <option value="Plata/Bronce">Solo Rango Plata/Bronce</option>
@@ -246,7 +301,44 @@ export const MatrixComisiones: React.FC = () => {
                         </div>
                       )}
                     </div>
+                  </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-700/50">
+                    {/* Reloj de Recaudo (Aging Penalty) Toggle */}
+                    <div className="flex items-center justify-between bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-200">Reloj de Recaudo (Mora)</h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5">0-30d: 100%, 31-60d: 50%, {'>'}90d: 0%</p>
+                      </div>
+                      <button 
+                        onClick={() => setRules(rules.map(r => r.id === rule.id ? { ...r, hasAgingPenalty: !r.hasAgingPenalty } : r))}
+                        className="transition-transform hover:scale-110 ml-4 flex-shrink-0"
+                      >
+                        {rule.hasAgingPenalty ? (
+                          <ToggleRight className="w-6 h-6 text-rose-500" />
+                        ) : (
+                          <ToggleLeft className="w-6 h-6 text-slate-500" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Castigo por Descuentos Toggle */}
+                    <div className="flex items-center justify-between bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-200">Castigo por Descuentos</h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Descuentos agresivos ({'>'}5%) bajan la comisión</p>
+                      </div>
+                      <button 
+                        onClick={() => setRules(rules.map(r => r.id === rule.id ? { ...r, hasDiscountPenalty: !r.hasDiscountPenalty } : r))}
+                        className="transition-transform hover:scale-110 ml-4 flex-shrink-0"
+                      >
+                        {rule.hasDiscountPenalty ? (
+                          <ToggleRight className="w-6 h-6 text-orange-500" />
+                        ) : (
+                          <ToggleLeft className="w-6 h-6 text-slate-500" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
