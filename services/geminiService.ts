@@ -43,7 +43,7 @@ export const generateInsight = async (userPrompt: string, contextData: any = nul
         `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro',
+            model: 'gemini-3.5-flash',
             contents: fullPrompt,
             config: {
                 systemInstruction: SYSTEM_INSTRUCTION
@@ -338,7 +338,7 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
 
             try {
                 const response = await ai.models.generateContent({
-                    model: 'gemini-1.5-pro',
+                    model: 'gemini-3.5-flash',
                     contents: [
                         mapPrompt,
                         { inlineData: { data: f.data, mimeType: f.mimeType } }
@@ -364,7 +364,7 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
         `;
 
         const finalResponse = await ai.models.generateContent({
-            model: 'gemini-1.5-pro',
+            model: 'gemini-3.5-flash',
             contents: reducePrompt,
             config: {
                 responseMimeType: 'application/json',

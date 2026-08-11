@@ -1826,7 +1826,7 @@ export const Configuration: React.FC = () => {
                       Motor Cognitivo: Google Gemini
                     </h3>
                     <p className="text-sm text-slate-500 mb-6">
-                      Avalon OS utiliza Gemini 1.5 Pro para auditoría contable (OCR y deduplicación) y para el Chat de Inteligencia. 
+                      Avalon OS utiliza Gemini 3.5 Flash para auditoría contable (OCR y deduplicación) y para el Chat de Inteligencia. 
                       Ingresa tu API Key para activar estas funcionalidades.
                     </p>
                     
