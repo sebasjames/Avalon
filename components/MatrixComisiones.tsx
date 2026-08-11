@@ -11,7 +11,7 @@ interface Rule {
   type: 'Porcentaje' | 'Fijo' | 'Multiplicador';
   baseVariable: 'Recaudo' | 'Facturación' | 'Facturación Neta (Menos Retención)' | 'Producto' | 'Familia' | 'Tarea CRM';
   value: number;
-  target: 'Todos' | 'Oro/Diamante' | 'Plata/Bronce' | 'Selección Manual' | 'Clientes Nuevos' | 'Clientes Especiales (1%)';
+  target: 'Todos' | 'Clientes Estándar / Regulares' | 'Oro/Diamante' | 'Plata/Bronce' | 'Selección Manual' | 'Clientes Nuevos' | 'Clientes Especiales (1%)';
   active: boolean;
   cap?: number; // Optional maximum cap
   validityMonths?: number; // Optional validity period for temporary bonuses
@@ -22,7 +22,7 @@ interface Rule {
 
 export const MatrixComisiones: React.FC = () => {
   const [rules, setRules] = useState<Rule[]>([
-    { id: '1', name: 'Comisión Estándar (2%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 2.0, target: 'Todos', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
+    { id: '1', name: 'Comisión Estándar (2%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 2.0, target: 'Clientes Estándar / Regulares', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
     { id: '2', name: 'Comisión Clientes Especiales (1%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 1.0, target: 'Clientes Especiales (1%)', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
     { id: '3', name: 'Bono Volumen CARPOLY (>30%)', type: 'Porcentaje', baseVariable: 'Familia', value: 3.0, target: 'Todos', active: true, minVolumeThreshold: 30 },
     { id: '4', name: 'Compensación Quiebre de Stock (Manual)', type: 'Fijo', baseVariable: 'Selección Manual' as any, value: 50000, target: 'Selección Manual', active: false },
@@ -53,7 +53,13 @@ export const MatrixComisiones: React.FC = () => {
       const retencionAvg = historical.totalFacturacion * 0.025; 
       const facturacionNeta = historical.totalFacturacion - retencionAvg;
       cost = facturacionNeta * (rule.value / 100);
-      if (rule.target === 'Clientes Especiales (1%)') cost = cost * 0.15; // Assume 15% volume is special clients
+      
+      // Target specific simulation adjustments
+      if (rule.target === 'Clientes Especiales (1%)') {
+        cost = cost * 0.15; // Assume 15% volume is special clients
+      } else if (rule.target === 'Clientes Estándar / Regulares') {
+        cost = cost * 0.85; // Assume 85% volume is standard clients (prevents double counting special clients)
+      } // If 'Todos', cost remains 100% of facturacionNeta
     } else if (rule.baseVariable === 'Familia' && rule.type === 'Porcentaje') {
       // Simulate that this rule is CARPOLY for demo purposes if it has threshold
       const familiaSales = rule.minVolumeThreshold ? historical.ventasCarpoly : historical.ventasDesengrasantes;
@@ -280,7 +286,8 @@ export const MatrixComisiones: React.FC = () => {
                         onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, target: e.target.value as any } : r))}
                         className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       >
-                        <option value="Todos">Todos los Clientes/Agentes</option>
+                        <option value="Todos">Todos los Clientes/Agentes (Sin filtro)</option>
+                        <option value="Clientes Estándar / Regulares">Clientes Estándar / Regulares</option>
                         <option value="Clientes Especiales (1%)">Clientes Especiales (Tasa Castigada)</option>
                         <option value="Clientes Nuevos">Solo Clientes Nuevos</option>
                         <option value="Oro/Diamante">Solo Rango Oro/Diamante</option>
