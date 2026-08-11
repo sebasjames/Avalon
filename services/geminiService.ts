@@ -16,7 +16,7 @@ Reglas ESTRICTAS:
 `;
 
 export const getApiKey = () => {
-    return localStorage.getItem('gemini_api_key') || import.meta.env?.VITE_GEMINI_API_KEY || '';
+    return import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
 };
 
 export const setApiKey = (key: string) => {
@@ -43,11 +43,10 @@ export const generateInsight = async (userPrompt: string, contextData: any = nul
         `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-1.5-pro',
             contents: fullPrompt,
             config: {
-                systemInstruction: SYSTEM_INSTRUCTION,
-                thinkingConfig: { thinkingBudget: 0 } // Fast response for UI chat
+                systemInstruction: SYSTEM_INSTRUCTION
             }
         });
 
@@ -74,9 +73,24 @@ export const parseAlbaranImage = async (base64Image: string, mimeType: string): 
                     sku: 'FG-POLPARQ-075',
                     brand: 'POLPARQUET',
                     subCategory: 'Laca/Barniz',
-                    uom: 'L',
-                    qty: 15,
-                    unitCost: 8.85,
+                    uom: 'Lata',
+                    qty: 20,
+                    kgPerUnit: 25,
+                    unitCost: 1.92,
+                    hasError: false
+                },
+                {
+                    rawDesc: '40 envases PU SELLADOR ULTRA CLEAR',
+                    rawDoc: 'Y-10022',
+                    traceId: 'MOCK-2',
+                    originalSku: 'ITD1240',
+                    sku: 'PU-SELL-CLEAR',
+                    brand: 'CARPOLY',
+                    subCategory: 'Resina/Base',
+                    uom: 'Lata',
+                    qty: 40,
+                    kgPerUnit: 20,
+                    unitCost: 2.30,
                     hasError: false
                 }
             ];
@@ -97,17 +111,19 @@ El JSON debe ser un array de objetos con esta estructura exacta:
     "sku": "",
     "brand": "Marca deducida (ej. BARPIDECOR, ECOBARP)",
     "subCategory": "Categoría (Laca/Barniz, Disolvente, etc.)",
-    "uom": "L",
-    "qty": 15.00, // número de TOTAL KG./L. (Litros totales)
-    "unitCost": 8.85, // número de €/UD. (Precio por litro)
+    "uom": "Lata",
+    "qty": 20, // Cantidad de unidades físicas (ej. latas)
+    "kgPerUnit": 25, // Peso en Kilos de cada unidad física
+    "unitCost": 1.92, // Precio FOB unitario en USD o EUR
     "hasError": false
   }
 ]
 Solo devuelve JSON válido.
 `;
-
+        console.log("Enviando petición a Gemini (gemini-2.5-pro) con imágenes reales...");
+        
         const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.5-pro',
             contents: [
                 prompt,
                 {
@@ -190,11 +206,15 @@ export interface InvoiceExtractionResult {
     metadata: InvoiceMetadata;
 }
 
-export const processInvoicesWithGemini = async (files: { data: string, mimeType: string }[], inventory: any[]): Promise<InvoiceExtractionResult> => {
+export const processInvoicesWithGemini = async (
+    files: { data: string, mimeType: string, name?: string }[], 
+    inventory: any[],
+    onProgress?: (msg: string) => void
+): Promise<InvoiceExtractionResult> => {
     try {
         const apiKey = getApiKey();
         if (!apiKey) {
-            throw new Error("No hay API Key configurada. Ingresa tu API Key de Gemini para usar la Ingesta Inteligente.");
+            throw new Error('MISSING_API_KEY');
         }
 
         const ai = new GoogleGenAI({ apiKey });
@@ -210,41 +230,43 @@ Tu objetivo es analizar TODOS los documentos de forma conjunta, hacer un cruce d
 ${catalogContext}
 </CATALOGO_INTERNO>
 
-Reglas Estrictas:
-1. MERCANCÍA (products): Extrae los productos de las facturas comerciales del exterior. Identifica el nombre original (rawName) y código original (rawSku).
-   - Intenta mapear el producto con el <CATALOGO_INTERNO>. Si estás muy seguro, pon status="MATCH" y asigna el "mappedSku".
-   - Si tienes dudas, pon status="REVIEW". Si no encuentras nada parecido, pon status="ERROR" y mappedSku="".
-   - "cost" debe ser el costo unitario FOB.
-   - EXPLICACIÓN DETALLADA OBLIGATORIA ("aiExplanation"): Por CADA producto, debes generar un objeto que explique paso a paso cómo hallaste su costo y qué documentos utilizaste, para pintar un panel lateral de desglose exacto.
-       * "baseCostOrigin": Explicación literal de dónde salió el costo base. Ej: "Factura Y-10022, Fila 4".
-       * "baseCostFob": El costo FOB original (número).
-       * "trmApplied": La TRM usada (número).
-       * "apportionmentFormula": Fórmula teórica de cómo se calcularía el costo final. Ej: "FOB (12.50 USD * TRM) + Proporción de peso/volumen sobre $3,500,000 COP de Gastos Nacionalización".
-       * "sourceDocuments": Array de strings con los nombres de todos los documentos implicados en el análisis de este producto (Ej. ["Factura Y-10022", "Declaración de Importación DIM-09"]).
-2. GASTOS DE NACIONALIZACIÓN Y LOGÍSTICA (landedCosts): Extrae EXHAUSTIVAMENTE TODOS los cobros, tasas e impuestos encontrados en los documentos (Agenciamiento aduanero, fletes internacionales e internos, bodegajes, puertos, liberación de BL, seguros, aranceles, IVA de importación, tributos aduaneros, gastos bancarios, etc.).
-   - REGLA DE DESGLOSE: ¡NUNCA agrupes facturas! Si una agencia (SIA) te cobra Honorarios y Reembolso de Terceros, extrae CADA servicio de terceros como una fila independiente.
-   - REGLA DE DEDUPLICACIÓN: Si detectas que una Agencia te cobra un Reembolso de Transporte, y también tienes la factura original de la Transportadora adjunta, extrae el cobro SOLO UNA VEZ usando la factura original como respaldo y la de la Agencia como cobro.
-   - "rawConcept": Especifica el cobro detalladamente (ej. "Bodegaje Zona Franca", "Tributos DIAN", "Honorarios Agencia").
-   - "provider": Nombre del proveedor, aduana o entidad que lo cobra.
-   - "rawAmount": El monto BRUTO total cobrado antes de aplicar retenciones (usualmente en COP).
-   - "retefuenteAmount": Si existe una Retención en la Fuente descontada en la factura, anota el valor absoluto descontado aquí. Si no hay, pon 0.
-   - "reteicaAmount": Si existe una Retención de ICA descontada en la factura, anota el valor absoluto aquí. Si no hay, pon 0.
-   - "mappedCategory": Clasifica en: "Flete Internacional", "Seguro", "Tributos/Aranceles DIAN", "Bodegajes/Puerto", "Agenciamiento Aduanero", "Flete Terrestre Interno", "Otros Gastos".
-3. METADATA DE AUDITORÍA: Extrae el número de Declaración de Importación (DO) si existe.
-   - Extrae la "currency" (divisa) principal de las facturas comerciales (ej. USD, EUR, RMB, COP). Si no estás seguro asume USD.
-   - Extrae la fecha de expedición de la factura principal en formato YYYY-MM-DD ("invoiceDate").
-   - A partir de la fecha ("invoiceDate") y la divisa ("currency"), estima cuál era la Tasa de Cambio (TRM) a Pesos Colombianos (COP) en esa fecha exacta o aproximada ("estimatedTRM"). Si es en COP, la TRM es 1.
-   - Suma el valor total FOB explícito en los documentos ("totalFOB_Documents"). Este valor estará en la "currency" detectada.
-   - Calcula el total FOB sumando qty*cost de los productos extraídos ("totalFOB_Inferred").
-   - Compara y registra cualquier discrepancia ("discrepancies") entre lo cobrado, lo facturado y las cuentas locales (ej. retenciones, tasas de cambio).
-   - SLOT FILLING - CRUCES DOCUMENTALES ("crossReferences"): Por CADA cobro de terceros detectado, DEBES rellenar una celda de cruce estructurado validando matemáticamente:
-       * "targetDocument": Factura que consolida el cobro (Ej. "Agencia Aduanas MYA-123").
-       * "sourceDocument": Factura original del tercero (Ej. "Transportes Rápidos #445").
-       * "concept": Concepto cruzado (Ej. "Reembolso Transporte Internacional").
-       * "targetAmount": Monto cobrado en la factura consolidada.
-       * "sourceAmount": Monto soportado en la factura original.
-       * "difference": targetAmount - sourceAmount.
-       * "isValid": true si difference es 0 o si está justificada contablemente, false si hay un descuadre. CRÍTICO: Si la agencia de aduanas cobra Pagos a Terceros y no anexan las facturas soportes, genera la fila con sourceDocument="FALTA SOPORTE", sourceAmount=0, difference=targetAmount, isValid=false.
+INSTRUCCIONES DE PASO A PASO (CHAIN OF THOUGHT):
+Debes seguir rigurosamente estos 4 pasos mentales antes de emitir tu respuesta.
+
+[PASO 1: ARMAR BASE FOB Y KILOS]
+Enfócate SOLO en las Facturas Comerciales Internacionales (Supplier Invoices).
+- Extrae la divisa ("currency") y la fecha ("invoiceDate"). Suma el total explícito ("totalFOB_Documents") y calcula el sumado por ti ("totalFOB_Inferred").
+- Identifica todos los productos ("products"): código original (rawSku), nombre original (rawName), cantidad de unidades/latas (qty).
+- Determina el costo unitario FOB ("cost").
+- Mapea el producto contra el <CATALOGO_INTERNO> (status="MATCH" o "REVIEW").
+- EXPLICACIÓN DETALLADA ("aiExplanation"): Documenta cómo hallaste el costo base para cada ítem (ej. "baseCostOrigin", "baseCostFob", "sourceDocuments").
+
+[PASO 2: FIJAR TRM DEL VIAJE]
+Busca las Declaraciones de Importación (DO / DIM), liquidaciones de aduanas o soportes bancarios de pago al exterior.
+- Identifica la Tasa de Cambio (TRM) oficial aplicada para la nacionalización ("estimatedTRM").
+- Si no hay un documento oficial, estima la TRM aproximada para la fecha "invoiceDate".
+
+[PASO 3: CACERÍA Y EXTRACCIÓN DE GASTOS]
+Analiza el resto de PDFs (MIA Cargo, Agencias de Aduana J. Gutierrez, Puertos de Cartagena, Seguros). Extrae EXHAUSTIVAMENTE TODOS los cobros (landedCosts).
+- REGLA DE DESGLOSE: ¡NUNCA agrupes facturas! Cada concepto es una línea separada. Extrae Ingresos Propios y Reembolsos/Pagos a Terceros de forma independiente.
+- "rawConcept": Especifica el cobro (ej. "Bodegaje", "Tributos DIAN", "Honorarios Agencia", "Flete Marítimo").
+- "provider": Proveedor o entidad que lo cobra.
+- "rawAmount": Monto bruto total (antes de retenciones).
+- "retefuenteAmount" y "reteicaAmount": Valores absolutos de retenciones descontadas en la factura.
+- "mappedCategory": Clasifica en "Flete Internacional", "Seguro", "Tributos/Aranceles DIAN", "Bodegajes/Puerto", "Agenciamiento Aduanero", "Flete Terrestre Interno", "Otros Gastos".
+- Extrae el número de Declaración ("importDeclarationNumber"). Documenta discrepancias ("discrepancies").
+
+[PASO 4: DEDUPLICACIÓN DE TERCEROS Y CRUCE DOCUMENTAL]
+Audita los cobros hallados en el Paso 3. Si detectas que una Agencia te cobra un Reembolso (ej. VUCE, Pagos a Puerto) y TAMBIÉN existe la factura original adjunta:
+- Evita contabilizar el mismo gasto dos veces en "landedCosts" si es humanamente obvio que amparan el mismo pago.
+- Llena la matriz de auditoría "crossReferences" matemáticamente:
+    * "targetDocument": Factura que consolida el cobro (Ej. "Agencia Aduanas").
+    * "sourceDocument": Factura original del tercero (Ej. "Comprobante VUCE").
+    * "concept": Concepto cruzado.
+    * "targetAmount": Monto cobrado en la consolidada.
+    * "sourceAmount": Monto soportado en el original.
+    * "difference": targetAmount - sourceAmount.
+    * "isValid": true si es 0. Si hay descuadre o falta el soporte original (Ej. "FALTA SOPORTE"), isValid=false.
 4. RESUMEN DE DOCUMENTOS LECTURADOS (extractedDocuments): Crea un resumen ULTRA DETALLADO de cada documento analizado. PROHIBIDO hacer resúmenes genéricos como "Se encontraron 25 productos".
    - "docType": Tipo (ej. "Factura Comercial", "Factura Transporte", "Declaración Importación").
    - "issuer": Quién lo emite (ej. Proveedor, SIA, Transportadora).
@@ -300,30 +322,70 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
 }
 `;
 
-        const contents = [
-            prompt,
-            ...files.map(f => ({
-                inlineData: {
-                    data: f.data,
-                    mimeType: f.mimeType
-                }
-            }))
-        ];
+        const partialJsonResults = [];
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: contents
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            const docName = f.name || `Documento_${i + 1}`;
+            if (onProgress) onProgress(`Leyendo documento ${i + 1} de ${files.length}: ${docName}`);
+
+            const mapPrompt = `
+            Actúa como un escáner OCR experto. 
+            Tu único trabajo es extraer TODO el texto visible, tablas, conceptos, números y totales de este documento de forma estructurada. 
+            No intentes analizar contabilidad, no clasifiques, no apliques reglas. 
+            Solo devuelve una transcripción fiel y estructurada del contenido (en texto plano o formato clave-valor) para que otro sistema lo analice después.
+            `;
+
+            try {
+                const response = await ai.models.generateContent({
+                    model: 'gemini-1.5-pro',
+                    contents: [
+                        mapPrompt,
+                        { inlineData: { data: f.data, mimeType: f.mimeType } }
+                    ]
+                });
+                const text = response.text || "";
+                partialJsonResults.push(`[${docName}]:\n${text}`);
+            } catch (err) {
+                console.error(`Error leyendo documento ${i+1}:`, err);
+            }
+        }
+
+        if (onProgress) onProgress("Consolidando información y deduplicando cobros...");
+
+        const reducePrompt = `
+        ${prompt}
+        
+        A continuación te presento la transcripción pura (OCR) de TODOS los documentos de esta importación.
+        Ejecuta tus 4 PASOS MENTALES obligatorios basándote en esta información y devuelve el JSON final validado.
+        
+        [TRANSCRIPCIONES DE DOCUMENTOS]
+        ${partialJsonResults.join('\n\n---\n\n')}
+        `;
+
+        const finalResponse = await ai.models.generateContent({
+            model: 'gemini-1.5-pro',
+            contents: reducePrompt,
+            config: {
+                responseMimeType: 'application/json',
+            }
         });
 
-        const text = response.text || "{}";
-        const jsonMatch = text.match(/\`\`\`json\n([\s\S]*?)\n\`\`\`/) || text.match(/\{[\s\S]*\}/);
+        const finalText = finalResponse.text || "{}";
         
-        if (jsonMatch) {
-            const rawJson = jsonMatch[1] || jsonMatch[0];
-            return JSON.parse(rawJson);
+        try {
+            return JSON.parse(finalText);
+        } catch (parseError) {
+            console.error("JSON parse error. Final Text was:", finalText);
+            // Intento con regex como fallback por si acaso ignora el mimeType
+            const finalJsonMatch = finalText.match(/\`\`\`json\n([\s\S]*?)\n\`\`\`/) || finalText.match(/\{[\s\S]*\}/);
+            if (finalJsonMatch) {
+                return JSON.parse(finalJsonMatch[1] || finalJsonMatch[0]);
+            }
+            throw new Error("No se pudo parsear el resultado de la IA como JSON.");
         }
         
-        return JSON.parse(text);
+        return JSON.parse(finalText);
 
     } catch (error) {
         console.error("Error processing invoices:", error);

@@ -1,22 +1,22 @@
 const XLSX = require('xlsx');
 
 try {
-    const workbook = XLSX.readFile('C:\\Users\\sebas\\Desktop\\OMAR\\Maestro de Clientes.xlsx');
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    console.log(`--- Analysis of Maestro de Clientes.xlsx ---`);
-    console.log(`Total Rows: ${data.length}`);
-    if (data.length > 0) {
-        console.log(`\nHeaders:`);
-        console.log(data[0]);
+    const filePath = 'C:\\Users\\sebas\\Desktop\\PROCO_Working Session\\Docs\\Ejercicio factura\\Ejercicio 1 - Carpoly 10\\ejemplo costeo Carpoly 10.xlsx';
+    const workbook = XLSX.readFile(filePath);
+    
+    console.log(`--- Analysis of ${filePath} ---`);
+    console.log(`Sheets: ${workbook.SheetNames.join(', ')}`);
+    
+    workbook.SheetNames.forEach(sheetName => {
+        const sheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        console.log(`\n--- Sheet: ${sheetName} ---`);
+        console.log(`Total Rows: ${data.length}`);
         
-        console.log(`\nSample Data (First 3 rows):`);
-        console.log(JSON.stringify(data.slice(1, 4), null, 2));
-    } else {
-        console.log("File is empty.");
-    }
+        // Print the first 20 rows to understand the layout
+        console.log(JSON.stringify(data.slice(0, 20), null, 2));
+    });
+
 } catch (error) {
     console.error("Error reading file:", error);
 }
