@@ -26,7 +26,8 @@ import {
   Shield,
   Edit2,
   UserPlus,
-  Truck
+  Truck,
+  Sparkles
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings, TaxRule, PricingRule, PaymentRule, Supplier } from '../types';
@@ -41,7 +42,7 @@ export const Configuration: React.FC = () => {
     crmSettings, setCrmSettings
   } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores'>('inventario');
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'integraciones'>('integraciones');
   const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const [supplierForm, setSupplierForm] = useState<Partial<Supplier>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -53,6 +54,8 @@ export const Configuration: React.FC = () => {
   const [newCuneteRule, setNewCuneteRule] = useState('');
   const [newFractionalRule, setNewFractionalRule] = useState('');
   const [newRawCategory, setNewRawCategory] = useState('');
+  
+  const [geminiKeyInput, setGeminiKeyInput] = useState(localStorage.getItem('gemini_api_key') || '');
 
   // RBAC State
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -196,6 +199,7 @@ export const Configuration: React.FC = () => {
     { id: 'reglas', label: 'Reglas Comerciales', icon: Tags },
     { id: 'usuarios', label: 'Usuarios y Permisos', icon: Users },
     { id: 'proveedores', label: 'Proveedores', icon: Truck },
+    { id: 'integraciones', label: 'IA & Integraciones', icon: Sparkles },
   ];
 
   return (
@@ -1804,6 +1808,50 @@ export const Configuration: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'integraciones' && (
+                <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+                  <header>
+                     <h2 className="text-2xl font-black text-slate-900 flex items-center">
+                        <Sparkles className="w-6 h-6 mr-3 text-indigo-600" />
+                        Inteligencia Artificial y APIs
+                     </h2>
+                     <p className="text-slate-500 text-sm mt-1">Configura las credenciales de los servicios externos y motores de Inteligencia Artificial.</p>
+                  </header>
+                  
+                  <section className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                      Motor Cognitivo: Google Gemini
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Avalon OS utiliza Gemini 1.5 Pro para auditoría contable (OCR y deduplicación) y para el Chat de Inteligencia. 
+                      Ingresa tu API Key para activar estas funcionalidades.
+                    </p>
+                    
+                    <div className="flex items-end gap-4 max-w-xl">
+                      <div className="flex-1 space-y-2">
+                        <label className="block text-sm font-bold text-indigo-900">Gemini API Key</label>
+                        <input
+                          type="password"
+                          placeholder="AIzaSyB..."
+                          value={geminiKeyInput}
+                          onChange={(e) => setGeminiKeyInput(e.target.value)}
+                          className="w-full bg-white border border-indigo-200 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none font-mono"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          localStorage.setItem('gemini_api_key', geminiKeyInput.trim());
+                          alert('API Key de Gemini guardada correctamente en este navegador.');
+                        }}
+                        className="bg-indigo-600 text-white hover:bg-indigo-700 px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors h-[42px]"
+                      >
+                        Vincular AI
+                      </button>
+                    </div>
+                  </section>
                 </div>
               )}
             </motion.div>
