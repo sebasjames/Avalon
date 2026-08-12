@@ -1036,8 +1036,31 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }));
     };
 
+const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
+    { id: 'm-1', type: 'COMERCIAL', title: 'Cierre de Trato', message: 'Trato cerrado con Grupo Constructor SA por $45M.', date: new Date().toISOString(), read: false },
+    { id: 'm-2', type: 'INVENTARIO', title: 'Stock Crítico', message: 'Quedan 5 unidades de Base Blanca Exterior.', date: new Date().toISOString(), read: false },
+    { id: 'm-3', type: 'PRODUCCION', title: 'Lote Terminado', message: 'Lote LT-4099 listo para calidad.', date: new Date().toISOString(), read: false },
+    { id: 'm-4', type: 'FINANZAS', title: 'Pago Recibido', message: 'Se acreditó transferencia de Ferretería Central.', date: new Date().toISOString(), read: false },
+    { id: 'm-5', type: 'LOGISTICA', title: 'Retraso en Entrega', message: 'Ruta Sur reporta 2 horas de retraso.', date: new Date().toISOString(), read: false },
+    { id: 'm-6', type: 'SYSTEM', title: 'Actualización Exitosa', message: 'Base de datos sincronizada con DGI.', date: new Date().toISOString(), read: false },
+    { id: 'm-7', type: 'COMERCIAL', title: 'Nuevo Lead', message: 'Prospecto de WhatsApp asignado a ti.', date: new Date().toISOString(), read: false },
+    { id: 'm-8', type: 'INVENTARIO', title: 'Ingreso de Material', message: 'Llegaron 200 galones de resina epóxica.', date: new Date().toISOString(), read: false },
+    { id: 'm-9', type: 'PRODUCCION', title: 'Falla en Máquina', message: 'Mantenimiento requerido en Mezcladora 2.', date: new Date().toISOString(), read: false },
+    { id: 'm-10', type: 'CONTABILIDAD', title: 'Cierre de Caja', message: 'Reporte Z pendiente de revisión.', date: new Date().toISOString(), read: false },
+    { id: 'm-11', type: 'COMERCIAL', title: 'Meta Superada', message: 'Has alcanzado el 110% de tu cuota mensual.', date: new Date().toISOString(), read: false },
+    { id: 'm-12', type: 'LOGISTICA', title: 'Despacho Creado', message: 'Albarán ALB-10292 generado.', date: new Date().toISOString(), read: false },
+    { id: 'm-13', type: 'FINANZAS', title: 'Aviso de Mora', message: 'Pinturas del Valle tiene factura vencida.', date: new Date().toISOString(), read: false },
+    { id: 'm-14', type: 'INVENTARIO', title: 'Merma Registrada', message: '3 unidades dañadas en almacén principal.', date: new Date().toISOString(), read: false },
+    { id: 'm-15', type: 'PRODUCCION', title: 'Cambio de Fórmula', message: 'Aprobada nueva receta para Esmalte Sintético.', date: new Date().toISOString(), read: false },
+    { id: 'm-16', type: 'SYSTEM', title: 'Backup Completado', message: 'Copia de seguridad en la nube exitosa.', date: new Date().toISOString(), read: false },
+    { id: 'm-17', type: 'COMERCIAL', title: 'Reunión Próxima', message: 'Llamada con Constructora XYZ en 15 mins.', date: new Date().toISOString(), read: false },
+    { id: 'm-18', type: 'CONTABILIDAD', title: 'Gasto Registrado', message: 'Caja Menor: Compra de insumos.', date: new Date().toISOString(), read: false },
+    { id: 'm-19', type: 'LOGISTICA', title: 'Vehículo Disponible', message: 'Camión 1 ha retornado al almacén.', date: new Date().toISOString(), read: false },
+    { id: 'm-20', type: 'INVENTARIO', title: 'Reabastecimiento', message: 'Orden de compra generada automáticamente.', date: new Date().toISOString(), read: false }
+];
+
     const getActiveNotifications = (): CrmNotification[] => {
-        const notifs: CrmNotification[] = [];
+        const notifs: CrmNotification[] = [...MOCK_STATIC_NOTIFICATIONS];
         const today = new Date();
 
         contacts.forEach(c => {

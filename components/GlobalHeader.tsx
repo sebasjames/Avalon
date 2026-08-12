@@ -89,6 +89,16 @@ export const GlobalHeader: React.FC = () => {
 
     return (
         <header className="bg-white border-b border-slate-200 sticky top-0 z-40 hidden md:flex items-center justify-between px-6 py-3">
+            <style>{`
+                @keyframes bell-ring {
+                    0%, 100% { transform: rotate(0deg); }
+                    10%, 30%, 50%, 70%, 90% { transform: rotate(15deg); }
+                    20%, 40%, 60%, 80% { transform: rotate(-15deg); }
+                }
+                .animate-bell-ring {
+                    animation: bell-ring 1.5s ease-in-out infinite;
+                }
+            `}</style>
             {/* Left: Dynamic Title */}
             <div className="flex items-center gap-3 flex-shrink-0">
                 {Icon && (
@@ -249,7 +259,7 @@ export const GlobalHeader: React.FC = () => {
 
                 <div className="relative">
                     <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 transition-colors relative">
-                        <Bell className="w-5 h-5" />
+                        <Bell className={`w-5 h-5 transition-all ${notifications.length > 0 ? 'fill-rose-500 text-rose-500 animate-bell-ring' : ''}`} />
                         {notifications.length > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>}
                     </button>
                     {isNotifOpen && (
@@ -271,13 +281,16 @@ export const GlobalHeader: React.FC = () => {
                             <div className="max-h-96 overflow-y-auto">
                                 {notifications.length > 0 ? notifications.map(n => (
                                     <div key={n.id} onClick={() => { if (n.relatedContactId) handleSelectResult(n.relatedContactId); setIsNotifOpen(false); }} className="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors">
-                                        <div className="flex gap-3">
-                                            <div className="mt-0.5">
-                                                {n.type === 'BIRTHDAY' ? '🎂' : n.type === 'GARBAGE_WARNING' ? '⚠️' : '🔔'}
+                                        <div className="flex gap-3 relative">
+                                            <div className="mt-0.5 shrink-0">
+                                                {n.type === 'BIRTHDAY' ? '🎂' : n.type === 'GARBAGE_WARNING' ? '⚠️' : n.type === 'COMERCIAL' ? '💼' : n.type === 'INVENTARIO' ? '📦' : n.type === 'PRODUCCION' ? '⚙️' : n.type === 'FINANZAS' ? '💰' : n.type === 'LOGISTICA' ? '🚚' : n.type === 'CONTABILIDAD' ? '🧾' : '🔔'}
                                             </div>
-                                            <div>
-                                                <div className="font-semibold text-sm text-slate-900">{n.title}</div>
-                                                <div className="text-xs text-slate-600 mt-0.5">{n.message}</div>
+                                            <div className="w-full">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <div className="font-semibold text-sm text-slate-900 leading-tight pr-12">{n.title}</div>
+                                                    <span className="absolute top-0 right-0 text-[9px] font-black tracking-wider uppercase bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200 shadow-sm shrink-0">{n.type === 'GARBAGE_WARNING' ? 'SISTEMA' : n.type}</span>
+                                                </div>
+                                                <div className="text-xs text-slate-600 mt-1">{n.message}</div>
                                             </div>
                                         </div>
                                     </div>

@@ -217,13 +217,11 @@ export interface DemandAlert {
     severity: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
-export type ActionType = 'LIQUIDATION' | 'TRANSFER' | 'BUNDLE' | 'SCRAP' | 'RESTOCK' | 'INVOICE' | 'FOLLOWUP' | 'PAYMENT' | 'QUALITY' | 'LOGISTICS';
-export type ActionCategory = 'INVENTARIO' | 'COMERCIAL' | 'CONTABILIDAD' | 'PRODUCCIÓN' | 'SISTEMA' | 'CRM';
+export type ActionType = 'LIQUIDATION' | 'TRANSFER' | 'BUNDLE' | 'SCRAP';
 
 export interface ActionOpportunity {
     id: string;
     type: ActionType;
-    category?: ActionCategory;
     skuId: string;
     productName: string;
     reason: string; // e.g., "Silent > 180 days"
@@ -465,7 +463,7 @@ export interface CrmAssignmentLog {
 
 export interface CrmNotification {
   id: string;
-  type: 'BIRTHDAY' | 'HOBBY_MATCH' | 'GARBAGE_WARNING' | 'SYSTEM';
+  type: 'BIRTHDAY' | 'HOBBY_MATCH' | 'GARBAGE_WARNING' | 'SYSTEM' | 'COMERCIAL' | 'INVENTARIO' | 'PRODUCCION' | 'FINANZAS' | 'LOGISTICA' | 'CONTABILIDAD';
   title: string;
   message: string;
   date: string;
