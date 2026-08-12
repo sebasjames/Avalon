@@ -397,7 +397,14 @@ export const AccountingModule: React.FC = () => {
             if (t.type === 'VENTA') {
                 totalVentas += t.total;
                 totalIVA += t.iva;
-                totalCOGS += t.total * 0.68; // Estimating COGS as 68% for the mock
+                
+                // Calcular COGS real cruzando con el inventario
+                const product = inventory.find(p => p.sku === t.sku);
+                if (product && t.qty) {
+                    totalCOGS += product.unitCost * t.qty;
+                } else {
+                    totalCOGS += t.total * 0.68; // Fallback por si es un producto sin SKU o sin costo
+                }
 
                 const isEfectivo = t.paymentMethod?.toLowerCase().includes('efectivo');
                 if (isEfectivo) totalEfectivo += t.total;
@@ -415,7 +422,7 @@ export const AccountingModule: React.FC = () => {
             totalVentas, totalEfectivo, totalBancos, totalIVA, totalCOGS,
             chartData: Object.values(chartMap).sort((a, b) => a.date.localeCompare(b.date))
         };
-    }, [transactions, cierreTimeRange]);
+    }, [transactions, cierreTimeRange, inventory]);
 
     const handleCxPPaymentSubmit = () => {
         if (!selectedCxPInvoice || !cxPPaymentAmount) return;
@@ -1205,7 +1212,7 @@ export const AccountingModule: React.FC = () => {
                                                     <div className="text-xl font-black text-slate-700">${cierreData.totalCOGS.toLocaleString('es-CO', {maximumFractionDigits:0})}</div>
                                                 </div>
                                                 <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                                                    <div className="text-sm font-semibold text-indigo-600">Margen Bruto (Est.)</div>
+                                                    <div className="text-sm font-semibold text-indigo-600">Margen Bruto</div>
                                                     <div className="text-2xl font-black text-indigo-700">${(cierreData.totalVentas - cierreData.totalCOGS).toLocaleString('es-CO', {maximumFractionDigits:0})}</div>
                                                 </div>
                                             </div>
