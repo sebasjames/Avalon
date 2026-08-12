@@ -1,14 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { UploadCloud, CheckCircle2, RefreshCw } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { UploadCloud, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { processInvoicesWithGemini, InvoiceExtractionResult } from '../services/geminiService';
 import { DataAuditGrid, AuditRow } from './DataAuditGrid';
 import { RawExtractionView } from './RawExtractionView';
 import { LandedCostCompendium } from './LandedCostCompendium';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { MOCK_INVENTORY } from '../constants';
 import { InboundReceipt, InboundReceiptItem } from '../types';
-import { processExcelIngestion } from '../services/excelIngestionService';
-import { InvoiceExtractionResult } from '../services/geminiService';
 
 export const AlbaranIngestion: React.FC = () => {
     const { processInboundReceipt } = useEnterprise();
@@ -22,13 +22,17 @@ export const AlbaranIngestion: React.FC = () => {
     const [colchon, setColchon] = useState<number>(2600);
     const [currentCheckpoint, setCurrentCheckpoint] = useState(0);
     const [loadingText, setLoadingText] = useState('');
+    const [showApiModal, setShowApiModal] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const CHECKPOINTS = [
-        "Leyendo estructura del Excel",
-        "Extrayendo Productos y Cantidades",
-        "Extrayendo Costos FOB y Gastos",
-        "Procesamiento Finalizado"
+        "Extracción de Texto (OCR)",
+        "Armar Base (FOB y Kilos)",
+        "Fijar TRM del Viaje",
+        "Cacería y Deduplicación de Gastos",
+        "Hallar Factor de Prorrateo",
+        "Saneamiento y Costeo Unitario",
+        "Veredicto Final"
     ];
 
     const handleDrag = (e: React.DragEvent) => {
@@ -43,37 +47,71 @@ export const AlbaranIngestion: React.FC = () => {
 
     const processFiles = async (fileList: FileList | File[]) => {
         setPhase('extracting');
-        const file = fileList[0]; // We only process one Excel file
+        const files = Array.from(fileList);
         
+        // Iniciamos en el paso 0: OCR
         setCurrentCheckpoint(0);
+        let intelligenceInterval: NodeJS.Timeout;
 
         try {
-            const result = await processExcelIngestion(file, MOCK_INVENTORY, (msg) => {
+            const fileDataArray = [];
+            for (const file of files) {
+                const base64Data = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const base64Url = e.target?.result as string;
+                        resolve(base64Url.split(',')[1]);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                fileDataArray.push({ data: base64Data, mimeType: file.type, name: file.name });
+            }
+
+            const result = await processInvoicesWithGemini(fileDataArray, MOCK_INVENTORY, (msg) => {
                 setLoadingText(msg);
-                if (msg.includes("productos")) setCurrentCheckpoint(1);
-                if (msg.includes("FOB")) setCurrentCheckpoint(2);
-                if (msg.includes("finalizada")) setCurrentCheckpoint(3);
+                if (msg.startsWith("Consolidando")) {
+                    // Terminó el OCR, empieza la consolidación. 
+                    // Avanzamos artificialmente por los pasos 1, 2 y 3 mientras esperamos a Gemini.
+                    setCurrentCheckpoint(1);
+                    intelligenceInterval = setInterval(() => {
+                        setCurrentCheckpoint(prev => (prev < 3 ? prev + 1 : prev));
+                    }, 4000);
+                }
             });
+            
+            clearInterval(intelligenceInterval!);
+
+            // Phase 2: AI returned! Quickly check off the math steps (4, 5, 6)
+            for (let i = 4; i <= 6; i++) {
+                setCurrentCheckpoint(i);
+                await new Promise(resolve => setTimeout(resolve, 600)); // 600ms per step
+            }
             
             setRawResult(result);
             
+            if (result?.metadata?.doNumber) {
+                setDocumentNumber(result.metadata.doNumber);
+            } else if (result?.metadata?.invoiceNumbers && result.metadata.invoiceNumbers.length > 0) {
+                setDocumentNumber(result.metadata.invoiceNumbers[0]);
+            }
+
             if (result?.metadata?.currency === 'EUR' || result?.metadata?.currency === 'USD') {
-                setCurrency(result.metadata.currency as 'EUR' | 'USD');
-            }
-            if (result?.metadata?.estimatedTRM) {
-                setTrm(result.metadata.estimatedTRM);
-            }
-            
-            const extractedColchonStr = result.metadata.discrepancies.find(d => d.startsWith('Colchón extraído:'));
-            if (extractedColchonStr) {
-                 setColchon(parseFloat(extractedColchonStr.split(':')[1].trim()));
+                setCurrency(result.metadata.currency);
             }
 
             setPhase('raw_review');
             
         } catch (error: any) {
             console.error(error);
-            alert(`Error procesando el Excel: ${error.message || "Error desconocido"}`);
+            if (intelligenceInterval!) clearInterval(intelligenceInterval);
+            
+            if (error.message === 'MISSING_API_KEY') {
+                setShowApiModal(true);
+            } else {
+                alert(`Error procesando los documentos: ${error.message || "Error desconocido"}`);
+            }
+            
             setPhase('upload');
         }
     };
@@ -83,12 +121,12 @@ export const AlbaranIngestion: React.FC = () => {
         
         const mappedAuditData: AuditRow[] = rawResult.products.map((p, idx) => ({
             rawDesc: p.rawName,
-            rawDoc: documentNumber || 'Excel Upload',
+            rawDoc: documentNumber,
             traceId: `TRC-${idx}`,
             originalSku: p.rawSku,
             sku: p.mappedSku,
-            brand: 'Extracto Excel',
-            subCategory: 'Categoría',
+            brand: 'Extracto IA',
+            subCategory: 'Categoría Auto',
             uom: 'Unidad',
             qty: p.qty,
             kgPerUnit: 25, 
@@ -150,14 +188,14 @@ export const AlbaranIngestion: React.FC = () => {
         setRawResult(null);
         setDocumentNumber('');
         setPhase('upload');
-        alert("Albarán de Excel procesado y stock actualizado correctamente.");
+        alert("Albarán procesado y stock actualizado correctamente.");
     };
 
     return (
         <div className="p-8 space-y-6 max-w-7xl mx-auto">
             <div>
                 <h1 className="text-3xl font-black text-slate-800 tracking-tight">Ingesta de Albaranes</h1>
-                <p className="text-slate-500 mt-2">Carga tu archivo Excel para extraer automáticamente productos, costos FOB y gastos de importación reales.</p>
+                <p className="text-slate-500 mt-2">Carga documentos escaneados o facturas FOB para extraer automáticamente y recalcular costos de importación reales.</p>
             </div>
 
             <div className="bg-white border border-indigo-100 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row gap-6">
@@ -174,7 +212,7 @@ export const AlbaranIngestion: React.FC = () => {
                 </div>
                 <div className="w-px bg-slate-200 hidden md:block"></div>
                 <div className="flex-1 space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">TRM Extraída/Pactada ({currency}/COP)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">TRM Pactada ({currency}/COP)</label>
                     <div className="flex items-center gap-2">
                         <span className="text-indigo-600 font-black">$</span>
                         <input 
@@ -187,7 +225,7 @@ export const AlbaranIngestion: React.FC = () => {
                 </div>
                 <div className="w-px bg-slate-200 hidden md:block"></div>
                 <div className="flex-1 space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">Factor Colchón / Kilo</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">Factor Colchón (Costos Extra / Kg)</label>
                     <div className="flex items-center gap-2">
                         <span className="text-rose-500 font-black">$</span>
                         <input 
@@ -214,14 +252,14 @@ export const AlbaranIngestion: React.FC = () => {
                         onDrop={handleDrop}
                         onClick={() => inputRef.current?.click()}
                     >
-                        <input ref={inputRef} type="file" accept=".xlsx, .xls" className="hidden" onChange={handleChange} />
+                        <input ref={inputRef} type="file" accept="image/*,application/pdf" multiple className="hidden" onChange={handleChange} />
                         <UploadCloud className="w-16 h-16 text-indigo-400 mb-4" />
-                        <h3 className="text-lg font-bold text-slate-700">Arrastra tu archivo Excel aquí</h3>
-                        <p className="text-slate-500 text-sm mt-1">Soporta formatos .xlsx o .xls</p>
+                        <h3 className="text-lg font-bold text-slate-700">Arrastra tus documentos aquí</h3>
+                        <p className="text-slate-500 text-sm mt-1">Selecciona uno o múltiples PDFs / Imágenes</p>
                     </motion.div>
                 )}
 
-                {/* 2. EXTRACTING PHASE */}
+                {/* 2. EXTRACTING PHASE (CHECKPOINTS UI) */}
                 {phase === 'extracting' && (
                     <motion.div
                         key="extracting"
@@ -231,13 +269,14 @@ export const AlbaranIngestion: React.FC = () => {
                         className="flex flex-col items-center justify-center py-16 px-4"
                     >
                         <RefreshCw className="text-indigo-500 w-12 h-12 mb-6 animate-spin" />
-                        <h2 className="text-2xl font-black text-slate-800 mb-8">Procesando Hoja de Cálculo</h2>
+                        <h2 className="text-2xl font-black text-slate-800 mb-8">Auditoría en Curso</h2>
                         
                         <div className="w-full max-w-lg bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                             <div className="space-y-4">
                                 {CHECKPOINTS.map((stepName, idx) => {
                                     const isCompleted = currentCheckpoint > idx;
                                     const isActive = currentCheckpoint === idx;
+                                    const isPending = currentCheckpoint < idx;
 
                                     return (
                                         <div key={idx} className={`flex items-center gap-4 p-3 rounded-lg transition-colors ${isActive ? 'bg-indigo-50/50 border border-indigo-100' : 'border border-transparent'}`}>
@@ -258,7 +297,7 @@ export const AlbaranIngestion: React.FC = () => {
                                                 <span className={`text-sm font-bold ${isCompleted ? 'text-emerald-700' : isActive ? 'text-indigo-700' : 'text-slate-400'}`}>
                                                     {idx + 1}. {stepName}
                                                 </span>
-                                                {isActive && loadingText && (
+                                                {isActive && (idx === 0 || idx === 3) && loadingText && (
                                                     <p className="text-xs text-indigo-500 mt-1 font-medium animate-pulse">{loadingText}</p>
                                                 )}
                                             </div>
@@ -290,8 +329,8 @@ export const AlbaranIngestion: React.FC = () => {
                             <div className="flex items-center gap-4">
                                 <CheckCircle2 className="text-emerald-500 w-8 h-8" />
                                 <div>
-                                    <h3 className="font-bold text-slate-800">Lectura de Excel Completada</h3>
-                                    <p className="text-sm text-slate-500">Se extrajeron {auditData.length} líneas de producto desde el archivo.</p>
+                                    <h3 className="font-bold text-slate-800">Cruce Inteligente Completado</h3>
+                                    <p className="text-sm text-slate-500">Se asociaron {auditData.length} líneas de producto con el catálogo</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -325,6 +364,7 @@ export const AlbaranIngestion: React.FC = () => {
                             />
                         </div>
 
+                        {/* Landed Cost Compendium */}
                         {rawResult && (
                             <LandedCostCompendium 
                                 auditData={auditData}
@@ -335,6 +375,45 @@ export const AlbaranIngestion: React.FC = () => {
                             />
                         )}
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal de API Key Faltante */}
+            <AnimatePresence>
+                {showApiModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-rose-100"
+                        >
+                            <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-6 mx-auto">
+                                <AlertCircle className="w-8 h-8" />
+                            </div>
+                            
+                            <h2 className="text-2xl font-black text-slate-800 text-center mb-2">Faltando API de Inteligencia</h2>
+                            
+                            <p className="text-slate-500 text-center mb-8">
+                                Avalon requiere una clave de acceso (API Key) a Gemini 1.5 Pro para ejecutar el cruce contable. El filtro de seguridad simulado ha sido desactivado.
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setShowApiModal(false)}
+                                    className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <Link 
+                                    to="/configuracion"
+                                    className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors text-center"
+                                >
+                                    Configurar API
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>

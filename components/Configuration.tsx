@@ -1832,7 +1832,7 @@ export const Configuration: React.FC = () => {
                     
                     <div className="flex items-end gap-4 max-w-xl">
                       <div className="flex-1 space-y-2">
-                        <label className="block text-sm font-bold text-indigo-900">Gemini API Key</label>
+                        <label className="block text-sm font-bold text-indigo-900">API Key</label>
                         <input
                           type="password"
                           placeholder="AIzaSyB..."
