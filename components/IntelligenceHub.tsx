@@ -17,7 +17,7 @@ export const IntelligenceHub: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'system', 
-      content: 'Hola. Soy el Sistema de Inteligencia Procoquinal OS. Tengo acceso a tus datos de inventario, ventas y producción en tiempo real. ¿En qué puedo ayudarte hoy?' 
+      content: 'Hola. Soy Avalon AI. Tengo acceso a tus datos de inventario, ventas y producción en tiempo real. ¿En qué puedo ayudarte hoy?' 
     }
   ]);
   const [input, setInput] = useState('');

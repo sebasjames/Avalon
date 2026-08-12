@@ -4,7 +4,7 @@ import { INVENTORY_DATA, SALES_DATA } from '../constants';
 import { AuditRow } from '../components/DataAuditGrid';
 
 const SYSTEM_INSTRUCTION = `
-Eres el "Sistema de Inteligencia Procoquinal OS", un asistente experto en análisis de datos.
+Eres "Avalon AI", un asistente experto en análisis de datos corporativos y gestión comercial.
 RESPONDE SIEMPRE EN ESPAÑOL.
 
 Reglas ESTRICTAS:
