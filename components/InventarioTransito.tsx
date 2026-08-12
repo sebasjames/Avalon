@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
-import { PackageSearch, CheckCircle2, MapPin, Save, Lock, XCircle, AlertTriangle, Split } from 'lucide-react';
+import { PackageSearch, CheckCircle2, MapPin, Save, Lock, XCircle, AlertTriangle, Split, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { suggestTransitDistribution } from '../services/geminiService';
+import { INVENTORY_DATA } from '../constants';
 
 const LOCATIONS = ['Centenario', 'Gaitán', 'Barranquilla'];
 
@@ -12,14 +14,16 @@ interface SplitItem {
     totalLiters: number;
     capacity: string;
     assignedLocation?: string;
+    isAiSuggested?: boolean;
+    aiJustification?: string;
 }
 
 export const InventarioTransito: React.FC = () => {
     const { receipts, distributeTransitInventory } = useEnterprise();
     const transitReceipts = receipts.filter(r => r.status === 'TRANSITO');
     
-    // Local state for split items: { [receiptId]: SplitItem[] }
     const [splitItems, setSplitItems] = useState<Record<string, SplitItem[]>>({});
+    const [isAiLoading, setIsAiLoading] = useState<Record<string, boolean>>({});
     
     useEffect(() => {
         const initial: Record<string, SplitItem[]> = {};
@@ -41,7 +45,6 @@ export const InventarioTransito: React.FC = () => {
         }
     }, [transitReceipts]);
     
-    // Split Modal State
     const [splitModalData, setSplitModalData] = useState<{receiptId: string, itemId: string, maxQty: number, sku: string} | null>(null);
     const [splitQty, setSplitQty] = useState<string>('');
     const [splitLocation, setSplitLocation] = useState<string>('');
@@ -54,7 +57,9 @@ export const InventarioTransito: React.FC = () => {
         setSplitItems(prev => {
             const items = [...(prev[receiptId] || [])];
             const idx = items.findIndex(i => i.id === itemId);
-            if (idx !== -1) items[idx] = { ...items[idx], assignedLocation: location };
+            if (idx !== -1) {
+                items[idx] = { ...items[idx], assignedLocation: location };
+            }
             return { ...prev, [receiptId]: items };
         });
     };
@@ -75,15 +80,15 @@ export const InventarioTransito: React.FC = () => {
             const originalItem = items[itemIndex];
             const newItems = [...items];
             
-            // Decrease original item qty
             newItems[itemIndex] = { ...originalItem, totalLiters: originalItem.totalLiters - qty };
             
-            // Insert new item right below it
             const newItem: SplitItem = {
                 ...originalItem,
                 id: `${originalItem.sku}-split-${Date.now()}`,
                 totalLiters: qty,
-                assignedLocation: splitLocation || undefined
+                assignedLocation: splitLocation || undefined,
+                isAiSuggested: false,
+                aiJustification: undefined
             };
             newItems.splice(itemIndex + 1, 0, newItem);
             
@@ -93,6 +98,96 @@ export const InventarioTransito: React.FC = () => {
         setSplitModalData(null);
         setSplitQty('');
         setSplitLocation('');
+    };
+
+    const handleAiSuggest = async (receiptId: string) => {
+        setIsAiLoading(prev => ({...prev, [receiptId]: true}));
+        
+        const receipt = transitReceipts.find(r => r.id === receiptId);
+        if (!receipt) {
+            setIsAiLoading(prev => ({...prev, [receiptId]: false}));
+            return;
+        }
+        
+        const receiptSkus = receipt.items.map(i => i.sku);
+        const context = INVENTORY_DATA.filter(inv => receiptSkus.includes(inv.sku)).map(inv => {
+            const getStock = (loc: string) => (inv.batches || []).filter(b => b.location === loc).reduce((sum, b) => sum + b.quantity, 0);
+            return {
+                sku: inv.sku,
+                stockCentenario: getStock('Centenario'),
+                stockGaitan: getStock('Gaitán'),
+                stockBarranquilla: getStock('Barranquilla'),
+                totalStock: inv.totalStock
+            };
+        });
+
+        const suggestions = await suggestTransitDistribution(receipt.items, context);
+        
+        if (suggestions && suggestions.length > 0) {
+            setSplitItems(prev => {
+                const newItems: SplitItem[] = [];
+                suggestions.forEach((sugg, idx) => {
+                    const originalItem = receipt.items.find(i => i.sku === sugg.sku);
+                    if (!originalItem) return;
+                    
+                    sugg.splits.forEach((split, sIdx) => {
+                        newItems.push({
+                            id: `${sugg.sku}-ai-${idx}-${sIdx}-${Date.now()}`,
+                            sku: sugg.sku,
+                            description: originalItem.description,
+                            totalLiters: split.qty,
+                            capacity: originalItem.capacity || 'UOM',
+                            assignedLocation: split.location,
+                            isAiSuggested: true,
+                            aiJustification: sugg.justification
+                        });
+                    });
+                });
+                
+                const suggestedSkus = suggestions.map(s => s.sku);
+                receipt.items.filter(i => !suggestedSkus.includes(i.sku)).forEach((item, idx) => {
+                     newItems.push({
+                        id: `${item.sku}-${idx}-${Date.now()}`,
+                        sku: item.sku,
+                        description: item.description,
+                        totalLiters: item.totalLiters,
+                        capacity: item.capacity || 'UOM'
+                    });
+                });
+                
+                return { ...prev, [receiptId]: newItems };
+            });
+        } else {
+            alert("La IA no pudo generar una sugerencia en este momento.");
+        }
+        
+        setIsAiLoading(prev => ({...prev, [receiptId]: false}));
+    };
+
+    const acceptAiSuggestions = (receiptId: string) => {
+        setSplitItems(prev => {
+            const items = (prev[receiptId] || []).map(item => ({
+                ...item,
+                isAiSuggested: false,
+                aiJustification: undefined
+            }));
+            return { ...prev, [receiptId]: items };
+        });
+    };
+
+    const rejectAiSuggestions = (receiptId: string) => {
+        const receipt = transitReceipts.find(r => r.id === receiptId);
+        if (!receipt) return;
+        
+        const resetItems = receipt.items.map((item, idx) => ({
+            id: `${item.sku}-${idx}-${Date.now()}`,
+            sku: item.sku,
+            description: item.description,
+            totalLiters: item.totalLiters,
+            capacity: item.capacity || 'UOM'
+        }));
+        
+        setSplitItems(prev => ({ ...prev, [receiptId]: resetItems }));
     };
 
     const handleSave = (receiptId: string) => {
@@ -136,14 +231,14 @@ export const InventarioTransito: React.FC = () => {
     };
 
     return (
-        <div className="p-8 max-w-7xl mx-auto">
+        <div className="p-8 max-w-7xl mx-auto relative pb-32">
             <div className="mb-8">
                 <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
                     <PackageSearch className="text-indigo-600 w-8 h-8" />
                     Inventario en Tránsito
                 </h1>
                 <p className="text-slate-500 mt-2">
-                    Gestiona la mercancía recibida y distribúyela físicamente a las diferentes bodegas. Utiliza "Dividir" para enviar partes del mismo lote a distintas sedes.
+                    Gestiona la mercancía recibida y distribúyela físicamente a las diferentes bodegas. Utiliza "Dividir" para enviar partes del mismo lote a distintas sedes o usa la Inteligencia Artificial.
                 </p>
             </div>
 
@@ -156,17 +251,34 @@ export const InventarioTransito: React.FC = () => {
                     {transitReceipts.map(receipt => {
                         const items = splitItems[receipt.id] || [];
                         const allAssigned = items.length > 0 && items.every(i => !!i.assignedLocation);
+                        const hasAiSuggestions = items.some(i => i.isAiSuggested);
 
                         return (
-                            <div key={receipt.id} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                            <div key={receipt.id} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden relative">
                                 <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
                                     <div>
                                         <h3 className="text-white font-bold">Documento: {receipt.documentNumber}</h3>
                                         <p className="text-slate-400 text-sm">Ingreso: {new Date(receipt.dateIn).toLocaleDateString()}</p>
                                     </div>
-                                    <div className="bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-bold border border-amber-500/30 flex items-center gap-2">
-                                        <AlertTriangle size={14} />
-                                        En Cuarentena
+                                    <div className="flex items-center gap-4">
+                                        <button 
+                                            onClick={() => handleAiSuggest(receipt.id)}
+                                            disabled={isAiLoading[receipt.id] || hasAiSuggestions}
+                                            className="bg-amber-400 hover:bg-amber-500 text-amber-950 px-4 py-1.5 rounded-full text-xs font-bold shadow-lg shadow-amber-400/20 flex items-center gap-2 transition-all disabled:opacity-50"
+                                        >
+                                            {isAiLoading[receipt.id] ? (
+                                                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                                                    <Zap size={16} />
+                                                </motion.div>
+                                            ) : (
+                                                <Zap size={16} />
+                                            )}
+                                            Sugerencia IA
+                                        </button>
+                                        <div className="bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-bold border border-amber-500/30 flex items-center gap-2">
+                                            <AlertTriangle size={14} />
+                                            En Cuarentena
+                                        </div>
                                     </div>
                                 </div>
 
@@ -185,16 +297,22 @@ export const InventarioTransito: React.FC = () => {
                                             {items.map((item) => {
                                                 const assignedLocation = item.assignedLocation;
                                                 return (
-                                                    <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                                                    <tr key={item.id} className={`transition-colors ${item.isAiSuggested ? 'bg-amber-50/30' : 'hover:bg-slate-50'}`}>
                                                         <td className="p-4">
                                                             <div className="font-bold text-slate-800">{item.sku}</div>
                                                             <div className="text-xs text-slate-500">{item.description}</div>
+                                                            {item.aiJustification && (
+                                                                <div className="text-xs text-slate-400 italic mt-1 flex items-start gap-1">
+                                                                    <Zap size={12} className="text-amber-400 mt-0.5 shrink-0" />
+                                                                    {item.aiJustification}
+                                                                </div>
+                                                            )}
                                                         </td>
                                                         <td className="p-4 text-right font-mono font-bold text-slate-700">
                                                             {item.totalLiters.toLocaleString()} <span className="text-xs text-slate-400 font-sans font-normal">{item.capacity}</span>
                                                         </td>
                                                         <td className="p-4 text-center">
-                                                            {item.totalLiters > 1 && (
+                                                            {item.totalLiters > 1 && !item.isAiSuggested && (
                                                                 <button 
                                                                     onClick={() => setSplitModalData({receiptId: receipt.id, itemId: item.id, maxQty: item.totalLiters, sku: item.sku})}
                                                                     className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 flex items-center gap-1 mx-auto transition-colors"
@@ -207,8 +325,13 @@ export const InventarioTransito: React.FC = () => {
                                                             <select
                                                                 value={assignedLocation || ''}
                                                                 onChange={(e) => handleAssign(receipt.id, item.id, e.target.value)}
+                                                                disabled={item.isAiSuggested}
                                                                 className={`bg-white border rounded-lg px-3 py-2 outline-none text-sm font-medium w-full max-w-[200px] cursor-pointer transition-colors ${
-                                                                    assignedLocation ? 'border-emerald-500 text-emerald-700 bg-emerald-50' : 'border-slate-300 text-slate-600 focus:border-indigo-500'
+                                                                    assignedLocation 
+                                                                        ? item.isAiSuggested 
+                                                                            ? 'border-amber-400 text-amber-700 bg-amber-50'
+                                                                            : 'border-emerald-500 text-emerald-700 bg-emerald-50' 
+                                                                        : 'border-slate-300 text-slate-600 focus:border-indigo-500'
                                                                 }`}
                                                             >
                                                                 <option value="" disabled>Seleccione sede...</option>
@@ -218,7 +341,15 @@ export const InventarioTransito: React.FC = () => {
                                                             </select>
                                                         </td>
                                                         <td className="p-4 text-center">
-                                                            {assignedLocation ? (
+                                                            {item.isAiSuggested ? (
+                                                                <motion.div 
+                                                                    animate={{ opacity: [1, 0.4, 1] }} 
+                                                                    transition={{ repeat: Infinity, duration: 1.5 }}
+                                                                    className="flex items-center justify-center text-amber-400"
+                                                                >
+                                                                    <Zap size={24} fill="currentColor" />
+                                                                </motion.div>
+                                                            ) : assignedLocation ? (
                                                                 <div className="flex items-center justify-center text-emerald-500">
                                                                     <CheckCircle2 size={24} />
                                                                 </div>
@@ -234,12 +365,12 @@ export const InventarioTransito: React.FC = () => {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                                <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end relative">
                                     <button
                                         onClick={() => handleSave(receipt.id)}
-                                        disabled={!allAssigned}
+                                        disabled={!allAssigned || hasAiSuggestions}
                                         className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold transition-all shadow-sm ${
-                                            allAssigned 
+                                            allAssigned && !hasAiSuggestions
                                                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30' 
                                                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                         }`}
@@ -248,6 +379,40 @@ export const InventarioTransito: React.FC = () => {
                                         Guardar Inventario
                                     </button>
                                 </div>
+                                
+                                <AnimatePresence>
+                                    {hasAiSuggestions && (
+                                        <motion.div
+                                            initial={{ y: 20, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            exit={{ y: 20, opacity: 0 }}
+                                            className="absolute bottom-0 left-0 right-0 bg-slate-800 text-white p-4 flex items-center justify-between border-t-4 border-amber-400 z-10"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Zap size={20} className="text-amber-400" fill="currentColor" />
+                                                <div>
+                                                    <h4 className="font-bold text-sm">Scarpian AI ha sugerido una distribución.</h4>
+                                                    <p className="text-xs text-slate-300">Revisa las filas marcadas en amarillo y decide si deseas aplicar esta configuración.</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <button 
+                                                    onClick={() => rejectAiSuggestions(receipt.id)}
+                                                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold text-slate-300 transition-colors"
+                                                >
+                                                    <XCircle size={16} className="inline mr-1" /> Rechazar
+                                                </button>
+                                                <button 
+                                                    onClick={() => acceptAiSuggestions(receipt.id)}
+                                                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-lg text-sm font-bold text-white shadow-lg shadow-emerald-500/20 transition-colors"
+                                                >
+                                                    <CheckCircle2 size={16} className="inline mr-1" /> Aceptar sugerencia
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
                             </div>
                         );
                     })}

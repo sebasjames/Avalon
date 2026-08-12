@@ -539,3 +539,69 @@ export const generatePurchaseSuggestions = async (inventorySubset: any[]): Promi
     }
 };
 
+export interface AiDistributionSuggestion {
+    sku: string;
+    splits: { location: string; qty: number }[];
+    justification: string;
+}
+
+export const suggestTransitDistribution = async (receiptItems: any[], inventoryContext: any[]): Promise<AiDistributionSuggestion[]> => {
+    try {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            console.warn("No API key, returning mock AI suggestion");
+            return receiptItems.map(item => ({
+                sku: item.sku,
+                splits: [
+                    { location: 'Centenario', qty: Math.floor(item.totalLiters * 0.7) || 1 },
+                    { location: 'Gaitán', qty: item.totalLiters - (Math.floor(item.totalLiters * 0.7) || 1) }
+                ].filter(s => s.qty > 0),
+                justification: "Sugerencia de prueba: Se asignó 70% a Centenario por falta de API Key."
+            }));
+        }
+
+        const ai = new GoogleGenAI({ apiKey });
+        
+        const prompt = `
+Eres el módulo de IA Logística de Procoquinal. 
+Se acaba de recibir un lote de mercancía (Inventario en Tránsito). Tu objetivo es decidir a qué bodegas (Centenario, Gaitán, Barranquilla) enviar cada fracción de los productos para balancear el stock.
+
+INVENTARIO ACTUAL EN BODEGAS PARA ESTOS SKUS:
+${JSON.stringify(inventoryContext, null, 2)}
+
+MERCANCÍA RECIBIDA (EN TRÁNSITO):
+${JSON.stringify(receiptItems, null, 2)}
+
+Devuelve estrictamente un arreglo JSON (sin markdown, sin bloques de código) con el siguiente formato:
+[
+  {
+    "sku": "SKU-DEL-PRODUCTO",
+    "splits": [
+       { "location": "NombreBodega", "qty": CantidadNumerica }
+    ],
+    "justification": "Explicación breve de por qué se tomó esta decisión (ej. 'Centenario tiene stock crítico, se envía el mayor porcentaje allí.')."
+  }
+]
+IMPORTANTE: La suma de 'qty' en 'splits' DEBE ser exactamente igual a la cantidad total del producto recibido.
+Solo puedes usar las bodegas: Centenario, Gaitán, Barranquilla.
+`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3.5-flash',
+            contents: prompt,
+            config: {
+                systemInstruction: "Eres un experto en inventario. Responde ÚNICAMENTE con el arreglo JSON solicitado. No agregues texto adicional ni markdown."
+            }
+        });
+
+        const text = response.text || "[]";
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanText);
+        return parsed as AiDistributionSuggestion[];
+
+    } catch (error) {
+        console.error("Gemini API Error (Auto-Distribution):", error);
+        return [];
+    }
+};
+
