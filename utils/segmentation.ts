@@ -19,7 +19,7 @@ export function recalculateClientTiers(contacts: CrmContact[]): CrmContact[] {
       const isTop20 = index < 20;
       const isTop70Percent = totalRevenue > 0 ? (cumulativeRevenue / totalRevenue) <= 0.7 : false;
       
-      let calculatedTier = CustomerTier.REGULAR;
+      let calculatedTier: CustomerTier = CustomerTier.REGULAR;
       
       if ((isTop20 || isTop70Percent) && annual > 0) {
           calculatedTier = CustomerTier.VIP;

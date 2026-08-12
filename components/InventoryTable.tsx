@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MOCK_INVENTORY } from '../constants';
+import { INVENTORY_DATA } from '../constants';
 import { InventoryStatus, ABCClass, XYZClass, Category } from '../types';
 import { Search, Filter, AlertCircle, CheckCircle2, Clock, XCircle, X } from 'lucide-react';
 import { formatCOP } from '../utils/format';
@@ -36,7 +36,7 @@ export const InventoryTable: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('Todos');
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
   
-  const filteredData = MOCK_INVENTORY.filter(item => {
+  const filteredData = INVENTORY_DATA.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) || 
                           item.sku.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === 'Todos' || item.category === categoryFilter;

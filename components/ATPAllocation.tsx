@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { MOCK_INVENTORY, MOCK_CUSTOMERS, MOCK_SALES_ORDERS } from '../constants';
+import { INVENTORY_DATA, MOCK_CUSTOMERS, MOCK_SALES_ORDERS } from '../constants';
 import { InventoryStatus, CustomerTier } from '../types';
 import { 
     Calculator, Truck, AlertOctagon, CheckCircle2, 
@@ -19,7 +19,7 @@ export const ATPAllocation: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const products = useMemo(() => MOCK_INVENTORY.filter(i => i.category === 'Producto Terminado'), []);
+    const products = useMemo(() => INVENTORY_DATA.filter(i => i.category === 'Producto Terminado'), []);
     
     const filteredProducts = useMemo(() => {
         if (!searchQuery) return products;
@@ -47,7 +47,7 @@ export const ATPAllocation: React.FC = () => {
     }, [selectedSku, products]);
 
     // Get current product context
-    const product = MOCK_INVENTORY.find(p => p.sku === selectedSku) || MOCK_INVENTORY[1];
+    const product = INVENTORY_DATA.find(p => p.sku === selectedSku) || INVENTORY_DATA[1];
     const atp = product.totalStock - product.reservedStock;
     
     // Get related orders sorted by priority

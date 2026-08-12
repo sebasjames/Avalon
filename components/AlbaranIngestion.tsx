@@ -5,7 +5,7 @@ import { RawExtractionView } from './RawExtractionView';
 import { LandedCostCompendium } from './LandedCostCompendium';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_INVENTORY } from '../constants';
+import { INVENTORY_DATA } from '../constants';
 import { InboundReceipt, InboundReceiptItem } from '../types';
 import { processExcelIngestion } from '../services/excelIngestionService';
 import { InvoiceExtractionResult } from '../services/geminiService';
@@ -25,7 +25,7 @@ export const AlbaranIngestion: React.FC = () => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const CHECKPOINTS = [
-        "Leyendo estructura del Excel",
+        "Mapeando estructura del proveedor con IA",
         "Extrayendo Productos y Cantidades",
         "Extrayendo Costos FOB y Gastos",
         "Procesamiento Finalizado"
@@ -48,7 +48,7 @@ export const AlbaranIngestion: React.FC = () => {
         setCurrentCheckpoint(0);
 
         try {
-            const result = await processExcelIngestion(file, MOCK_INVENTORY, (msg) => {
+            const result = await processExcelIngestion(file, INVENTORY_DATA, (msg) => {
                 setLoadingText(msg);
                 if (msg.includes("productos")) setCurrentCheckpoint(1);
                 if (msg.includes("FOB")) setCurrentCheckpoint(2);
@@ -142,7 +142,7 @@ export const AlbaranIngestion: React.FC = () => {
             documentNumber: docNum,
             dateIn: new Date().toISOString(),
             items: receiptItems,
-            status: 'PROCESSED'
+            status: 'TRANSITO'
         };
 
         processInboundReceipt(receipt);
@@ -150,7 +150,7 @@ export const AlbaranIngestion: React.FC = () => {
         setRawResult(null);
         setDocumentNumber('');
         setPhase('upload');
-        alert("Albarán de Excel procesado y stock actualizado correctamente.");
+        alert("Albarán procesado. La mercancía ha sido enviada al Inventario en Tránsito para su distribución.");
     };
 
     return (
@@ -310,7 +310,7 @@ export const AlbaranIngestion: React.FC = () => {
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2"
                                 >
                                     <CheckCircle2 size={18} />
-                                    Confirmar y Actualizar Stock
+                                    Confirmar y Enviar a Tránsito
                                 </button>
                             </div>
                         </div>

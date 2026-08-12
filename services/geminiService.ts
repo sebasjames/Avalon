@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { GoogleGenAI } from "@google/genai";
-import { MOCK_INVENTORY, SALES_DATA } from '../constants';
+import { INVENTORY_DATA, SALES_DATA } from '../constants';
 import { AuditRow } from '../components/DataAuditGrid';
 
 const SYSTEM_INSTRUCTION = `
@@ -158,6 +158,7 @@ export interface ExtractedProduct {
     cost: number;
     status: 'MATCH' | 'REVIEW' | 'ERROR';
     confidence: number;
+    aiExplanation?: any;
 }
 
 export interface ExtractedLandedCost {
@@ -390,6 +391,151 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
     } catch (error) {
         console.error("Error processing invoices:", error);
         throw error;
+    }
+};
+
+export interface ExcelLayoutMap {
+    productsTable: {
+        startRow: number;
+        endRow: number | null; // null means until the table breaks
+        skuCol: number;
+        nameCol: number;
+        qtyCol: number;
+        costCol: number;
+        uomCol?: number;
+    };
+    landedCostsTable: {
+        startRow: number;
+        conceptCol: number;
+        amountCol: number;
+    } | null;
+    metadata: {
+        trm: number | null;
+        currency: string;
+        colchon: number | null;
+    };
+}
+
+export const analyzeExcelLayout = async (csvSample: string): Promise<ExcelLayoutMap> => {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        throw new Error('MISSING_API_KEY');
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    
+    const prompt = `
+Eres un agente experto analizando la estructura de hojas de Excel de importaciones.
+Te voy a dar una representación en CSV de una hoja de Excel (usualmente las primeras 100 y últimas filas).
+El CSV muestra cada fila precedida por su índice (ej. "Fila 12:"). Ese texto introductorio NO ES UNA COLUMNA. 
+El contenido real empieza después de los dos puntos. La primera celda de datos es el índice 0.
+
+Tu objetivo es DEVOLVER ÚNICAMENTE UN JSON válido que mapee la estructura para que otro script pueda extraer la data ciegamente.
+
+REGLAS DE MAPEO:
+1. "productsTable": 
+   - startRow: Índice de la fila (el número X en "Fila X:") donde arranca el primer producto real.
+   - skuCol: Índice (0-indexed) de la columna donde está el código o referencia.
+   - nameCol: Índice de la columna del nombre/descripción.
+   - qtyCol: Índice de la columna de la cantidad (prioriza kilos o litros si hay múltiples).
+   - costCol: Índice de la columna del valor unitario (FOB o Precio).
+   - uomCol: (Opcional) Índice de la unidad de medida.
+2. "landedCostsTable":
+   - startRow: Índice de la fila (el número X en "Fila X:") donde empiezan los gastos (normalmente en la parte inferior, busca "FOB", "Fletes", etc).
+   - conceptCol: Columna donde está el nombre del gasto.
+   - amountCol: Columna donde está el valor del gasto numérico.
+3. "metadata":
+   - trm: Si logras leer la Tasa de Cambio (TRM), devuélvela como número. Si no, null.
+   - currency: "USD" o "EUR".
+   - colchon: Si logras encontrar el valor del "Costeo de Importación por Kilo" o "Colchón", ponlo numérico. Si no, null.
+
+CSV DEL EXCEL:
+${csvSample}
+
+Devuelve SOLO EL JSON, sin formato markdown ni texto extra.
+`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: prompt,
+        config: {
+            responseMimeType: 'application/json'
+        }
+    });
+
+    const text = response.text || "{}";
+    try {
+        return JSON.parse(text) as ExcelLayoutMap;
+    } catch (e) {
+        // Fallback
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) {
+            return JSON.parse(match[0]) as ExcelLayoutMap;
+        }
+        throw new Error("Gemini returned invalid JSON for layout map");
+    }
+};
+
+export const generatePurchaseSuggestions = async (inventorySubset: any[]): Promise<any[]> => {
+    // Fallback function in case API is not set or fails
+    const localFallback = () => {
+        return inventorySubset.map(item => {
+            const avgMonthlySales = (item.totalStock * 0.4) + 100; // Simulated historical burn
+            const suggested = Math.ceil(Math.max(0, (avgMonthlySales * 3) - item.totalStock));
+            let reason = 'Stock estable';
+            if (item.totalStock < avgMonthlySales) reason = 'Riesgo de quiebre en < 30 días';
+            else if (item.totalStock < avgMonthlySales * 2) reason = 'Stock de seguridad bajo (sugerido 3 meses)';
+
+            return {
+                sku: item.sku,
+                description: item.name,
+                currentStock: item.totalStock,
+                unitCost: item.unitCost,
+                suggestedQty: suggested,
+                reason,
+                editedQty: suggested
+            };
+        });
+    };
+
+    try {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            console.warn("Using local fallback for purchase suggestions (No API Key).");
+            return localFallback();
+        }
+
+        const ai = new GoogleGenAI({ apiKey });
+        
+        const prompt = `
+        Analiza este subconjunto del inventario de Procoquinal:
+        ${JSON.stringify(inventorySubset.map(i => ({ sku: i.sku, name: i.name, stock: i.totalStock, cost: i.unitCost })))}
+        
+        Genera una sugerencia de pedido para asegurar inventario para los próximos 3 meses, asumiendo un consumo mensual moderado y tiempos de tránsito de 45 días.
+        
+        RESPONDE ÚNICAMENTE CON UN ARRAY JSON. NADA DE MARKDOWN, NADA DE TEXTO ADICIONAL.
+        Estructura requerida por elemento:
+        { "sku": "str", "description": "str", "currentStock": num, "unitCost": num, "suggestedQty": num, "reason": "str", "editedQty": num (igual a suggestedQty) }
+        `;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3.5-flash',
+            contents: prompt,
+            config: {
+                systemInstruction: "Eres un asistente de compras de Procoquinal. Responde SOLO con el array JSON solicitado, sin comillas invertidas ni bloques de código markdown.",
+                temperature: 0.1
+            }
+        });
+
+        const text = response.text || '';
+        const cleanText = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+        const jsonResponse = JSON.parse(cleanText);
+        
+        return Array.isArray(jsonResponse) ? jsonResponse : localFallback();
+
+    } catch (e) {
+        console.error("Error in generatePurchaseSuggestions:", e);
+        return localFallback();
     }
 };
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { MOCK_OPPORTUNITIES } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { useEnterprise } from '../context/EnterpriseContext';
 import { ActionOpportunity, ActionType } from '../types';
 import { 
     Zap, DollarSign, TrendingDown, ArrowRight, Percent, 
@@ -16,18 +16,75 @@ const ActionIcon = ({ type }: { type: ActionType }) => {
 };
 
 export const ActionCenter: React.FC = () => {
-    const [opportunities, setOpportunities] = useState<ActionOpportunity[]>(MOCK_OPPORTUNITIES);
+    const { inventory } = useEnterprise();
+    const [opportunities, setOpportunities] = useState<ActionOpportunity[]>([]);
     const [executedCount, setExecutedCount] = useState(0);
     const [cashUnlocked, setCashUnlocked] = useState(0);
+
+    useEffect(() => {
+        if (!inventory || inventory.length === 0) return;
+
+        // Generate 20 random actions based on realistic inventory items
+        const shuffled = [...inventory].sort(() => 0.5 - Math.random());
+        const selectedItems = shuffled.slice(0, 20);
+
+        const newActions: ActionOpportunity[] = selectedItems.map((item, idx) => {
+            const types: ActionType[] = ['LIQUIDATION', 'BUNDLE', 'TRANSFER', 'SCRAP'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const quantityToMove = Math.floor(Math.random() * (item.totalStock || 100)) + 10;
+            const value = quantityToMove * (item.unitCost || 5000);
+            
+            let reason = '';
+            let suggestedAction = '';
+            let marginImpactPercent = 0;
+            let costOfAction = 0;
+
+            if (type === 'LIQUIDATION') {
+                reason = `🤖 AI Alert: Inventario Lento detectado. ${item.totalStock} unidades estancadas por >90 días.`;
+                suggestedAction = `Campaña "Flash Sale" con 20% dcto. a clientes de categoría ${item.category || 'General'}`;
+                marginImpactPercent = -20;
+                costOfAction = value * 0.05; // 5% marketing cost
+            } else if (type === 'BUNDLE') {
+                reason = `🤖 AI Insight: Fuerte correlación de compra detectada con productos complementarios.`;
+                suggestedAction = `Crear Kit Promocional B2B para mover ${quantityToMove} unidades rápidamente.`;
+                marginImpactPercent = -5;
+                costOfAction = quantityToMove * 1000; // Packaging cost
+            } else if (type === 'TRANSFER') {
+                const locations = ['Centenario', 'Gaitán', 'Barranquilla'];
+                const dest = locations[Math.floor(Math.random() * locations.length)];
+                reason = `🤖 AI Forecast: Probabilidad de quiebre de stock inminente en sede ${dest}.`;
+                suggestedAction = `Transferencia Automática de ${quantityToMove} unidades hacia ${dest}.`;
+                marginImpactPercent = 0;
+                costOfAction = quantityToMove * 800; // Logistics cost
+            } else {
+                // SCRAP
+                reason = `🤖 AI Warning: Lote próximo a caducar o con calidad degradada. Riesgo de costo de bodegaje excesivo.`;
+                suggestedAction = `Destrucción certificada para liberación de espacio y beneficio fiscal.`;
+                marginImpactPercent = -100;
+                costOfAction = 150000; // Environmental cert cost
+            }
+
+            return {
+                id: `ACT-${String(idx + 1).padStart(3, '0')}`,
+                type,
+                skuId: item.sku,
+                productName: item.name,
+                reason,
+                suggestedAction,
+                quantityToMove,
+                potentialCashRelease: type === 'SCRAP' ? 0 : value,
+                marginImpactPercent,
+                costOfAction,
+                status: 'PENDING'
+            };
+        });
+
+        setOpportunities(newActions);
+    }, [inventory]);
 
     const handleExecute = (id: string) => {
         const action = opportunities.find(o => o.id === id);
         if (action && action.status === 'PENDING') {
-            // Mutate global constant in memory
-            const globalAction = MOCK_OPPORTUNITIES.find(o => o.id === id);
-            if (globalAction) {
-                globalAction.status = 'EXECUTED';
-            }
             const updated = opportunities.map(o => 
                 o.id === id ? { ...o, status: 'EXECUTED' as const } : o
             );

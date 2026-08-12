@@ -9,6 +9,7 @@ import {
 import { formatCOP } from '../utils/format';
 import { Product, CrmContact, CustomerTier } from '../types';
 import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
+import { QuoteEmailModal } from './QuoteEmailModal';
 
 export const SmartPosPanel: React.FC = () => {
     const { 
@@ -58,6 +59,7 @@ export const SmartPosPanel: React.FC = () => {
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
     const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
     const [customerSearch, setCustomerSearch] = useState('');
+    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     
     const filteredContacts = useMemo(() => {
         if (!customerSearch) return contacts;
@@ -994,7 +996,16 @@ export const SmartPosPanel: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-3 mt-6">
-                        <button className="py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                        <button 
+                            onClick={() => {
+                                if (cart.length > 0) {
+                                    setIsQuoteModalOpen(true);
+                                } else {
+                                    alert("Agregue productos al carrito para cotizar");
+                                }
+                            }}
+                            className="py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                        >
                             <Receipt className="w-5 h-5" /> Cotizar
                         </button>
                         <button 
@@ -1229,6 +1240,28 @@ export const SmartPosPanel: React.FC = () => {
             <datalist id="recent-colors">
                 {recentColors.map(c => <option key={c} value={c} />)}
             </datalist>
+
+            <QuoteEmailModal 
+                isOpen={isQuoteModalOpen} 
+                onClose={() => setIsQuoteModalOpen(false)} 
+                cart={cart.map(c => {
+                    const basePrice = rawMaterialCategories.includes(c.product.category) ? c.product.unitCost * 1.3 : c.product.price;
+                    const multiplier = c.isCunete ? 20 : 1;
+                    return { 
+                        id: c.id, 
+                        name: c.isCunete ? `${c.product.name} (Cuñete)` : c.product.name, 
+                        price: basePrice * multiplier, 
+                        quantity: c.qty, 
+                        sku: c.product.sku 
+                    };
+                })} 
+                clientName={contacts.find(c => c.id === selectedCustomerId)?.name || ''} 
+                subtotal={subtotal}
+                discountAmount={discountAmount}
+                discountPercent={discountPercent}
+                taxesBreakdown={taxesBreakdown}
+                retenciones={retenciones}
+            />
         </div>
     );
 };

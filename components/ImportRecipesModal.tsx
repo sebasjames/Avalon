@@ -254,7 +254,7 @@ export const ImportRecipesModal: React.FC<ImportRecipesModalProps> = ({ isOpen, 
                                                         <td className="p-3">
                                                             {row.isValid 
                                                                 ? <CheckCircle size={18} className="text-emerald-500" />
-                                                                : <AlertTriangle size={18} className="text-red-500" title={row.error} />
+                                                                : <span title={row.error}><AlertTriangle size={18} className="text-red-500" /></span>
                                                             }
                                                         </td>
                                                         <td className="p-3 font-medium text-slate-700">{row.finalSku}</td>

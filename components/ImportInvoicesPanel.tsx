@@ -248,7 +248,7 @@ export const ImportInvoicesPanel: React.FC = () => {
     const loadDossier = (d: ImportDossier) => {
         setIsHistoryView(true);
         setViewMode('NEW');
-        setMode(d.mode || 'EXCEL');
+        setMode((d.mode as 'AI' | 'EXCEL') || 'EXCEL');
         setInvoiceNumber(d.documentNumber);
         setParsedRows(d.parsedRows);
         setLandedCosts(d.landedCosts);

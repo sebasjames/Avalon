@@ -7,7 +7,7 @@ import { LandedCostCompendium } from './LandedCostCompendium';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { MOCK_INVENTORY } from '../constants';
+import { INVENTORY_DATA } from '../constants';
 import { InboundReceipt, InboundReceiptItem } from '../types';
 
 export const AlbaranIngestion: React.FC = () => {
@@ -68,7 +68,7 @@ export const AlbaranIngestion: React.FC = () => {
                 fileDataArray.push({ data: base64Data, mimeType: file.type, name: file.name });
             }
 
-            const result = await processInvoicesWithGemini(fileDataArray, MOCK_INVENTORY, (msg) => {
+            const result = await processInvoicesWithGemini(fileDataArray, INVENTORY_DATA, (msg) => {
                 setLoadingText(msg);
                 if (msg.startsWith("Consolidando")) {
                     // Terminó el OCR, empieza la consolidación. 

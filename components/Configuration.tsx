@@ -39,7 +39,7 @@ export const Configuration: React.FC = () => {
     taxRules, setTaxRules, pricingRules, setPricingRules, paymentRules, setPaymentRules,
     systemUsers, addSystemUser, updateSystemUser, deleteSystemUser,
     suppliers, addSupplier, updateSupplier, deleteSupplier,
-    crmSettings, setCrmSettings
+    crmSettings, updateCrmSettings
   } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
   const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'integraciones'>('integraciones');
@@ -1427,7 +1427,7 @@ export const Configuration: React.FC = () => {
                                 type="checkbox" 
                                 className="sr-only peer" 
                                 checked={!!crmSettings.autoAssignLeads}
-                                onChange={(e) => setCrmSettings({...crmSettings, autoAssignLeads: e.target.checked})}
+                                onChange={(e) => updateCrmSettings({ autoAssignLeads: e.target.checked })}
                             />
                             <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                         </label>
@@ -1823,10 +1823,10 @@ export const Configuration: React.FC = () => {
                   
                   <section className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
                     <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                      Motor Cognitivo: Google Gemini
+                      Motor Cognitivo: Scarpian AI
                     </h3>
                     <p className="text-sm text-slate-500 mb-6">
-                      Avalon OS utiliza Gemini 3.5 Flash para auditoría contable (OCR y deduplicación) y para el Chat de Inteligencia. 
+                      Avalon AI utiliza Scarpian AI 3.6 para auditoría contable (OCR y deduplicación) y para el Chat de Inteligencia. 
                       Ingresa tu API Key para activar estas funcionalidades.
                     </p>
                     

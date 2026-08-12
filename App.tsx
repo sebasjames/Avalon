@@ -13,6 +13,7 @@ import { PurchasingIntelligence } from './components/PurchasingIntelligence';
 import { ActionCenter } from './components/ActionCenter';
 import { IntelligenceHub } from './components/IntelligenceHub';
 import { FinancialImpact } from './components/FinancialImpact';
+import { PurchaseReports } from './components/PurchaseReports';
 import { DataGovernance } from './components/DataGovernance';
 import { SalesPerformance } from './components/SalesPerformance';
 import { AdvancedAnalytics } from './components/AdvancedAnalytics';
@@ -27,6 +28,7 @@ import { MatrixComisiones } from './components/MatrixComisiones';
 import { CrmFull } from './components/CrmFull';
 
 import { AlbaranIngestion } from './components/AlbaranIngestion';
+import { InventarioTransito } from './components/InventarioTransito';
 import { SmartPosPanel } from './components/SmartPosPanel';
 import { AccountingModule } from './components/AccountingModule';
 import { ReturnsPanel } from './components/ReturnsPanel';
@@ -115,8 +117,10 @@ const App: React.FC = () => {
             <Route path="/inventory-hub" element={<InventoryHub />} />
             <Route path="/inventory-mapper" element={<SmartDataMapper />} />
             <Route path="/albaranes" element={<AlbaranIngestion />} />
+            <Route path="/inventario-transito" element={<InventarioTransito />} />
             <Route path="/sales-performance" element={<SalesPerformance />} />
             <Route path="/financial" element={<FinancialImpact />} />
+            <Route path="/informes-pedido" element={<PurchaseReports />} />
             <Route path="/forecast" element={<ForecastPlanning />} />
             <Route path="/action-center" element={<ActionCenter />} />
             <Route path="/production" element={<ProductionManagement />} />

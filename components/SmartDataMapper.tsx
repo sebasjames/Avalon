@@ -40,6 +40,7 @@ interface ExtractedRow {
     subCategory: string; // The semantic meaning computed from prefix
     uom: string;
     qty: number;
+    kgPerUnit: number;
     unitCost: number;
     hasError: boolean;
     errorMsg?: string;
@@ -204,6 +205,7 @@ export const SmartDataMapper: React.FC = () => {
                 subCategory,
                 uom,
                 qty: isNaN(qtyNum) ? 0 : qtyNum,
+                kgPerUnit: 1,
                 unitCost: isNaN(qtyNum) || qtyNum === 0 ? 0 : Number((r.cost / qtyNum).toFixed(2)),
                 hasError,
                 errorMsg
@@ -337,7 +339,7 @@ export const SmartDataMapper: React.FC = () => {
                 </div>
 
                 <div className="flex-1 min-h-0 mb-6">
-                    <DataAuditGrid data={extractedData} onUpdateRow={handleUpdateRow} />
+                    <DataAuditGrid data={extractedData} onUpdateRow={handleUpdateRow} trm={4000} colchon={15} currency="USD" />
                 </div>
 
                 <div className="flex justify-end p-4 bg-slate-900 rounded-2xl shadow-xl mt-auto items-center gap-6">

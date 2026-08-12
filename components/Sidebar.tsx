@@ -30,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
   const financeGroup = {
       label: "Finanzas & Inteligencia",
       children: [
+          { to: "/informes-pedido", icon: FileSpreadsheet, label: "Informes de Pedido" },
           { to: "/forecast", icon: PieChart, label: "Proyecciones y Planeación" },
           { to: "/action-center", icon: Zap, label: "Centro de Acción / Alertas" },
           { to: "/financial", icon: Wallet, label: "Impacto Financiero" },
@@ -47,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
   // Auto-open groups if active route is inside them
   useEffect(() => {
     const operationPaths = ['/inventory', '/inventory-control', '/production'];
-    const financePaths = ['/financial', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center', '/accounting/auditoria'];
+    const financePaths = ['/financial', '/informes-pedido', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center', '/accounting/auditoria'];
     const salesPaths = ['/crm', '/sales-performance', '/atp', '/pos'];
     const staffPaths = ['/staff/sales-profiles', '/staff/gestion-comercial'];
     const accountingPaths = ['/accounting', '/returns'];
@@ -102,6 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         icon: Boxes,
         children: [
             { to: "/inventory-hub", icon: PackageSearch, label: "Centro de Inventarios" },
+            { to: "/inventario-transito", icon: PackageOpen, label: "Inventario Tránsito" },
             { to: "/production", icon: FlaskConical, label: "Producción y Lotes" },
             { to: "/albaranes", icon: ScanBarcode, label: "Ingesta de Albaranes" },
             { to: "/inventory-mapper", icon: Database, label: "Asistente de Ingesta (ETL)" },

@@ -4,7 +4,7 @@ import {
   LineChart, Line, AreaChart, Area 
 } from 'recharts';
 import { TrendingUp, AlertTriangle, Package, DollarSign, Activity, Truck } from 'lucide-react';
-import { SALES_DATA, MOCK_INVENTORY } from '../constants';
+import { SALES_DATA, INVENTORY_DATA } from '../constants';
 import { InventoryStatus, Category } from '../types';
 import { formatCOP } from '../utils/format';
 
@@ -30,9 +30,9 @@ const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
 
 export const Dashboard: React.FC = () => {
   // Calculated metrics
-  const totalValue = MOCK_INVENTORY.reduce((acc, item) => acc + (item.category === Category.SERVICE ? 0 : item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
-  const silentStockCount = MOCK_INVENTORY.filter(i => i.status === InventoryStatus.SILENT).length;
-  const activeStockCount = MOCK_INVENTORY.filter(i => i.status === InventoryStatus.ACTIVE).length;
+  const totalValue = INVENTORY_DATA.reduce((acc, item) => acc + (item.category === Category.SERVICE ? 0 : item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
+  const silentStockCount = INVENTORY_DATA.filter(i => i.status === InventoryStatus.SILENT).length;
+  const activeStockCount = INVENTORY_DATA.filter(i => i.status === InventoryStatus.ACTIVE).length;
 
   return (
     <div className="p-6 space-y-6 bg-slate-50 min-h-screen">
@@ -110,7 +110,7 @@ export const Dashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={[
                 { name: 'Activo', value: activeStockCount, color: '#10b981' },
-                { name: 'Lento', value: MOCK_INVENTORY.filter(i => i.status === InventoryStatus.SLOW).length, color: '#f59e0b' },
+                { name: 'Lento', value: INVENTORY_DATA.filter(i => i.status === InventoryStatus.SLOW).length, color: '#f59e0b' },
                 { name: 'Silencioso', value: silentStockCount, color: '#ef4444' },
               ]}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { MOCK_INVENTORY, MOCK_TRANSFERS } from '../constants';
+import { INVENTORY_DATA, MOCK_TRANSFERS } from '../constants';
 import { Batch, Product } from '../types';
 import { AlertOctagon, AlertTriangle, ArrowRightLeft, Boxes, CalendarClock, DollarSign, ShieldAlert, Search } from 'lucide-react';
 
@@ -58,7 +58,7 @@ export const InventoryControlDeep: React.FC = () => {
 
     // 1. Flatten Data Structure for Table
     const rawBatches: FlattenedBatch[] = useMemo(() => {
-        return MOCK_INVENTORY.flatMap(product => {
+        return INVENTORY_DATA.flatMap(product => {
             const batches = product.batches && product.batches.length > 0 
                 ? product.batches 
                 : [{

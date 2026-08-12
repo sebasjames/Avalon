@@ -38,7 +38,13 @@ export const CrmPostSalePipeline: React.FC<CrmPostSalePipelineProps> = ({ contac
   // We only show ACTIVE contacts that have a postSaleStage
   const activeContacts = contacts.filter(c => c.status === 'VINCULADO' && c.postSaleStage);
 
-  const getHealthBadge = (score?: string) => {
+  const getHealthBadge = (scoreNum?: number) => {
+    let score = 'GREEN';
+    if (scoreNum !== undefined) {
+      if (scoreNum < 50) score = 'RED';
+      else if (scoreNum < 80) score = 'YELLOW';
+    }
+    
     switch(score) {
       case 'GREEN': return <span className="flex h-3 w-3 relative"><span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span>;
       case 'YELLOW': return <span className="flex h-3 w-3 relative"><span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span></span>;
@@ -86,7 +92,7 @@ export const CrmPostSalePipeline: React.FC<CrmPostSalePipelineProps> = ({ contac
                     draggable
                     onDragStart={(e) => handleDragStart(e as any, contact.id)}
                     onClick={() => onContactClick(contact.id)}
-                    className={`bg-white p-4 rounded-lg shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing transition-colors ${contact.healthScore === 'RED' ? 'hover:border-rose-300' : 'hover:border-indigo-300'}`}
+                    className={`bg-white p-4 rounded-lg shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing transition-colors ${contact.healthScore < 50 ? 'hover:border-rose-300' : 'hover:border-indigo-300'}`}
                   >
                     <div className="flex justify-between items-start mb-2 pointer-events-none">
                       <div className="flex items-center gap-2">
@@ -110,12 +116,12 @@ export const CrmPostSalePipeline: React.FC<CrmPostSalePipelineProps> = ({ contac
                       }`}>
                         Tier {contact.tier}
                       </span>
-                      {contact.healthScore === 'RED' && (
+                      {contact.healthScore < 50 && (
                         <div className="flex items-center gap-1 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">
                           <AlertTriangle className="w-3 h-3" /> Riesgo
                         </div>
                       )}
-                      {contact.healthScore === 'GREEN' && (
+                      {contact.healthScore >= 80 && (
                         <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
                           <CheckCircle2 className="w-3 h-3" /> Sano
                         </div>

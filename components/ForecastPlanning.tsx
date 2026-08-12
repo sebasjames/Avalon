@@ -6,7 +6,7 @@ import {
     TrendingUp, ShieldAlert, BarChart3, Settings2, Target, ArrowUpRight, 
     ArrowDownRight, TrendingDown, Layers
 } from 'lucide-react';
-import { MOCK_INVENTORY, MOCK_FORECAST_DATA, MOCK_DEMAND_ALERTS } from '../constants';
+import { INVENTORY_DATA, MOCK_FORECAST_DATA, MOCK_DEMAND_ALERTS } from '../constants';
 import { Category } from '../types';
 
 export const ForecastPlanning: React.FC = () => {

@@ -28,13 +28,14 @@ export enum XYZClass {
 }
 
 export enum BatchStatus {
+  PLANNING = 'Planeación',
   SCHEDULED = 'Programado',
   IN_PROGRESS = 'En Proceso',
   QA_CHECK = 'Control Calidad',
   COMPLETED = 'Completado',
 }
 
-export type CustomerTier = 'STRATEGIC' | 'REGULAR' | 'NEW' | 'VIP' | 'POTENTIAL' | 'ATTENTION' | 'DECREASE';
+export type CustomerTier = 'STRATEGIC' | 'REGULAR' | 'NEW' | 'VIP' | 'POTENTIAL' | 'ATTENTION' | 'DECREASE' | 'PLATINUM' | 'GOLD' | 'SILVER';
 
 export const CustomerTier = {
   STRATEGIC: 'STRATEGIC' as const,
@@ -44,6 +45,9 @@ export const CustomerTier = {
   POTENTIAL: 'POTENTIAL' as const,
   ATTENTION: 'ATTENTION' as const,
   DECREASE: 'DECREASE' as const,
+  PLATINUM: 'PLATINUM' as const,
+  GOLD: 'GOLD' as const,
+  SILVER: 'SILVER' as const,
 };
 
 export enum BusinessType {
@@ -144,7 +148,7 @@ export interface InboundReceipt {
     documentNumber: string;
     dateIn: string;
     items: InboundReceiptItem[];
-    status: 'PENDING' | 'PROCESSED';
+    status: 'PENDING' | 'PROCESSED' | 'TRANSITO';
 }
 
 export interface RecipeIngredient {
@@ -244,6 +248,10 @@ export interface Vendor {
 export interface PurchaseSuggestion {
     id: string;
     skuId: string;
+    sku?: string;
+    description?: string;
+    currentStock?: number;
+    editedQty?: number;
     productName: string;
     suggestedQty: number;
     unitCost: number;
@@ -373,6 +381,7 @@ export interface CrmContact {
   gracePeriodAlert?: boolean;
   healthScore?: number;
   city?: string;
+  dataConsent?: boolean;
 }
 
 export interface CrmView {
@@ -618,6 +627,12 @@ export interface ImportDossier {
   status: 'TRANSITO' | 'ADUANA' | 'NACIONALIZADO';
   eta: string;
   totalValue: number;
+  mode?: string;
+  documentNumber?: string;
+  parsedRows?: ParsedRow[];
+  landedCosts?: LandedCost[];
+  aiMetadata?: any;
+  aiExtractedDocs?: any[];
 }
 
 export interface Supplier {
@@ -630,4 +645,28 @@ export interface Supplier {
   paymentTerms: string;
   deliveryTimeDays: number;
   status: 'Activo' | 'Inactivo';
+}
+
+export interface ParsedRow {
+  sku: string;
+  qty: number;
+  cost: number;
+  [key: string]: any;
+}
+
+export interface LandedCost {
+  concept: string;
+  amount: number;
+  currency?: string;
+  [key: string]: any;
+}
+
+export interface PosCartItem {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  quantity: number;
+  discount?: number;
+  product?: Product;
 }

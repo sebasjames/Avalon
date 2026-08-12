@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { MOCK_INVENTORY, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
+import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
 import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier } from '../types';
-import crmContactsData from '../data/crm_contacts.json';
+import clientsData from '../data/clients.json';
 
-const MOCK_CRM_CONTACTS = crmContactsData as CrmContact[];
+const CLIENTS_DATA = clientsData as CrmContact[];
 
 interface EnterpriseContextType {
     inventory: Product[];
@@ -25,6 +25,7 @@ interface EnterpriseContextType {
     deleteContacts: (ids: string[]) => void;
     reassignContacts: (contactIds: string[], newOwnerId: string, transferDeals: boolean) => void;
     processInboundReceipt: (receipt: InboundReceipt) => void;
+    distributeTransitInventory: (receiptId: string, locationDistributions: Record<string, Record<string, number>>) => void;
     getContactHealthScore: (contactId: string) => 'GREEN' | 'YELLOW' | 'RED';
     updateHealthThresholds: (redMax: number, yellowMax: number) => void;
     updateContact: (contactId: string, updates: Partial<CrmContact>) => void;
@@ -108,7 +109,7 @@ const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undef
 
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS'>('admin');
-    const [inventory, setInventory] = useState<Product[]>(MOCK_INVENTORY);
+    const [inventory, setInventory] = useState<Product[]>(INVENTORY_DATA);
     const [deals, setDeals] = useState<CrmDeal[]>(MOCK_CRM_DEALS);
     const [systemUsers, setSystemUsers] = useState<SystemUser[]>([
         { id: '1', name: 'Admin Principal', email: 'admin@avalon.com', baseRole: 'admin', customPermissions: {} as any },
@@ -131,8 +132,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // --- Unified Mock Data Generator ---
     const seedData = useMemo(() => {
-        if (!MOCK_INVENTORY.length || !MOCK_CRM_CONTACTS.length) {
-            return { txs: [] as AccountingTransaction[], cts: MOCK_CRM_CONTACTS };
+        if (!INVENTORY_DATA.length || !CLIENTS_DATA.length) {
+            return { txs: [] as AccountingTransaction[], cts: CLIENTS_DATA };
         }
 
         const generated: AccountingTransaction[] = [];
@@ -189,7 +190,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // 1.5 Inject a mock NOTA_CREDITO to test Commission Deductions
         // We will assign it to a client owned by U-CARLOS (e.g. Restaurante La Parilla or similar if we have one)
         // Let's just use the first CRM contact name (which is usually handled by CARLOS in mock data)
-        const mockTargetClient = MOCK_CRM_CONTACTS.find(c => c.ownerId === 'U-001')?.company || 'Cliente Prueba NC';
+        const mockTargetClient = CLIENTS_DATA.find(c => c.ownerId === 'U-001')?.company || 'Cliente Prueba NC';
         generated.push({
             id: 'NC-2026-001',
             date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days ago
@@ -329,8 +330,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             if (rand > 0.8 && rand <= 0.95) type = 'COMPRA';
             else if (rand > 0.95) type = 'AJUSTE_MERMA';
 
-            const contact = MOCK_CRM_CONTACTS[Math.floor(Math.random() * MOCK_CRM_CONTACTS.length)];
-            const product = MOCK_INVENTORY[Math.floor(Math.random() * MOCK_INVENTORY.length)];
+            const contact = CLIENTS_DATA[Math.floor(Math.random() * CLIENTS_DATA.length)];
+            const product = INVENTORY_DATA[Math.floor(Math.random() * INVENTORY_DATA.length)];
 
             const date = new Date(Date.now() - Math.floor(Math.random() * 60 * 24 * 60 * 60 * 1000));
             const dateStr = date.toISOString().split('T')[0];
@@ -432,7 +433,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
 
         // 3. Update customer limits dynamically based on transactions
-        const cts = MOCK_CRM_CONTACTS.map((c, idx) => {
+        const cts = CLIENTS_DATA.map((c, idx) => {
             const clientTxs = generated.filter(t => t.clientId === c.id);
             const unpaidTxs = clientTxs.filter(t => t.type === 'VENTA' && t.paymentStatus !== 'PAGADA');
 
@@ -484,7 +485,20 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [activities, setActivities] = useState<CrmActivity[]>(MOCK_CRM_ACTIVITIES);
     const [events, setEvents] = useState<SystemEvent[]>(MOCK_EVENT_LOG);
     const [crmUsers, setCrmUsers] = useState<CrmUser[]>(MOCK_CRM_USERS);
-    const [receipts, setReceipts] = useState<InboundReceipt[]>([]);
+    const [receipts, setReceipts] = useState<InboundReceipt[]>([{
+        id: `RCPT-MOCK-1`,
+        documentNumber: 'FACT-IMPORT-001',
+        dateIn: new Date().toISOString(),
+        status: 'TRANSITO',
+        items: Array.from({ length: 20 }).map((_, i) => ({
+            sku: `SKU-MOCK-${1000 + i}`,
+            description: `Producto Importado de Prueba ${i + 1}`,
+            packages: Math.floor(Math.random() * 50) + 10,
+            capacity: 'Liters',
+            totalLiters: Math.floor(Math.random() * 500) + 50,
+            unitCost: Math.floor(Math.random() * 15000) + 5000
+        }))
+    }]);
     const [dismissedNotifIds, setDismissedNotifIds] = useState<string[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
 
@@ -927,10 +941,19 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     const processInboundReceipt = (receipt: InboundReceipt) => {
-        setReceipts(prev => [receipt, ...prev]);
+        const transitReceipt = { ...receipt, status: 'TRANSITO' as const };
+        setReceipts(prev => [transitReceipt, ...prev]);
+    };
+
+    const distributeTransitInventory = (receiptId: string, locationDistributions: Record<string, Record<string, number>>) => {
+        setReceipts(prev => prev.map(r => r.id === receiptId ? { ...r, status: 'PROCESSED' } : r));
 
         setInventory(prevInv => {
             const newInv = [...prevInv];
+            // We need to read from the CURRENT receipts state, but since setState is async, we capture it via functional update.
+            // However, receipts is in the outer closure. Let's find it.
+            const receipt = receipts.find(r => r.id === receiptId);
+            if (!receipt) return prevInv;
 
             receipt.items.forEach(item => {
                 const productIdx = newInv.findIndex(p => p.sku === item.sku || p.originalSku === item.sku);
@@ -964,8 +987,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                         new_state: { totalStock: newStock, unitCost: newAvgCost },
                         context: {
                             channel: 'SYSTEM',
-                            reason: `Recepción Albarán: ${receipt.documentNumber}`,
-                            meta: { receiptId: receipt.id, qty: item.totalLiters }
+                            reason: `Recepción Albarán y Distribución a Bodegas: ${receipt.documentNumber}`,
+                            meta: { receiptId: receipt.id, qty: item.totalLiters, distribution: locationDistributions[item.sku] || {} }
                         },
                         causal_chain_id: receipt.id,
                         confidence_level: 'ASSISTED'
@@ -986,7 +1009,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                         new_state: null,
                         context: {
                             channel: 'SYSTEM',
-                            reason: `Albarán ${receipt.documentNumber} tiene SKU no encontrado: ${item.sku}`,
+                            reason: `Albarán ${receipt.documentNumber} tiene SKU no encontrado al distribuir: ${item.sku}`,
                         },
                         causal_chain_id: receipt.id,
                         confidence_level: 'MANUAL'
@@ -1069,6 +1092,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             inventory, deals, contacts, activities, events, receipts, crmUsers, crmSettings,
             moveDealStage, moveContactPostSaleStage, addEvent, addContact, addDeal, updateDeal, addActivity, deleteContacts, reassignContacts,
             processInboundReceipt,
+            distributeTransitInventory,
             getContactHealthScore,
             updateHealthThresholds,
             updateContact,
