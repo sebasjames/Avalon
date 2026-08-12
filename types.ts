@@ -217,11 +217,13 @@ export interface DemandAlert {
     severity: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
-export type ActionType = 'LIQUIDATION' | 'TRANSFER' | 'BUNDLE' | 'SCRAP';
+export type ActionType = 'LIQUIDATION' | 'TRANSFER' | 'BUNDLE' | 'SCRAP' | 'RESTOCK' | 'INVOICE' | 'FOLLOWUP' | 'PAYMENT' | 'QUALITY' | 'LOGISTICS';
+export type ActionCategory = 'INVENTARIO' | 'COMERCIAL' | 'CONTABILIDAD' | 'PRODUCCIÓN' | 'SISTEMA' | 'CRM';
 
 export interface ActionOpportunity {
     id: string;
     type: ActionType;
+    category?: ActionCategory;
     skuId: string;
     productName: string;
     reason: string; // e.g., "Silent > 180 days"
