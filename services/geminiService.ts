@@ -28,7 +28,7 @@ export const generateInsight = async (userPrompt: string, contextData: any = nul
         const apiKey = getApiKey();
         
         if (!apiKey) {
-            return "Error: No se ha configurado la API Key de Gemini. Por favor, ingresa tu clave en el módulo de configuración o ingesta.";
+            return "Error: No se ha configurado la API Key de Avalon AI > Scarpian AI. Por favor, ingresa tu clave de producto en el módulo de configuración o ingesta.";
         }
 
         const ai = new GoogleGenAI({ apiKey });
