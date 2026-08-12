@@ -19,7 +19,7 @@ export const SmartPosPanel: React.FC = () => {
         paymentMethods, pointsOfSale,
         taxRules, pricingRules, paymentRules, rawMaterialCategories,
         contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, fractionalRules, addTransaction,
-        taxRates, updateContact
+        taxRates, updateContact, addContact
     } = useEnterprise();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -97,6 +97,50 @@ export const SmartPosPanel: React.FC = () => {
     const [expenseFile, setExpenseFile] = useState<string | null>(null);
 
     const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
+    // --- NUEVO: CREAR CLIENTE / PROSPECTO ---
+    const [showCreateClientModal, setShowCreateClientModal] = useState(false);
+    const [newClientPayload, setNewClientPayload] = useState<any>({});
+    const [clientValidationError, setClientValidationError] = useState<string | null>(null);
+
+    const handleCreateClient = () => {
+        const { company, name, email, phone, whatsapp, city, dataConsent, documentNumber } = newClientPayload;
+        if (!company) { setClientValidationError('El nombre de la empresa es requerido.'); return; }
+        if (!name) { setClientValidationError('El nombre de contacto principal es requerido.'); return; }
+        if (!documentNumber) { setClientValidationError('El número de documento / NIT es requerido.'); return; }
+        if (!email || !email.includes('@')) { setClientValidationError('Se requiere un correo electrónico válido.'); return; }
+        if (!phone && !whatsapp) { setClientValidationError('Se requiere Teléfono o WhatsApp.'); return; }
+        if (!city) { setClientValidationError('La ciudad es requerida.'); return; }
+        if (!dataConsent) { setClientValidationError('Debe confirmar el manejo de datos (Habeas Data).'); return; }
+        
+        const isDuplicate = contacts.some(c => c.documentNumber === documentNumber);
+        if (isDuplicate) { setClientValidationError(`Ya existe un cliente con el documento/NIT ${documentNumber}.`); return; }
+
+        const contactId = `C-NEW-${Date.now()}`;
+        const nc: CrmContact = {
+            id: contactId,
+            name: name,
+            company: company,
+            email: email,
+            phone: phone || '',
+            whatsapp: whatsapp,
+            documentType: newClientPayload.documentType || 'NIT',
+            documentNumber: documentNumber,
+            address: newClientPayload.address || '',
+            tier: CustomerTier.REGULAR,
+            status: 'VINCULADO',
+            source: 'POS',
+            lastContactDate: new Date().toISOString(),
+            ownerId: 'U-ME',
+            city: city,
+            dataConsent: dataConsent
+        };
+        addContact(nc);
+        setSelectedCustomerId(contactId); // Auto-select the newly created client
+        setShowCreateClientModal(false);
+        setNewClientPayload({});
+        setClientValidationError(null);
+    };
 
     useEffect(() => {
         const handleOpen = () => setShowShortcutsModal(true);
@@ -651,19 +695,28 @@ export const SmartPosPanel: React.FC = () => {
                 <div className="p-4 border-b border-slate-100 bg-slate-50/50 relative">
                     <label className="text-xs font-bold uppercase text-slate-500 mb-1 flex items-center gap-1"><Users className="w-3 h-3" /> Cliente (CRM)</label>
                     <div className="relative">
-                        <div 
-                            onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}
-                            className="w-full bg-white border border-slate-200 text-slate-800 text-sm font-bold py-3 px-4 rounded-xl shadow-sm cursor-pointer flex justify-between items-center hover:border-indigo-300 transition-colors"
-                        >
-                            <span className="truncate">
-                                {selectedCustomerId === '' 
-                                    ? 'Consumidor Final (Mostrador)' 
-                                    : (() => {
-                                        const c = contacts.find(c => c.id === selectedCustomerId);
-                                        return c ? `${c.name} - ${c.company}` : 'Cliente Desconocido';
-                                    })()}
-                            </span>
-                            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                        <div className="flex gap-2">
+                            <div 
+                                onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}
+                                className="w-full bg-white border border-slate-200 text-slate-800 text-sm font-bold py-3 px-4 rounded-xl shadow-sm cursor-pointer flex justify-between items-center hover:border-indigo-300 transition-colors"
+                            >
+                                <span className="truncate">
+                                    {selectedCustomerId === '' 
+                                        ? 'Consumidor Final (Mostrador)' 
+                                        : (() => {
+                                            const c = contacts.find(c => c.id === selectedCustomerId);
+                                            return c ? `${c.name} - ${c.company}` : 'Cliente Desconocido';
+                                        })()}
+                                </span>
+                                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                            </div>
+                            <button
+                                onClick={() => setShowCreateClientModal(true)}
+                                className="w-12 shrink-0 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-xl flex items-center justify-center transition-colors shadow-sm"
+                                title="Crear Cliente / Prospecto"
+                            >
+                                <Plus className="w-5 h-5" />
+                            </button>
                         </div>
                         
                         <AnimatePresence>
@@ -1262,6 +1315,104 @@ export const SmartPosPanel: React.FC = () => {
                 taxesBreakdown={taxesBreakdown}
                 retenciones={retenciones}
             />
+
+            {/* Create Client Modal */}
+            <AnimatePresence>
+                {showCreateClientModal && (
+                    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm overflow-y-auto py-10">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl my-auto mx-4"
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2"><Users className="w-6 h-6 text-indigo-600"/> Nuevo Cliente POS</h2>
+                                <button onClick={() => setShowCreateClientModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            {clientValidationError && (
+                                <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-bold flex items-center gap-2 mb-4">
+                                    <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                                    <span>{clientValidationError}</span>
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">Nombre de la Empresa *</label>
+                                        <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Razón Social" value={newClientPayload.company || ''} onChange={(e) => setNewClientPayload({...newClientPayload, company: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">Nombre de Contacto Principal *</label>
+                                        <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Nombre completo" value={newClientPayload.name || ''} onChange={(e) => setNewClientPayload({...newClientPayload, name: e.target.value})} />
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 mb-1 block">Tipo y No. Documento (DIAN) *</label>
+                                        <div className="flex gap-2">
+                                            <select 
+                                                className="border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none w-28 bg-white"
+                                                value={newClientPayload.documentType || 'NIT'}
+                                                onChange={(e) => setNewClientPayload({...newClientPayload, documentType: e.target.value as any})}
+                                            >
+                                                <option value="NIT">NIT</option>
+                                                <option value="CC">CC</option>
+                                                <option value="CE">CE</option>
+                                                <option value="PASAPORTE">PASAPORTE</option>
+                                            </select>
+                                            <input className="flex-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="123456789-0" value={newClientPayload.documentNumber || ''} onChange={(e) => setNewClientPayload({...newClientPayload, documentNumber: e.target.value})} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">WhatsApp del Responsable</label>
+                                        <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Ej: 3001234567" value={newClientPayload.whatsapp || ''} onChange={(e) => setNewClientPayload({...newClientPayload, whatsapp: e.target.value})} />
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">Teléfono Empresa</label>
+                                        <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="+57 300 000 0000" value={newClientPayload.phone || ''} onChange={(e) => setNewClientPayload({...newClientPayload, phone: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">Correo Electrónico *</label>
+                                        <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="correo@empresa.com" type="email" value={newClientPayload.email || ''} onChange={(e) => setNewClientPayload({...newClientPayload, email: e.target.value})} />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">Dirección Física</label>
+                                        <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Calle 12 # 34 - 56" value={newClientPayload.address || ''} onChange={(e) => setNewClientPayload({...newClientPayload, address: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">Ciudad *</label>
+                                        <input className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 ring-indigo-500 outline-none" placeholder="Ej. Bogotá" value={newClientPayload.city || ''} onChange={(e) => setNewClientPayload({...newClientPayload, city: e.target.value})} />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input type="checkbox" className="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" checked={!!newClientPayload.dataConsent} onChange={(e) => setNewClientPayload({...newClientPayload, dataConsent: e.target.checked})} />
+                                    <span className="text-sm text-slate-700 font-medium">Confirmo que el cliente ha otorgado su consentimiento para el manejo y tratamiento de datos personales (Habeas Data). *</span>
+                                </label>
+                            </div>
+
+                            <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100">
+                                <button onClick={() => setShowCreateClientModal(false)} className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
+                                <button onClick={handleCreateClient} className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-200 hover:bg-emerald-700 transition-colors flex items-center gap-2"><Check className="w-4 h-4"/> Crear y Seleccionar</button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
