@@ -560,7 +560,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
     const { inventory, updateInventoryProduct, transactions, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
-    const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number; barcode?: string; taxRate?: number; category?: Category; family?: string; brand?: string; }>>({});
+    const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number; barcode?: string; taxRate?: number; category?: Category; family?: string; brand?: string; minStock?: number; }>>({});
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [showExcelModal, setShowExcelModal] = useState(false);
     const [selectedChanges, setSelectedChanges] = useState<string[]>([]);
@@ -801,7 +801,8 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                    (updates.taxRate !== undefined && updates.taxRate !== product.taxRate) ||
                    (updates.category !== undefined && updates.category !== product.category) ||
                    (updates.family !== undefined && updates.family !== product.family) ||
-                   (updates.brand !== undefined && updates.brand !== product.brand);
+                   (updates.brand !== undefined && updates.brand !== product.brand) ||
+                   (updates.minStock !== undefined && updates.minStock !== product.minStock);
         });
 
         if (hasChanges) {
@@ -989,6 +990,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                             <th className="p-4 text-center">IVA %</th>
                                             <th className="p-4 text-center">Reservado</th>
                                             <th className="p-4 text-center text-indigo-600">ATP (Disp)</th>
+                                            <th className="p-4 text-center text-rose-600">Minimo Stock</th>
                                             <th className="p-4 text-right">Valor Total (Costo)</th>
                                         </tr>
                                     </thead>
@@ -1007,6 +1009,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                     <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
                                                     <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
                                                     <td className="p-4 text-center"><div className="w-12 h-4 bg-slate-200 rounded mx-auto font-black"></div></td>
+                                                    <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
                                                     <td className="p-4 text-right"><div className="w-24 h-4 bg-slate-200 rounded ml-auto"></div></td>
                                                 </tr>
                                             ))
@@ -1136,6 +1139,19 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                         <td className="p-4 text-center font-semibold text-amber-600">{product.reservedStock}</td>
                                                         <td className="p-4 text-center font-black text-indigo-600 bg-indigo-50/30">
                                                             {product.category === Category.SERVICE ? '∞' : atp}
+                                                        </td>
+                                                        <td className="p-4 text-center font-bold text-rose-600">
+                                                            {isEditing ? (
+                                                                <input 
+                                                                    type="number" 
+                                                                    className="w-16 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                                                    value={editedRows[product.id]?.minStock ?? product.minStock ?? 0}
+                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], minStock: Number(e.target.value) } }))}
+                                                                    onClick={e => e.stopPropagation()}
+                                                                />
+                                                            ) : (
+                                                                product.category === Category.SERVICE ? '-' : (product.minStock || 0)
+                                                            )}
                                                         </td>
                                                         <td className="p-4 text-right font-bold text-slate-700">
                                                             {product.category === Category.SERVICE ? formatCOP(0) : formatCOP(val)}

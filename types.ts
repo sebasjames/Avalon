@@ -87,6 +87,19 @@ export interface Batch {
   quantity: number;
   reserved: number; // Committed stock per batch
   location: string;
+  status?: 'Disponible' | 'Cuarentena' | 'Retenido';
+}
+
+export interface KardexTransaction {
+  id: string;
+  date: string;
+  skuId: string;
+  lotNumber: string;
+  type: 'Entrada' | 'Salida' | 'Ajuste';
+  quantity: number;
+  balanceAfter: number;
+  documentRef: string;
+  user: string;
 }
 
 export interface Product {
@@ -104,6 +117,7 @@ export interface Product {
   price: number;
   totalStock: number;
   reservedStock: number; // ATP = Total - Reserved
+  minStock?: number;
   status: InventoryStatus;
   abc: ABCClass;
   xyz: XYZClass;
@@ -263,7 +277,7 @@ export interface PurchaseSuggestion {
     // Intelligence
     forecastCoverageDays: number; // How many days of demand this buys
     riskOfOverstock: 'Low' | 'Medium' | 'High'; // Analysis of "Bad Buy"
-    status: 'Proposed' | 'Approved' | 'Rejected';
+    status: 'Proposed' | 'Requested' | 'Approved' | 'Rejected';
 }
 
 export interface KPI {

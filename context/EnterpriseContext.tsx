@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog } from '../types';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction } from '../types';
 import clientsData from '../data/clients.json';
+import { KARDEX_TRANSACTIONS } from '../data/kardex_ledger';
 
 const CLIENTS_DATA = clientsData as CrmContact[];
 
@@ -108,6 +109,8 @@ interface EnterpriseContextType {
     dispatches: DispatchLog[];
     addDispatch: (d: DispatchLog) => void;
     updateDispatch: (id: string, updates: Partial<DispatchLog>) => void;
+    kardexTransactions: KardexTransaction[];
+    updateBatchStatus: (productId: string, batchId: string, status: 'Disponible' | 'Cuarentena' | 'Retenido') => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -138,6 +141,20 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const addDispatch = (d: DispatchLog) => setDispatches(prev => [...prev, d]);
     const updateDispatch = (id: string, updates: Partial<DispatchLog>) => setDispatches(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+
+    const [kardexTransactions, setKardexTransactions] = useState<KardexTransaction[]>(KARDEX_TRANSACTIONS);
+
+    const updateBatchStatus = (productId: string, batchId: string, status: 'Disponible' | 'Cuarentena' | 'Retenido') => {
+        setInventory(prev => prev.map(p => {
+            if (p.id === productId) {
+                return {
+                    ...p,
+                    batches: p.batches.map(b => b.id === batchId ? { ...b, status } : b)
+                };
+            }
+            return p;
+        }));
+    };
 
     // Seed mock dispatches based on deals (run once)
     useEffect(() => {
@@ -520,20 +537,23 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [activities, setActivities] = useState<CrmActivity[]>(MOCK_CRM_ACTIVITIES);
     const [events, setEvents] = useState<SystemEvent[]>(MOCK_EVENT_LOG);
     const [crmUsers, setCrmUsers] = useState<CrmUser[]>(MOCK_CRM_USERS);
-    const [receipts, setReceipts] = useState<InboundReceipt[]>([{
-        id: `RCPT-MOCK-1`,
-        documentNumber: 'FACT-IMPORT-001',
-        dateIn: new Date().toISOString(),
-        status: 'TRANSITO',
-        items: Array.from({ length: 20 }).map((_, i) => ({
-            sku: `SKU-MOCK-${1000 + i}`,
-            description: `Producto Importado de Prueba ${i + 1}`,
-            packages: Math.floor(Math.random() * 50) + 10,
-            capacity: 'Liters',
-            totalLiters: Math.floor(Math.random() * 500) + 50,
-            unitCost: Math.floor(Math.random() * 15000) + 5000
-        }))
-    }]);
+    const [receipts, setReceipts] = useState<InboundReceipt[]>(() => {
+        const sampleItems = INVENTORY_DATA.slice(0, 4);
+        return [{
+            id: `RCPT-MATRIZ-${Date.now()}`,
+            documentNumber: 'CONTENEDOR-MATRIZ-001',
+            dateIn: new Date().toISOString(),
+            status: 'TRANSITO',
+            items: sampleItems.map((item) => ({
+                sku: item.sku,
+                description: item.name,
+                packages: Math.floor(Math.random() * 20) + 5,
+                capacity: item.baseUnit || 'LT',
+                totalLiters: Math.floor(Math.random() * 300) + 50,
+                unitCost: item.unitCost || 0
+            }))
+        }];
+    });
     const [dismissedNotifIds, setDismissedNotifIds] = useState<string[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
 
@@ -1216,6 +1236,8 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             dispatches,
             addDispatch,
             updateDispatch,
+            kardexTransactions,
+            updateBatchStatus,
             updateCrmSettings
         }}>
             {children}

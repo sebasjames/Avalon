@@ -8,20 +8,78 @@ import {
 } from 'lucide-react';
 
 export const PurchasingIntelligence: React.FC = () => {
-    const { inventory } = useEnterprise();
-    const [suggestions, setSuggestions] = useState<PurchaseSuggestion[]>(MOCK_PURCHASE_SUGGESTIONS);
+    const { inventory, kardexTransactions } = useEnterprise();
+    const [suggestions, setSuggestions] = useState<PurchaseSuggestion[]>([]);
     const [selectedSuggestion, setSelectedSuggestion] = useState<string | null>(null);
     const [segmentFilter, setSegmentFilter] = useState<'ALL' | 'NACIONAL' | 'IMPORTADA' | 'FERRETERIA'>('ALL');
+    const [viewMode, setViewMode] = useState<'SUGGESTIONS' | 'APPROVALS'>('SUGGESTIONS');
 
-    const handleAction = (id: string, action: 'Approve' | 'Reject') => {
+    const handleCalculateSuggestions = () => {
+        const newSuggestions: PurchaseSuggestion[] = [];
+        
+        inventory.forEach(item => {
+            if (!item.minStock || item.minStock <= 0) return;
+            
+            const atp = (item.totalStock || 0) - (item.reservedStock || 0);
+            
+            if (atp <= item.minStock) {
+                // Calculate velocity (Kardex)
+                const ninetyDaysAgo = new Date();
+                ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+                
+                const recentOuts = kardexTransactions
+                    .filter(t => t.sku === item.sku && t.type === 'OUT' && new Date(t.date) >= ninetyDaysAgo)
+                    .reduce((sum, t) => sum + t.quantity, 0);
+                    
+                const isSilent = recentOuts === 0;
+
+                const suggestedQty = item.minStock * 2 - atp;
+                const finalQty = suggestedQty > 0 ? suggestedQty : item.minStock;
+                const cost = item.unitCost || (item.price ? item.price * 0.6 : 0);
+                
+                let nBrand = (item.brand || '').toUpperCase();
+                if (nBrand.includes('PROCOQUINAL')) nBrand = 'PROCOQUINAL';
+                else if (nBrand.includes('PREMIUM')) nBrand = 'PINTURAS PREMIUM';
+                else if (nBrand.includes('SAYERLACK')) nBrand = 'SAYERLACK';
+                else if (nBrand.includes('BARPIMO')) nBrand = 'BARPIMO';
+                else if (nBrand.includes('CARPOLY')) nBrand = 'CARPOLY';
+                else if (nBrand.includes('VETRO')) nBrand = 'VETRO';
+                else if (nBrand.includes('ILVA')) nBrand = 'ILVA';
+                
+                const matchedVendor = MOCK_VENDORS.find(v => v.name === nBrand) || MOCK_VENDORS[0];
+                const vendorId = matchedVendor ? matchedVendor.id : 'V-PROCO';
+                
+                newSuggestions.push({
+                    id: `SUG-${Date.now()}-${item.sku}`,
+                    skuId: item.sku,
+                    sku: item.sku,
+                    productName: item.name,
+                    suggestedQty: finalQty,
+                    unitCost: cost,
+                    totalCost: finalQty * cost,
+                    recommendedVendorId: vendorId,
+                    reason: `ATP (${atp}) <= Min (${item.minStock})`,
+                    urgency: atp <= 0 ? 'High' : 'Medium',
+                    forecastCoverageDays: 30,
+                    riskOfOverstock: isSilent ? 'High' : 'Low',
+                    status: 'Proposed'
+                });
+            }
+        });
+        
+        setSuggestions(newSuggestions);
+    };
+
+    const handleAction = (id: string, newStatus: 'Requested' | 'Approved' | 'Rejected') => {
         setSuggestions(prev => prev.map(s => 
-            s.id === id ? { ...s, status: action === 'Approve' ? 'Approved' : 'Rejected' } : s
+            s.id === id ? { ...s, status: newStatus } : s
         ));
         setSelectedSuggestion(null);
     };
 
     const activeSuggestions = suggestions.filter(s => {
-        if (s.status !== 'Proposed') return false;
+        if (viewMode === 'SUGGESTIONS' && s.status !== 'Proposed') return false;
+        if (viewMode === 'APPROVALS' && s.status !== 'Requested') return false;
         
         if (segmentFilter !== 'ALL') {
             const inventoryItem = inventory.find(i => i.sku === s.skuId);
@@ -82,19 +140,29 @@ export const PurchasingIntelligence: React.FC = () => {
                 )}
 
                 <div className="flex gap-3 justify-end">
-                     <button 
-                        onClick={() => handleAction(suggestion.id, 'Reject')}
+                    <button 
+                        onClick={() => handleAction(suggestion.id, 'Rejected')}
                         className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
                     >
-                        Rechazar / Ajustar
+                        {viewMode === 'SUGGESTIONS' ? 'Descartar' : 'Rechazar'}
                     </button>
-                    <button 
-                        onClick={() => handleAction(suggestion.id, 'Approve')}
-                        className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm flex items-center transition-colors"
-                    >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Aprobar Compra
-                    </button>
+                    {viewMode === 'SUGGESTIONS' ? (
+                        <button 
+                            onClick={() => handleAction(suggestion.id, 'Requested')}
+                            className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm flex items-center transition-colors"
+                        >
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            Solicitar Compra
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => handleAction(suggestion.id, 'Approved')}
+                            className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm flex items-center transition-colors"
+                        >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            Autorizar Orden
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -102,9 +170,30 @@ export const PurchasingIntelligence: React.FC = () => {
 
     return (
         <div className="py-2 space-y-6 h-full overflow-y-auto custom-scrollbar pr-2">
-            {/* Segment Filter Tabs */}
-            <div className="flex flex-wrap gap-2 bg-white p-2 rounded-xl border border-slate-200/50 shadow-sm w-full md:w-max">
-                <button 
+            <div className="flex bg-slate-100 p-1 rounded-xl mb-2 w-max">
+                <button
+                    onClick={() => setViewMode('SUGGESTIONS')}
+                    className={`px-6 py-2 text-sm font-bold rounded-lg transition-colors ${viewMode === 'SUGGESTIONS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    1. Sugerencias IA
+                </button>
+                <button
+                    onClick={() => setViewMode('APPROVALS')}
+                    className={`px-6 py-2 text-sm font-bold rounded-lg transition-colors flex items-center ${viewMode === 'APPROVALS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    2. Por Autorizar
+                    {suggestions.filter(s => s.status === 'Requested').length > 0 && (
+                        <span className="ml-2 bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                            {suggestions.filter(s => s.status === 'Requested').length}
+                        </span>
+                    )}
+                </button>
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                {/* Segment Filter Tabs */}
+                <div className="flex flex-wrap gap-2 bg-white p-2 rounded-xl border border-slate-200/50 shadow-sm w-full md:w-max">
+                    <button 
                     onClick={() => setSegmentFilter('ALL')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${segmentFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
@@ -129,15 +218,24 @@ export const PurchasingIntelligence: React.FC = () => {
                     🔧 Ferretería
                 </button>
             </div>
+            <button 
+                onClick={handleCalculateSuggestions}
+                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+            >
+                <BarChart3 className="w-5 h-5" />
+                Calcular Sugerencias (Cruzar Datos)
+            </button>
+        </div>
 
-            <header className="flex justify-between items-end hidden">
+        <header className="flex justify-between items-end hidden">
                 {/* Oculto porque InventoryHub ya tiene título */}
             </header>
 
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                     <h3 className="font-semibold text-slate-800 flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-2 text-emerald-600"/> Sugerencias de Reposición (IA)
+                        <TrendingUp className="w-4 h-4 mr-2 text-emerald-600"/> 
+                        {viewMode === 'SUGGESTIONS' ? 'Sugerencias de Reposición' : 'Requisiciones por Autorizar'}
                     </h3>
                     <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded font-medium">
                         {activeSuggestions.length} Pendientes

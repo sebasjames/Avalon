@@ -160,6 +160,7 @@ export const InventoryTable: React.FC = () => {
                 <th className="px-6 py-4">ABC/XYZ</th>
                 <th className="px-6 py-4 text-right">Stock Total</th>
                 <th className="px-6 py-4 text-right">ATP (Libre)</th>
+                <th className="px-6 py-4 text-right">Minimo Stock</th>
                 <th className="px-6 py-4 text-right">Aging (Días)</th>
                 <th className="px-6 py-4 text-right">Valor Total (Costo)</th>
               </tr>
@@ -190,6 +191,9 @@ export const InventoryTable: React.FC = () => {
                    </td>
                    <td className={`px-6 py-4 text-right font-bold ${atp < 100 ? 'text-rose-600' : 'text-emerald-600'}`}>
                      {item.category === Category.SERVICE ? '∞' : atp.toLocaleString('es-CO')}
+                   </td>
+                   <td className={`px-6 py-4 text-right font-bold text-slate-500`}>
+                     {item.category === Category.SERVICE ? '-' : (item.minStock || 0).toLocaleString('es-CO')}
                    </td>
                    <td className="px-6 py-4 text-right">
                      <span className={`${item.agingDays > 90 ? 'text-rose-600 font-bold' : ''}`}>{item.agingDays}</span>

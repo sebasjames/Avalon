@@ -108,7 +108,56 @@ export const MOCK_SALES_ORDERS: SalesOrder[] = [];
 export const MOCK_FORECAST_DATA: ForecastDataPoint[] = [];
 export const MOCK_DEMAND_ALERTS: DemandAlert[] = [];
 export const MOCK_OPPORTUNITIES: ActionOpportunity[] = [];
-export const MOCK_VENDORS: Vendor[] = [];
+export const MOCK_VENDORS: Vendor[] = [
+    {
+        id: "V-1",
+        name: "ILVA",
+        leadTimeDays: 60,
+        reliabilityScore: 90,
+        qualityScore: 95,
+        priceIndex: "Medium"
+    },
+    {
+        id: "V-2",
+        name: "PINTURAS PREMIUM",
+        leadTimeDays: 60,
+        reliabilityScore: 90,
+        qualityScore: 95,
+        priceIndex: "Medium"
+    },
+    {
+        id: "V-3",
+        name: "BARPIMO",
+        leadTimeDays: 60,
+        reliabilityScore: 90,
+        qualityScore: 95,
+        priceIndex: "Medium"
+    },
+    {
+        id: "V-4",
+        name: "PROCOQUINAL",
+        leadTimeDays: 60,
+        reliabilityScore: 90,
+        qualityScore: 95,
+        priceIndex: "Medium"
+    },
+    {
+        id: "V-5",
+        name: "VETRO",
+        leadTimeDays: 60,
+        reliabilityScore: 90,
+        qualityScore: 95,
+        priceIndex: "Medium"
+    },
+    {
+        id: "V-6",
+        name: "Materia Prima Nacional",
+        leadTimeDays: 60,
+        reliabilityScore: 90,
+        qualityScore: 95,
+        priceIndex: "Medium"
+    }
+];
 export const MOCK_PURCHASE_SUGGESTIONS: PurchaseSuggestion[] = [];
 export const MOCK_EVENT_LOG: SystemEvent[] = [];
 export const MOCK_TAX_RULES: TaxRule[] = [];
