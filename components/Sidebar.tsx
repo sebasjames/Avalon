@@ -6,7 +6,7 @@ import {
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
     PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
-    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft
+    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -114,6 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
 
 
 
+
     // Group: Accounting & Interfaces
     {
         type: 'group',
@@ -143,6 +144,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
             { to: "/staff/gestion-comercial", icon: Briefcase, label: "Gestión Comercial" },
             { to: "/staff/comisiones", icon: Medal, label: "Comisiones y Logros" },
             { to: "/staff/matrix", icon: Network, label: "Matrix Comisiones" },
+        ]
+    },
+
+    // Group: Logistics
+    {
+        type: 'group',
+        label: "Despachos & Logística",
+        icon: Truck,
+        children: [
+            { to: "/dispatch", icon: Truck, label: "Tablero de Despachos" },
         ]
     },
   ];
@@ -189,7 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
                 if (group.label === 'Ventas & Ingresos') {
                     return {
                         ...group,
-                        children: group.children.filter((c: any) => c.to === '/pos' || c.to === '/crm')
+                        children: group.children.filter((c: any) => c.special)
                     };
                 }
                 if (group.label === 'Operación') {
@@ -198,6 +209,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
                         children: group.children.filter((c: any) => c.to === '/inventory-hub' || c.to === '/production')
                     };
                 }
+                return null;
+            }
+            if (activeRole === 'Despachos') {
+                if (group.label === 'Despachos & Logística') return group;
                 return null;
             }
             return null;

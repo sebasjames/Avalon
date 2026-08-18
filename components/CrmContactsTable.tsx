@@ -318,7 +318,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
             </button>
 
             {isColumnDropdownOpen && (
-                <div className="absolute top-10 right-0 w-48 bg-white border border-slate-200 shadow-lg rounded-lg py-2 z-20 h-64 overflow-y-auto">
+                <div className="absolute top-10 right-0 w-48 bg-white border border-slate-200 shadow-lg rounded-lg py-2 z-50 h-64 overflow-y-auto">
                     <div className="px-3 pb-2 mb-2 border-b border-slate-100 text-xs font-bold text-slate-500">Mostrar Columnas</div>
                     {AVAILABLE_COLUMNS.map(col => (
                         <label key={col.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 cursor-pointer text-sm text-slate-700">

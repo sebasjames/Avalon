@@ -8,44 +8,131 @@ import {
     CalendarClock, CheckCircle2, XCircle, ShoppingBag, 
     ArrowRight
 } from 'lucide-react';
-import { MOCK_CUSTOMERS } from '../constants';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 export const SalesPerformance: React.FC = () => {
-    // --- Mock Data for Sales Performance ---
+    const { transactions, deals, contacts, dispatches } = useEnterprise();
+    const [selectedMonth, setSelectedMonth] = React.useState('ALL');
+    const [selectedYear, setSelectedYear] = React.useState('ALL');
 
-    // 1. KPI Aggregates
-    const kpiData = {
-        otif: 88.5, // Target 95%
-        fillRate: 92.3, // Target 98%
-        lostSales: 145000, // Revenue lost this month
-        delayedSales: 320000, // Backlog value
-        totalOrders: 450,
-        delayedOrdersCount: 32
-    };
+    const { kpiData, trendData, delayedOrders, blockedCustomers, availableYears } = React.useMemo(() => {
+        const now = new Date();
+        const sales = transactions.filter(t => t.type === 'VENTA');
+        
+        const yearsSet = new Set<string>();
+        transactions.forEach(t => yearsSet.add(t.date.substring(0, 4)));
+        const availableYearsList = Array.from(yearsSet).sort().reverse();
+        if (availableYearsList.length === 0) availableYearsList.push(now.getFullYear().toString());
 
-    // 2. Trend Data (Execution)
-    const trendData = [
-        { month: 'Oct', otif: 94, fillRate: 96, sales: 420, lost: 10 },
-        { month: 'Nov', otif: 92, fillRate: 95, sales: 450, lost: 15 },
-        { month: 'Dic', otif: 89, fillRate: 91, sales: 480, lost: 35 }, // Holiday rush stockouts
-        { month: 'Ene', otif: 85, fillRate: 88, sales: 390, lost: 50 }, // Post-holiday depletion
-        { month: 'Feb', otif: 87, fillRate: 90, sales: 410, lost: 40 },
-        { month: 'Mar', otif: 88.5, fillRate: 92.3, sales: 460, lost: 30 },
-    ];
+        const isMatchDate = (dateStr: string) => {
+            if (!dateStr) return false;
+            const yearMatch = selectedYear === 'ALL' || dateStr.substring(0, 4) === selectedYear;
+            const monthMatch = selectedMonth === 'ALL' || dateStr.substring(5, 7) === selectedMonth;
+            return yearMatch && monthMatch;
+        };
 
-    // 3. Delayed Orders / Backlog Detail
-    const delayedOrders = [
-        { id: 'ORD-5004', client: 'Constructora Mega', sku: 'FG-COAT-550', qty: 300, value: 36000, daysLate: 5, reason: 'Stockout' },
-        { id: 'ORD-5009', client: 'Pinturas del Norte', sku: 'RM-SOLV-099', qty: 1200, value: 18000, daysLate: 12, reason: 'Producción Retrasada' },
-        { id: 'ORD-5012', client: 'Taller San José', sku: 'FG-PRIM-200', qty: 50, value: 3250, daysLate: 2, reason: 'Logística' },
-        { id: 'ORD-5015', client: 'Distribuidora Global', sku: 'FG-EPOX-900', qty: 100, value: 45000, daysLate: 1, reason: 'Allocated to Strategic' },
-    ];
+        const filteredSales = sales.filter(s => isMatchDate(s.date));
 
-    // 4. Blocked Customers (Inventory + Credit check simulation)
-    const blockedCustomers = [
-        { id: 'CUST-002', name: 'Pinturas del Norte', blockedAmount: 18000, ordersBlocked: 2, impact: 'High', reason: 'Inventario Crítico' },
-        { id: 'CUST-004', name: 'Taller San José', blockedAmount: 3250, ordersBlocked: 1, impact: 'Low', reason: 'Límite Crédito + Stock' },
-    ];
+        const lostDeals = deals.filter(d => d.stage === 'CLOSED_LOST');
+        const filteredLostDeals = lostDeals.filter(ld => ld.expectedCloseDate && isMatchDate(ld.expectedCloseDate));
+
+        const lostSalesValue = filteredLostDeals.reduce((sum, d) => sum + d.value, 0);
+
+        const delayedDeals = deals.filter(d => 
+            d.stage !== 'CLOSED_WON' && d.stage !== 'CLOSED_LOST' && 
+            d.expectedCloseDate && new Date(d.expectedCloseDate) < now
+        );
+        const delayedSalesValue = delayedDeals.reduce((sum, d) => sum + d.value, 0);
+
+        const dynamicDelayedOrders = delayedDeals.map(d => {
+            const daysLate = Math.floor((now.getTime() - new Date(d.expectedCloseDate!).getTime()) / (1000 * 3600 * 24));
+            return {
+                id: d.id,
+                client: contacts.find(c => c.id === d.contactId)?.name || d.company || 'Cliente',
+                sku: 'Mix Productos',
+                qty: 1,
+                value: d.value,
+                daysLate,
+                reason: d.notes || 'Retraso de Cierre'
+            };
+        }).sort((a, b) => b.daysLate - a.daysLate).slice(0, 5);
+
+        const dynamicBlockedCustomers = contacts.filter(c => c.hasOverdueBills || (c.creditLimit && c.creditLimitUsed && c.creditLimitUsed >= c.creditLimit)).map(c => {
+            const isCredit = c.creditLimit && c.creditLimitUsed && c.creditLimitUsed >= c.creditLimit;
+            return {
+                id: c.id,
+                name: c.name,
+                blockedAmount: c.creditLimitUsed || 0,
+                ordersBlocked: 1,
+                impact: isCredit ? 'Medium' : 'High',
+                reason: isCredit ? 'Límite Crédito Excedido' : 'Facturas en Mora'
+            };
+        });
+
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push(d);
+        }
+
+        const dynamicTrendData = months.map(d => {
+            const monthStr = d.toISOString().slice(0, 7);
+            const monthLabel = d.toLocaleString('es-ES', { month: 'short' }).substring(0, 3);
+            
+            const monthSales = sales.filter(s => s.date.startsWith(monthStr)).reduce((sum, s) => sum + s.total, 0) / 1000;
+            const monthLost = lostDeals.filter(ld => ld.expectedCloseDate && ld.expectedCloseDate.startsWith(monthStr)).reduce((sum, ld) => sum + ld.value, 0) / 1000;
+
+            const monthDispatches = dispatches.filter(d => d.promisedDate.startsWith(monthStr));
+            let otifMonth = 0;
+            let fillRateMonth = 0;
+            
+            if (monthDispatches.length > 0) {
+                const onTimeCount = monthDispatches.filter(d => d.actualDeliveryDate && d.actualDeliveryDate <= d.promisedDate).length;
+                otifMonth = (onTimeCount / monthDispatches.length) * 100;
+
+                const totalDelivered = monthDispatches.reduce((acc, d) => acc + d.items.reduce((s, i) => s + i.deliveredQty, 0), 0);
+                const totalOrdered = monthDispatches.reduce((acc, d) => acc + d.items.reduce((s, i) => s + i.orderedQty, 0), 0);
+                if (totalOrdered > 0) fillRateMonth = (totalDelivered / totalOrdered) * 100;
+            }
+
+            return {
+                month: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
+                otif: +otifMonth.toFixed(1),
+                fillRate: +fillRateMonth.toFixed(1),
+                sales: Math.round(monthSales || 0),
+                lost: Math.round(monthLost || 0)
+            };
+        });
+
+        const filteredDispatches = dispatches.filter(d => isMatchDate(d.promisedDate));
+        
+        let globalOtif = 0;
+        let globalFillRate = 0;
+
+        if (filteredDispatches.length > 0) {
+            const onTimeCount = filteredDispatches.filter(d => d.actualDeliveryDate && d.actualDeliveryDate <= d.promisedDate).length;
+            globalOtif = (onTimeCount / filteredDispatches.length) * 100;
+
+            const totalDelivered = filteredDispatches.reduce((acc, d) => acc + d.items.reduce((s, i) => s + i.deliveredQty, 0), 0);
+            const totalOrdered = filteredDispatches.reduce((acc, d) => acc + d.items.reduce((s, i) => s + i.orderedQty, 0), 0);
+            if (totalOrdered > 0) globalFillRate = (totalDelivered / totalOrdered) * 100;
+        }
+
+        return {
+            availableYears: availableYearsList,
+            kpiData: {
+                otif: +globalOtif.toFixed(1),
+                fillRate: +globalFillRate.toFixed(1),
+                lostSales: lostSalesValue,
+                delayedSales: delayedSalesValue,
+                totalOrders: filteredSales.length,
+                delayedOrdersCount: delayedDeals.length
+            },
+            trendData: dynamicTrendData,
+            delayedOrders: dynamicDelayedOrders,
+            blockedCustomers: dynamicBlockedCustomers
+        };
+    }, [transactions, deals, contacts, dispatches, selectedMonth, selectedYear]);
 
     return (
         <div className="p-6 bg-slate-50 min-h-screen space-y-6">
@@ -60,9 +147,38 @@ export const SalesPerformance: React.FC = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full">
-                        Ciclo: Marzo 2024
+                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Ciclo:
                      </span>
+                     <select 
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="text-sm font-semibold text-slate-700 bg-slate-100 border-none outline-none focus:ring-2 ring-indigo-500/20 px-3 py-1.5 rounded-full cursor-pointer"
+                     >
+                        <option value="ALL">Todo el Año</option>
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                     </select>
+                     <select 
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                        className="text-sm font-semibold text-slate-700 bg-slate-100 border-none outline-none focus:ring-2 ring-indigo-500/20 px-3 py-1.5 rounded-full cursor-pointer"
+                     >
+                        <option value="ALL">Todos los Años</option>
+                        {availableYears.map(y => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                     </select>
                 </div>
             </header>
 
@@ -219,11 +335,15 @@ export const SalesPerformance: React.FC = () => {
                             Clientes Bloqueados
                         </h3>
                     </div>
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto custom-scrollbar">
                         {blockedCustomers.map((customer, idx) => (
-                            <div key={idx} className="p-4 hover:bg-slate-50">
+                            <div 
+                                key={idx} 
+                                className="group p-4 hover:bg-blue-50/50 cursor-pointer transition-colors border-l-2 border-transparent hover:border-blue-500"
+                                onClick={() => window.location.hash = `#/crm?openClient=${customer.id}`}
+                            >
                                 <div className="flex justify-between items-start mb-1">
-                                    <h4 className="font-bold text-slate-900 text-sm">{customer.name}</h4>
+                                    <h4 className="font-bold text-slate-900 text-sm group-hover:text-blue-700 transition-colors">{customer.name}</h4>
                                     <span className="text-xs font-mono text-slate-400">{customer.id}</span>
                                 </div>
                                 <div className="flex items-center gap-2 mb-3">
@@ -231,16 +351,13 @@ export const SalesPerformance: React.FC = () => {
                                         {customer.ordersBlocked} Órdenes
                                     </span>
                                     <span className="text-xs text-slate-500">
-                                        Valor: <b>${customer.blockedAmount.toLocaleString('es-CO')} COP COP</b>
+                                        Valor: <b>${customer.blockedAmount.toLocaleString('es-CO')} COP</b>
                                     </span>
                                 </div>
                                 <div className="bg-slate-100 p-2 rounded text-xs text-slate-600 flex items-start gap-2">
                                     <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
                                     {customer.reason}
                                 </div>
-                                <button className="mt-3 w-full py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition-colors">
-                                    Ver Detalle Cliente
-                                </button>
                             </div>
                         ))}
                          {blockedCustomers.length === 0 && (

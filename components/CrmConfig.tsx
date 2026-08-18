@@ -1,18 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { Settings, Tag, Target, Clock, Save } from 'lucide-react';
 
 export const CrmConfig: React.FC = () => {
-  const { crmSettings } = useEnterprise();
+  const { crmSettings, updateCrmSettings } = useEnterprise();
+  const [localSettings, setLocalSettings] = useState(crmSettings);
 
-  // In a real scenario, we'd have a form state and update function in context.
-  // For now, we display the parameters to meet the "parametrizar" requirement visually.
+  const handleSave = () => {
+    updateCrmSettings(localSettings);
+    alert('Configuración guardada exitosamente.');
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2"><Settings className="w-5 h-5 text-indigo-600"/> Parametrización del Sistema</h2>
-        <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold shadow-sm">
+        <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold shadow-sm">
           <Save className="w-4 h-4" /> Guardar Cambios
         </button>
       </div>
@@ -25,11 +28,11 @@ export const CrmConfig: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Meta de Ingresos Mensual ($)</label>
-              <input type="number" defaultValue={crmSettings.globalGoals.monthlyRevenue} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+              <input type="number" value={localSettings.globalGoals.monthlyRevenue} onChange={e => setLocalSettings({...localSettings, globalGoals: {...localSettings.globalGoals, monthlyRevenue: Number(e.target.value)}})} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Meta de Tratos Cerrados</label>
-              <input type="number" defaultValue={crmSettings.globalGoals.monthlyDeals} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+              <input type="number" value={localSettings.globalGoals.monthlyDeals} onChange={e => setLocalSettings({...localSettings, globalGoals: {...localSettings.globalGoals, monthlyDeals: Number(e.target.value)}})} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
             </div>
           </div>
         </div>
@@ -41,7 +44,7 @@ export const CrmConfig: React.FC = () => {
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Max. Horas Prospecto sin Contactar</label>
               <div className="flex items-center gap-2">
-                <input type="number" defaultValue={crmSettings.sla.maxHoursUncontactedLead} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+                <input type="number" value={localSettings.sla.maxHoursUncontactedLead} onChange={e => setLocalSettings({...localSettings, sla: {...localSettings.sla, maxHoursUncontactedLead: Number(e.target.value)}})} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
                 <span className="text-sm font-medium text-slate-500">Horas</span>
               </div>
               <p className="text-[10px] text-slate-400 mt-1">Dispara alerta si un PROSPECTO nuevo pasa este tiempo sin registrar actividad.</p>
@@ -49,7 +52,7 @@ export const CrmConfig: React.FC = () => {
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Max. Días en la misma Etapa</label>
               <div className="flex items-center gap-2">
-                <input type="number" defaultValue={crmSettings.sla.maxDaysInStage} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+                <input type="number" value={localSettings.sla.maxDaysInStage} onChange={e => setLocalSettings({...localSettings, sla: {...localSettings.sla, maxDaysInStage: Number(e.target.value)}})} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
                 <span className="text-sm font-medium text-slate-500">Días</span>
               </div>
             </div>
@@ -64,14 +67,14 @@ export const CrmConfig: React.FC = () => {
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Umbral de Venta Ballena ($)</label>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-slate-400">$</span>
-                <input type="number" defaultValue={crmSettings.whaleAlertThreshold} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+                <input type="number" value={localSettings.whaleAlertThreshold} onChange={e => setLocalSettings({...localSettings, whaleAlertThreshold: Number(e.target.value)})} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
               </div>
               <p className="text-[10px] text-slate-400 mt-1">Alertar si un trato supera este monto (para escalarlo a Dirección).</p>
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Plazo Máx. Recaudo (Días)</label>
               <div className="flex items-center gap-2">
-                <input type="number" defaultValue={crmSettings.maxCollectionDaysForCommission} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+                <input type="number" value={localSettings.maxCollectionDaysForCommission} onChange={e => setLocalSettings({...localSettings, maxCollectionDaysForCommission: Number(e.target.value)})} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
                 <span className="text-sm font-medium text-slate-500">Días</span>
               </div>
               <p className="text-[10px] text-slate-400 mt-1">Pagar comisión solo si el cliente paga la factura dentro de este plazo.</p>
@@ -79,7 +82,7 @@ export const CrmConfig: React.FC = () => {
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Penalidad por Mora (%)</label>
               <div className="flex items-center gap-2">
-                <input type="number" defaultValue={crmSettings.lateCollectionPenaltyPercent} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
+                <input type="number" value={localSettings.lateCollectionPenaltyPercent} onChange={e => setLocalSettings({...localSettings, lateCollectionPenaltyPercent: Number(e.target.value)})} className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" />
                 <span className="text-sm font-medium text-slate-500">%</span>
               </div>
               <p className="text-[10px] text-slate-400 mt-1">Si pagan después del plazo máximo, se descuenta este porcentaje a la comisión.</p>
@@ -95,11 +98,20 @@ export const CrmConfig: React.FC = () => {
             <div>
               <h4 className="text-sm font-bold text-slate-700 mb-3">Probabilidades por Etapa</h4>
               <div className="space-y-2">
-                {crmSettings.stages.map(stage => (
+                {localSettings.stages.map((stage, idx) => (
                   <div key={stage.id} className="flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
                     <span className="text-sm font-medium text-slate-700 w-1/3">{stage.label}</span>
                     <div className="flex items-center gap-2 w-2/3">
-                      <input type="range" min="0" max="100" defaultValue={stage.defaultProbability} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
+                      <input 
+                        type="range" min="0" max="100" 
+                        value={stage.defaultProbability} 
+                        onChange={e => {
+                          const newStages = [...localSettings.stages];
+                          newStages[idx].defaultProbability = Number(e.target.value);
+                          setLocalSettings({...localSettings, stages: newStages});
+                        }} 
+                        className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+                      />
                       <span className="text-xs font-bold w-10 text-right">{stage.defaultProbability}%</span>
                     </div>
                   </div>
@@ -110,7 +122,7 @@ export const CrmConfig: React.FC = () => {
             <div>
               <h4 className="text-sm font-bold text-slate-700 mb-3">Orígenes de Leads (Fuentes)</h4>
               <div className="flex flex-wrap gap-2">
-                {crmSettings.leadSources.map(source => (
+                {localSettings.leadSources.map(source => (
                   <span key={source} className="px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1">
                     {source}
                   </span>

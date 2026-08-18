@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier } from '../types';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog } from '../types';
 import clientsData from '../data/clients.json';
 
 const CLIENTS_DATA = clientsData as CrmContact[];
@@ -85,8 +85,8 @@ interface EnterpriseContextType {
     auditReports: AuditReport[];
     runAuditAction: () => void;
     clearNotifications: () => void;
-    activeRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS';
-    setActiveRole: (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS') => void;
+    activeRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos';
+    setActiveRole: (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos') => void;
 
     // --- RBAC ---
     systemUsers: SystemUser[];
@@ -103,12 +103,17 @@ interface EnterpriseContextType {
     // --- Import Dossiers ---
     importDossiers: ImportDossier[];
     addImportDossier: (dossier: ImportDossier) => void;
+
+    // --- Dispatches ---
+    dispatches: DispatchLog[];
+    addDispatch: (d: DispatchLog) => void;
+    updateDispatch: (id: string, updates: Partial<DispatchLog>) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
 
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS'>('admin');
+    const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos'>('admin');
     const [inventory, setInventory] = useState<Product[]>(INVENTORY_DATA);
     const [deals, setDeals] = useState<CrmDeal[]>(MOCK_CRM_DEALS);
     const [systemUsers, setSystemUsers] = useState<SystemUser[]>([
@@ -117,6 +122,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ]);
     const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
     const [importDossiers, setImportDossiers] = useState<ImportDossier[]>([]);
+    const [dispatches, setDispatches] = useState<DispatchLog[]>([]);
     const [crmSettings, setCrmSettings] = useState<CrmSettings>(MOCK_CRM_SETTINGS);
     const updateCrmSettings = (updates: Partial<CrmSettings>) => setCrmSettings(prev => ({ ...prev, ...updates }));
 
@@ -129,6 +135,35 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const deleteSupplier = (id: string) => setSuppliers(prev => prev.filter(s => s.id !== id));
 
     const addImportDossier = (dossier: ImportDossier) => setImportDossiers(prev => [...prev, dossier]);
+
+    const addDispatch = (d: DispatchLog) => setDispatches(prev => [...prev, d]);
+    const updateDispatch = (id: string, updates: Partial<DispatchLog>) => setDispatches(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+
+    // Seed mock dispatches based on deals (run once)
+    useEffect(() => {
+        if (deals.length > 0 && dispatches.length === 0) {
+            const now = new Date();
+            const mocks: DispatchLog[] = deals.filter(d => d.stage === 'CLOSED_WON').slice(0, 10).map((d, i) => {
+                const isLate = i % 3 === 0;
+                const isPartial = i % 4 === 0;
+                const pd = new Date(now.getTime() - Math.random() * 10 * 86400000);
+                const ad = new Date(pd.getTime() + (isLate ? 3 * 86400000 : 0));
+                
+                return {
+                    id: `DSP-${d.id.substring(0, 5)}`,
+                    dealId: d.id,
+                    contactId: d.contactId,
+                    status: (i % 5 === 0) ? 'EN_TRANSITO' : (i % 6 === 0 ? 'PENDIENTE' : 'ENTREGADO'),
+                    promisedDate: pd.toISOString().split('T')[0],
+                    actualDeliveryDate: (i % 5 !== 0 && i % 6 !== 0) ? ad.toISOString().split('T')[0] : undefined,
+                    items: [
+                        { sku: 'FG-COAT-550', productName: 'Recubrimiento Industrial 550', orderedQty: 100, deliveredQty: isPartial ? 80 : 100 }
+                    ]
+                };
+            });
+            setDispatches(mocks);
+        }
+    }, [deals]);
 
     // --- Unified Mock Data Generator ---
     const seedData = useMemo(() => {
@@ -1178,6 +1213,9 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             deleteSupplier,
             importDossiers,
             addImportDossier,
+            dispatches,
+            addDispatch,
+            updateDispatch,
             updateCrmSettings
         }}>
             {children}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, Briefcase, Calendar, BarChart3, Plus, Search, Filter, 
@@ -40,6 +40,20 @@ export const CrmFull: React.FC = () => {
 
   // Advanced Filters
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const filtersRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filtersRef.current && !filtersRef.current.contains(event.target as Node)) {
+        setIsFiltersOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const [filterTier, setFilterTier] = useState<CustomerTier | 'ALL'>('ALL');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'VINCULADO' | 'INACTIVO' | 'PROSPECTO'>('ALL');
   const [filterLastContact, setFilterLastContact] = useState<string>('ALL');
@@ -51,6 +65,22 @@ export const CrmFull: React.FC = () => {
   // Interactive Data States from Global Context
   const { contacts, deals, activities, assignmentLogs, crmUsers, globalSelectedContactId, setGlobalSelectedContactId, fullProfileContactId, setFullProfileContactId, moveDealStage, addContact, addDeal, addActivity, deleteContacts, crmSettings } = useEnterprise();
   
+  // Handle openClient hash routing
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash.includes('openClient=')) {
+        const searchParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        const openClient = searchParams.get('openClient');
+        if (openClient) {
+          setFullProfileContactId(openClient);
+        }
+      }
+    };
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [setFullProfileContactId]);
+
   // Custom Filter State
   const [filterOwner, setFilterOwner] = useState<string>('all');
   
@@ -316,9 +346,11 @@ export const CrmFull: React.FC = () => {
         </div>
 
         <div className="flex gap-3 relative">
-          <button 
-            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors font-medium text-sm shadow-sm ${isFiltersOpen ? 'bg-slate-100 border-slate-300 text-indigo-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
+          {!['dashboard', 'rentabilidad', 'configuracion'].includes(activeTab) && (
+            <div ref={filtersRef}>
+              <button 
+                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors font-medium text-sm shadow-sm ${isFiltersOpen ? 'bg-slate-100 border-slate-300 text-indigo-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
             <Filter className="w-4 h-4" />
             Filtros {(filterTier !== 'ALL' || filterStatus !== 'ALL' || filterOwner !== 'ALL') && <span className="bg-indigo-600 text-white w-4 h-4 rounded-full text-[10px] flex items-center justify-center">!</span>}
           </button>
@@ -439,6 +471,8 @@ export const CrmFull: React.FC = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
             </div>
           )}
 

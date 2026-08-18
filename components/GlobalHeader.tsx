@@ -320,7 +320,7 @@ export const GlobalHeader: React.FC = () => {
 
                     {isRoleMenuOpen && (
                         <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden py-1 z-50">
-                            {['admin', 'manager', 'Comercial', 'Contabilidad', 'POS'].map((role) => (
+                            {['admin', 'manager', 'Comercial', 'Contabilidad', 'POS', 'Despachos'].map((role) => (
                                 <button
                                     key={role}
                                     onClick={() => {

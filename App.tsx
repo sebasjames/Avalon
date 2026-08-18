@@ -32,6 +32,7 @@ import { InventarioTransito } from './components/InventarioTransito';
 import { SmartPosPanel } from './components/SmartPosPanel';
 import { AccountingModule } from './components/AccountingModule';
 import { ReturnsPanel } from './components/ReturnsPanel';
+import { DispatchModule } from './components/DispatchModule';
 import { EnterpriseProvider } from './context/EnterpriseContext';
 import { AuthGate } from './components/AuthGate';
 
@@ -136,6 +137,7 @@ const App: React.FC = () => {
             <Route path="/config" element={<Configuration />} />
             <Route path="/accounting/:tabId" element={<AccountingModule />} />
             <Route path="/returns" element={<ReturnsPanel />} />
+            <Route path="/dispatch" element={<DispatchModule />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </div>

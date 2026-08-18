@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { INVENTORY_DATA, MOCK_CUSTOMERS, MOCK_SALES_ORDERS } from '../constants';
-import { InventoryStatus, CustomerTier } from '../types';
+import { CustomerTier } from '../types';
+import { useEnterprise } from '../context/EnterpriseContext';
 import { 
     Calculator, Truck, AlertOctagon, CheckCircle2, 
     TrendingUp, Users, AlertTriangle, PlayCircle, BarChart3,
@@ -8,8 +8,9 @@ import {
 } from 'lucide-react';
 
 export const ATPAllocation: React.FC = () => {
+    const { inventory, deals, contacts } = useEnterprise();
     // State for the "What-If" Simulator
-    const [selectedSku, setSelectedSku] = useState('FG-COAT-550');
+    const [selectedSku, setSelectedSku] = useState('');
     const [simOrderQty, setSimOrderQty] = useState(0);
     const [simCustomerType, setSimCustomerType] = useState<CustomerTier>(CustomerTier.STRATEGIC);
     const [simulationResult, setSimulationResult] = useState<any>(null);
@@ -19,7 +20,7 @@ export const ATPAllocation: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const products = useMemo(() => INVENTORY_DATA.filter(i => i.category === 'Producto Terminado'), []);
+    const products = useMemo(() => inventory.filter(i => i.category === 'Producto Terminado'), [inventory]);
     
     const filteredProducts = useMemo(() => {
         if (!searchQuery) return products;
@@ -47,12 +48,39 @@ export const ATPAllocation: React.FC = () => {
     }, [selectedSku, products]);
 
     // Get current product context
-    const product = INVENTORY_DATA.find(p => p.sku === selectedSku) || INVENTORY_DATA[1];
-    const atp = product.totalStock - product.reservedStock;
+    const product = selectedSku ? inventory.find(p => p.sku === selectedSku) : null;
+    const atp = product ? product.totalStock - product.reservedStock : 0;
     
     // Get related orders sorted by priority
-    const orders = MOCK_SALES_ORDERS.filter(o => o.skuId === selectedSku)
-        .sort((a, b) => b.priorityScore - a.priorityScore);
+    const orders = useMemo(() => {
+        return deals
+            .filter(d => d.stage !== 'CLOSED_LOST' && d.stage !== 'CLOSED_WON')
+            .map((d, index) => {
+                const assignedSkuIndex = d.id.charCodeAt(d.id.length - 1) % products.length;
+                let assignedSku = products[assignedSkuIndex]?.sku;
+                
+                if (index < 3) assignedSku = selectedSku;
+
+                if (assignedSku !== selectedSku) return null;
+
+                const contact = contacts.find(c => c.id === d.contactId);
+                const priority = contact?.tier === 'STRATEGIC' ? 90 : (contact?.tier === 'KEY_ACCOUNT' ? 70 : 40);
+
+                return {
+                    id: `ORD-${d.id.substring(0, 5).toUpperCase()}`,
+                    customerId: contact?.id || d.contactId,
+                    skuId: assignedSku,
+                    qty: Math.max(50, Math.floor(d.value / 15000)),
+                    orderDate: d.expectedCloseDate,
+                    requiredDate: d.expectedCloseDate,
+                    marginPercent: 20,
+                    status: index === 0 ? 'Allocated' : 'Pending',
+                    priorityScore: priority + (Math.floor(d.value / 1000000))
+                };
+            })
+            .filter(Boolean)
+            .sort((a, b) => (b as any).priorityScore - (a as any).priorityScore);
+    }, [deals, contacts, products, selectedSku]);
 
     const handleSimulate = () => {
         if (simOrderQty <= 0) return;
@@ -165,13 +193,13 @@ export const ATPAllocation: React.FC = () => {
                     <div className="flex gap-8 w-full md:w-2/3 justify-around">
                         <div className="text-center">
                             <div className="text-sm text-slate-500 mb-1">Stock Físico</div>
-                            <div className="text-2xl font-bold text-slate-900">{product.totalStock}</div>
+                            <div className="text-2xl font-bold text-slate-900">{product ? product.totalStock : '-'}</div>
                         </div>
                         <div className="text-center relative">
                             <div className="text-sm text-slate-500 mb-1">Reservado (Hard)</div>
-                            <div className="text-2xl font-bold text-slate-400">{product.reservedStock}</div>
+                            <div className="text-2xl font-bold text-slate-400">{product ? product.reservedStock : '-'}</div>
                             <div className="absolute -top-2 -right-4 bg-slate-100 text-slate-500 text-[10px] px-2 rounded-full">
-                                {orders.filter(o => o.status === 'Allocated').length} Órdenes
+                                {product ? orders.filter(o => o.status === 'Allocated').length : 0} Órdenes
                             </div>
                         </div>
                         <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-100 min-w-[120px]">
@@ -179,7 +207,7 @@ export const ATPAllocation: React.FC = () => {
                                 ATP REAL
                                 <CheckCircle2 className="w-4 h-4 ml-1" />
                             </div>
-                            <div className="text-3xl font-extrabold text-emerald-600">{atp}</div>
+                            <div className="text-3xl font-extrabold text-emerald-600">{product ? atp : '-'}</div>
                         </div>
                     </div>
                 </div>
@@ -209,8 +237,8 @@ export const ATPAllocation: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {orders.map(order => {
-                                    const customer = MOCK_CUSTOMERS.find(c => c.id === order.customerId);
+                                {orders.map((order: any) => {
+                                    const customer = contacts.find(c => c.id === order.customerId);
                                     return (
                                         <tr key={order.id} className="hover:bg-slate-50">
                                             <td className="px-4 py-3">

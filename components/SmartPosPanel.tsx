@@ -61,6 +61,20 @@ export const SmartPosPanel: React.FC = () => {
     const [customerSearch, setCustomerSearch] = useState('');
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     
+    const customerDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
+                setIsCustomerDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+    
     const filteredContacts = useMemo(() => {
         if (!customerSearch) return contacts;
         const term = customerSearch.toLowerCase();
@@ -694,7 +708,7 @@ export const SmartPosPanel: React.FC = () => {
                 {/* Header: Customer Selection */}
                 <div className="p-4 border-b border-slate-100 bg-slate-50/50 relative">
                     <label className="text-xs font-bold uppercase text-slate-500 mb-1 flex items-center gap-1"><Users className="w-3 h-3" /> Cliente (CRM)</label>
-                    <div className="relative">
+                    <div className="relative" ref={customerDropdownRef}>
                         <div className="flex gap-2">
                             <div 
                                 onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}

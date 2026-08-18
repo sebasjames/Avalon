@@ -670,3 +670,22 @@ export interface PosCartItem {
   discount?: number;
   product?: Product;
 }
+export interface DispatchItem {
+  sku: string;
+  productName: string;
+  orderedQty: number;
+  deliveredQty: number;
+}
+
+export interface DispatchLog {
+  id: string;
+  dealId: string;
+  contactId: string;
+  status: 'PENDIENTE' | 'ARMANDO_PEDIDO' | 'EN_TRANSITO' | 'ENTREGADO' | 'ENTREGA_FALLIDA';
+  promisedDate: string;
+  actualDeliveryDate?: string;
+  items: DispatchItem[];
+  driver?: string;
+  vehicle?: string;
+  notes?: string;
+}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Clock, DollarSign, Target, Activity, FileText, CheckCircle, Search, Eye, TrendingUp, TrendingDown, Briefcase, BarChart2, Star, Users } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Clock, DollarSign, Target, Activity, FileText, CheckCircle, Search, Eye, TrendingUp, TrendingDown, Briefcase, BarChart2, Star, Users, AlertTriangle } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { getSourceBadge } from './CrmFull';
 import { CrmDealCreateModal } from './CrmDealCreateModal';
@@ -29,6 +29,11 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
 
   const totalWon = contactDeals.filter(d => d.stage === 'CLOSED_WON').reduce((sum, d) => sum + d.value, 0);
   const totalPipeline = contactDeals.filter(d => d.stage !== 'CLOSED_WON' && d.stage !== 'CLOSED_LOST').reduce((sum, d) => sum + d.value, 0);
+
+  const isCreditBlocked = contact.creditLimit && contact.creditLimitUsed && contact.creditLimitUsed >= contact.creditLimit;
+  const isOverdueBlocked = contact.hasOverdueBills;
+  const isBlocked = isCreditBlocked || isOverdueBlocked;
+  const blockedReason = isCreditBlocked ? 'Límite de crédito excedido' : 'Facturas en mora';
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full flex flex-col bg-slate-50 relative overflow-hidden">
@@ -87,6 +92,40 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
       {/* BODY / DASHBOARD GRIDS */}
       <div className="flex-1 overflow-y-auto p-8 -mt-6 relative z-20 custom-scrollbar">
         <div className="max-w-7xl mx-auto space-y-6">
+
+            {/* BLOCKED ALERT BANNER */}
+            {isBlocked && (
+              <div className="bg-rose-50 border-l-4 border-rose-500 p-5 rounded-r-xl shadow-sm flex items-start gap-4">
+                <div className="bg-rose-100 p-2 rounded-full">
+                  <AlertTriangle className="w-6 h-6 text-rose-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-rose-800 font-bold text-lg flex items-center gap-2">
+                    ¡ALERTA: CLIENTE BLOQUEADO COMERCIALMENTE!
+                  </h3>
+                  <p className="text-rose-700 text-sm mt-1 font-medium">
+                    Motivo: <span className="font-bold">{blockedReason}</span>
+                  </p>
+                  <p className="text-rose-600 text-xs mt-1">
+                    Este cliente tiene una restricción activa por cartera. Los tratos y órdenes pendientes se encuentran en pausa hasta resolver el estado de cuenta.
+                  </p>
+                  <div className="mt-4 flex gap-3">
+                    <button 
+                      onClick={() => window.location.hash = '#/accounting/activos_liquidez'}
+                      className="bg-rose-600 text-white px-4 py-1.5 rounded font-bold text-sm hover:bg-rose-700 transition-colors shadow-sm"
+                    >
+                      Registrar Pago
+                    </button>
+                    <button 
+                      onClick={() => window.location.hash = '#/accounting/activos_liquidez'}
+                      className="bg-white text-rose-700 border border-rose-200 px-4 py-1.5 rounded font-bold text-sm hover:bg-rose-50 transition-colors shadow-sm"
+                    >
+                      Revisar Cartera
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* TOP METRICS */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
