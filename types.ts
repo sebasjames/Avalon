@@ -541,15 +541,7 @@ export interface SystemSettings {
   };
 }
 
-export interface CrmUser {
-  id: string;
-  name: string;
-  email: string;
-  role: 'ADMIN' | 'MANAGER' | 'SALES_REP';
-  avatar?: string;
-  quota: number; // Monthly sales quota
-  region?: string;
-}
+
 
 export interface CrmSettings {
   leadSources: CrmLeadSource[];
@@ -570,6 +562,8 @@ export interface CrmSettings {
   maxCollectionDaysForCommission?: number;
   lateCollectionPenaltyPercent?: number;
   autoAssignLeads?: boolean;
+  minOrderAmount?: number;
+  requireApproval?: boolean;
 }
 
 export interface AccountingTransaction {
@@ -632,6 +626,17 @@ export interface SystemUser {
   email: string;
   baseRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS';
   customPermissions: Record<PermissionKey, boolean>;
+  avatar?: string;
+  quota?: number; // Monthly sales quota
+  region?: string;
+  phone?: string;
+  skills?: {
+    negotiation: number;
+    closing: number;
+    prospecting: number;
+    tech: number;
+    empathy: number;
+  };
 }
 
 export interface ImportDossier {
@@ -702,4 +707,19 @@ export interface DispatchLog {
   driver?: string;
   vehicle?: string;
   notes?: string;
+}
+
+export interface CommissionRule {
+  id: string;
+  name: string;
+  type: 'Porcentaje' | 'Fijo' | 'Multiplicador';
+  baseVariable: 'Recaudo' | 'Facturación' | 'Facturación Neta (Menos Retención)' | 'Producto' | 'Familia' | 'Tarea CRM' | 'Selección Manual';
+  value: number;
+  target: 'Todos' | 'Clientes Estándar / Regulares' | 'Oro/Diamante' | 'Plata/Bronce' | 'Selección Manual' | 'Clientes Nuevos' | 'Clientes Especiales (1%)';
+  active: boolean;
+  cap?: number;
+  validityMonths?: number;
+  hasAgingPenalty?: boolean;
+  hasDiscountPenalty?: boolean;
+  minVolumeThreshold?: number;
 }

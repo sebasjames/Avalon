@@ -6,10 +6,12 @@ import {
     TrendingUp, ShieldAlert, BarChart3, Settings2, Target, ArrowUpRight, 
     ArrowDownRight, TrendingDown, Layers
 } from 'lucide-react';
-import { INVENTORY_DATA, MOCK_FORECAST_DATA, MOCK_DEMAND_ALERTS } from '../constants';
+import { INVENTORY_DATA } from '../constants';
 import { Category } from '../types';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 export const ForecastPlanning: React.FC = () => {
+    const { kardexTransactions, deals } = useEnterprise();
     const [selectedScenario, setSelectedScenario] = useState<'conservative' | 'base' | 'aggressive'>('base');
     const [selectedFamily, setSelectedFamily] = useState<string>('All');
     
@@ -28,6 +30,92 @@ export const ForecastPlanning: React.FC = () => {
         reason: 'Alta variabilidad detectada en últimos 30 días (+15%)'
     };
 
+    // --- Dynamic Forecast Data Calculation ---
+    const forecastData = React.useMemo(() => {
+        // Filter historical sales
+        let sales = kardexTransactions.filter(t => t.type === 'VENTA');
+        
+        // Filter by family if needed (assuming product lookup or simple matching)
+        // Since kardexTransaction doesn't have family out of the box, we simulate or just show total volume.
+        
+        // Aggregate by month (last 6 months)
+        const monthMap = new Map<string, number>();
+        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            monthMap.set(`${d.getFullYear()}-${d.getMonth()}`, 0);
+        }
+
+        sales.forEach(s => {
+            const date = new Date(s.date);
+            const key = `${date.getFullYear()}-${date.getMonth()}`;
+            if (monthMap.has(key)) {
+                monthMap.set(key, monthMap.get(key)! + (s.total || (s.qty * 15000))); // rough value if total is missing
+            }
+        });
+
+        const data: any[] = [];
+        let lastValue = 0;
+        let sumValue = 0;
+        
+        monthMap.forEach((val, key) => {
+            const [y, m] = key.split('-');
+            const monthName = monthNames[parseInt(m)];
+            data.push({
+                month: monthName,
+                historical: val,
+                conservative: null,
+                base: null,
+                aggressive: null,
+                pipeline: null
+            });
+            lastValue = val;
+            sumValue += val;
+        });
+
+        // Compute open pipeline
+        const openDealsValue = deals.filter(d => d.stage !== 'CLOSED_WON' && d.stage !== 'CLOSED_LOST').reduce((sum, d) => sum + d.value, 0);
+
+        // Project next 3 months
+        const avg = sumValue / 6 || 100000;
+        
+        for (let i = 1; i <= 3; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+            const baseProj = avg * (1 + (i * 0.05)); // 5% growth trend
+            
+            data.push({
+                month: monthNames[d.getMonth()],
+                historical: null,
+                conservative: baseProj * 0.9,
+                base: baseProj,
+                aggressive: baseProj * 1.2,
+                pipeline: i === 1 ? openDealsValue : 0 // Add pipeline to month 1
+            });
+        }
+        
+        // Connect the lines between historical and forecast
+        data[5].base = data[5].historical;
+        data[5].conservative = data[5].historical;
+        data[5].aggressive = data[5].historical;
+
+        return data;
+    }, [kardexTransactions, deals]);
+
+    // --- Dynamic Demand Alerts ---
+    const demandAlerts = React.useMemo(() => {
+        // Mocking some dynamic alerts based on INVENTORY_DATA
+        return INVENTORY_DATA.slice(0, 2).map((inv, idx) => ({
+            id: `alert-${idx}`,
+            type: idx === 0 ? 'STOCKOUT' : 'OVERSTOCK',
+            sku: inv.sku,
+            productName: inv.name,
+            projectedDate: new Date(Date.now() + (idx+1) * 7 * 86400000).toISOString().split('T')[0],
+            gapQuantity: idx === 0 ? 500 : 1200
+        }));
+    }, []);
+
     return (
         <div className="p-6 bg-slate-50 min-h-screen space-y-6">
             <header className="flex justify-end items-end">
@@ -45,7 +133,7 @@ export const ForecastPlanning: React.FC = () => {
 
             {/* ALERTS SECTION */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {MOCK_DEMAND_ALERTS.map(alert => (
+                {demandAlerts.map(alert => (
                     <div key={alert.id} className={`p-4 rounded-xl border flex items-start gap-4 ${
                         alert.type === 'STOCKOUT' 
                         ? 'bg-rose-50 border-rose-200' 
@@ -124,7 +212,7 @@ export const ForecastPlanning: React.FC = () => {
 
                         <div className="h-80 w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <ComposedChart data={MOCK_FORECAST_DATA}>
+                                <ComposedChart data={forecastData}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} />
                                     <YAxis axisLine={false} tickLine={false} />

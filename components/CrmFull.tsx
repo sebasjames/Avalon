@@ -63,7 +63,7 @@ export const CrmFull: React.FC = () => {
   const [filterCity, setFilterCity] = useState<string>('');
   
   // Interactive Data States from Global Context
-  const { contacts, deals, activities, assignmentLogs, crmUsers, globalSelectedContactId, setGlobalSelectedContactId, fullProfileContactId, setFullProfileContactId, moveDealStage, addContact, addDeal, addActivity, deleteContacts, crmSettings } = useEnterprise();
+  const { contacts, deals, activities, assignmentLogs, systemUsers, globalSelectedContactId, setGlobalSelectedContactId, fullProfileContactId, setFullProfileContactId, moveDealStage, addContact, addDeal, addActivity, deleteContacts, crmSettings } = useEnterprise();
   
   // Handle openClient hash routing
   useEffect(() => {
@@ -257,7 +257,7 @@ export const CrmFull: React.FC = () => {
     let assignedOwnerId = 'U-ME';
     
     if (crmSettings.autoAssignLeads) {
-      const salesReps = crmUsers.filter(u => u.role === 'SALES_REP' || u.role === 'MANAGER' || u.role === 'ADMIN');
+      const salesReps = systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager' || u.baseRole === 'admin');
       if (salesReps.length > 0) {
         const lastWhatsappLead = [...contacts].reverse().find(c => c.source === 'WHATSAPP');
         let nextIndex = 0;
@@ -287,7 +287,7 @@ export const CrmFull: React.FC = () => {
     };
     
     addContact(nc);
-    alert(`Nuevo Lead de WhatsApp simulado.\n\nAsignado a: ${crmUsers.find(u => u.id === assignedOwnerId)?.name || assignedOwnerId}${crmSettings.autoAssignLeads ? ' (Asignación Automática - Round Robin)' : ' (Asignación Manual a Usuario Actual)'}`);
+    alert(`Nuevo Lead de WhatsApp simulado.\n\nAsignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedOwnerId}${crmSettings.autoAssignLeads ? ' (Asignación Automática - Round Robin)' : ' (Asignación Manual a Usuario Actual)'}`);
   };
 
   const handleAddDecisionMaker = () => {
@@ -723,7 +723,7 @@ export const CrmFull: React.FC = () => {
                                             <option value="OTRO">Rol: Otro / No definido</option>
                                             <option value="USUARIO_FINAL">💡 Usuario Final (Pintores, Lijadores, Polichadores)</option>
                                             <option value="COMERCIAL_DISENO">💡 Comercial / Diseño (Ventas, Diseñadores)</option>
-                                            <option value="DIRECTIVO">💡 Directivo / Gerencia (Directores, Dueños)</option>
+                                            <option value="DIRECTIVO">💡 Directivo / Gerencia (Directores, Responsables)</option>
                                         </select>
                                         <input className="border border-slate-300 rounded-md p-2 text-xs" placeholder="Nombre Completo" value={dm.name} onChange={(e) => handleDecisionMakerChange(i, 'name', e.target.value)} />
                                         <input className="border border-slate-300 rounded-md p-2 text-xs" placeholder="Cargo (Ej. Gerente de Compras)" value={dm.position} onChange={(e) => handleDecisionMakerChange(i, 'position', e.target.value)} />

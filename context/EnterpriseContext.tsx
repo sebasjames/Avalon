@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_USERS, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmUser, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction } from '../types';
+import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction } from '../types';
 import clientsData from '../data/clients.json';
 import { KARDEX_TRANSACTIONS } from '../data/kardex_ledger';
+import { ACCOUNTING_TRANSACTIONS } from '../data/accounting_ledger';
 
 const CLIENTS_DATA = clientsData as CrmContact[];
 
@@ -13,7 +14,6 @@ interface EnterpriseContextType {
     activities: CrmActivity[];
     events: SystemEvent[];
     receipts: InboundReceipt[];
-    crmUsers: CrmUser[];
     crmSettings: CrmSettings;
     updateCrmSettings: (updates: Partial<CrmSettings>) => void;
     moveDealStage: (dealId: string, newStage: CrmDealStage | 'CLOSED_LOST', lostReason?: string) => void;
@@ -111,6 +111,11 @@ interface EnterpriseContextType {
     updateDispatch: (id: string, updates: Partial<DispatchLog>) => void;
     kardexTransactions: KardexTransaction[];
     updateBatchStatus: (productId: string, batchId: string, status: 'Disponible' | 'Cuarentena' | 'Retenido') => void;
+    // Commission Rules
+    commissionRules: CommissionRule[];
+    addCommissionRule: (rule: Omit<CommissionRule, 'id'>) => void;
+    updateCommissionRule: (id: string, updates: Partial<CommissionRule>) => void;
+    deleteCommissionRule: (id: string) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -118,14 +123,84 @@ const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undef
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos'>('admin');
     const [inventory, setInventory] = useState<Product[]>(INVENTORY_DATA);
-    const [deals, setDeals] = useState<CrmDeal[]>(MOCK_CRM_DEALS);
+    
     const [systemUsers, setSystemUsers] = useState<SystemUser[]>([
-        { id: '1', name: 'Admin Principal', email: 'admin@avalon.com', baseRole: 'admin', customPermissions: {} as any },
+        { id: '1', name: 'Admin Global', email: 'admin@avalon.com', baseRole: 'admin', customPermissions: {} as any, quota: 500000000 },
         { id: '2', name: 'Contabilidad Jefatura', email: 'conta@avalon.com', baseRole: 'Contabilidad', customPermissions: {} as any },
+        { id: '3', name: 'Ana García', email: 'ana@avalon.com', baseRole: 'Comercial', customPermissions: {} as any, quota: 150000000, region: 'Norte', avatar: 'AG', phone: '+52 55 1234 5678' },
+        { id: '4', name: 'Carlos Méndez', email: 'carlos@avalon.com', baseRole: 'Comercial', customPermissions: {} as any, quota: 100000000, region: 'Sur', avatar: 'CM', phone: '+52 55 8765 4321' },
+        { id: '5', name: 'Lucía Fernández', email: 'lucia@avalon.com', baseRole: 'manager', customPermissions: {} as any, quota: 200000000, region: 'Global', avatar: 'LF', phone: '+52 55 1122 3344' },
     ]);
     const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
     const [importDossiers, setImportDossiers] = useState<ImportDossier[]>([]);
-    const [dispatches, setDispatches] = useState<DispatchLog[]>([]);
+    const [dispatches, setDispatches] = useState<DispatchLog[]>([
+        {
+            id: 'DSP-00101',
+            dealId: 'D-MOCK-1',
+            contactId: 'C-MOCK-1',
+            status: 'PENDIENTE',
+            promisedDate: new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0],
+            items: [
+                { sku: 'FG-PU-001', productName: 'Fondo Poliuretano Blanco', orderedQty: 50, deliveredQty: 0 },
+                { sku: 'RM-SOL-005', productName: 'Solvente Universal', orderedQty: 20, deliveredQty: 0 }
+            ]
+        },
+        {
+            id: 'DSP-00102',
+            dealId: 'D-MOCK-2',
+            contactId: 'C-MOCK-2',
+            status: 'ARMANDO_PEDIDO',
+            promisedDate: new Date(Date.now() + 1 * 86400000).toISOString().split('T')[0],
+            items: [
+                { sku: 'FG-AQ-003', productName: 'Laca Acrílica Transparente', orderedQty: 100, deliveredQty: 100 }
+            ]
+        },
+        {
+            id: 'DSP-00103',
+            dealId: 'D-MOCK-3',
+            contactId: 'C-MOCK-3',
+            status: 'EN_TRANSITO',
+            promisedDate: new Date(Date.now() - 1 * 86400000).toISOString().split('T')[0],
+            items: [
+                { sku: 'FG-PU-002', productName: 'Barniz Poliuretano Mate', orderedQty: 30, deliveredQty: 30 }
+            ]
+        },
+        {
+            id: 'DSP-1001',
+            dealId: 'D-MOCK-1',
+            contactId: 'C-002',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            actualDeliveryDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+            driver: 'Roberto Méndez',
+            vehicle: 'Camión NKR-123',
+            items: [
+                { sku: 'CLORO-01', productName: 'Cloro Industrial', orderedQty: 50, deliveredQty: 50 },
+                { sku: 'JABON-05', productName: 'Jabón Multiusos', orderedQty: 20, deliveredQty: 20 }
+            ]
+        }
+    ]);
+
+    const [commissionRules, setCommissionRules] = useState<CommissionRule[]>([
+        { id: '1', name: 'Comisión Estándar (2%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 2.0, target: 'Clientes Estándar / Regulares', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
+        { id: '2', name: 'Comisión Clientes Especiales (1%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 1.0, target: 'Clientes Especiales (1%)', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
+        { id: '3', name: 'Bono Volumen CARPOLY (>30%)', type: 'Porcentaje', baseVariable: 'Familia', value: 3.0, target: 'Todos', active: true, minVolumeThreshold: 30 },
+        { id: '4', name: 'Compensación Quiebre de Stock (Manual)', type: 'Fijo', baseVariable: 'Selección Manual', value: 50000, target: 'Selección Manual', active: false },
+    ]);
+
+    const addCommissionRule = (rule: Omit<CommissionRule, 'id'>) => {
+        const newRule = { ...rule, id: Math.random().toString(36).substr(2, 9) };
+        setCommissionRules(prev => [...prev, newRule]);
+    };
+
+    const updateCommissionRule = (id: string, updates: Partial<CommissionRule>) => {
+        setCommissionRules(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+    };
+
+    const deleteCommissionRule = (id: string) => {
+        setCommissionRules(prev => prev.filter(r => r.id !== id));
+    };
+
     const [crmSettings, setCrmSettings] = useState<CrmSettings>(MOCK_CRM_SETTINGS);
     const updateCrmSettings = (updates: Partial<CrmSettings>) => setCrmSettings(prev => ({ ...prev, ...updates }));
 
@@ -156,333 +231,15 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }));
     };
 
-    // Seed mock dispatches based on deals (run once)
-    useEffect(() => {
-        if (deals.length > 0 && dispatches.length === 0) {
-            const now = new Date();
-            const mocks: DispatchLog[] = deals.filter(d => d.stage === 'CLOSED_WON').slice(0, 10).map((d, i) => {
-                const isLate = i % 3 === 0;
-                const isPartial = i % 4 === 0;
-                const pd = new Date(now.getTime() - Math.random() * 10 * 86400000);
-                const ad = new Date(pd.getTime() + (isLate ? 3 * 86400000 : 0));
-                
-                return {
-                    id: `DSP-${d.id.substring(0, 5)}`,
-                    dealId: d.id,
-                    contactId: d.contactId,
-                    status: (i % 5 === 0) ? 'EN_TRANSITO' : (i % 6 === 0 ? 'PENDIENTE' : 'ENTREGADO'),
-                    promisedDate: pd.toISOString().split('T')[0],
-                    actualDeliveryDate: (i % 5 !== 0 && i % 6 !== 0) ? ad.toISOString().split('T')[0] : undefined,
-                    items: [
-                        { sku: 'FG-COAT-550', productName: 'Recubrimiento Industrial 550', orderedQty: 100, deliveredQty: isPartial ? 80 : 100 }
-                    ]
-                };
-            });
-            setDispatches(mocks);
-        }
-    }, [deals]);
-
+    // Se eliminó el useEffect que dependía de deals para inyectar mocks fijos en useState más abajo
     // --- Unified Mock Data Generator ---
     const seedData = useMemo(() => {
         if (!INVENTORY_DATA.length || !CLIENTS_DATA.length) {
             return { txs: [] as AccountingTransaction[], cts: CLIENTS_DATA };
         }
 
-        const generated: AccountingTransaction[] = [];
-
-        // 1. Explicitly seed Caja Menor Transactions (2 reposiciones and 8 egresos)
-        generated.push({
-            id: 'RC-CM01',
-            date: '2026-06-01',
-            type: 'PAGO_RECIBIDO',
-            client: 'Banco de Occidente',
-            document: 'Reembolso Inicial de Caja Menor',
-            productName: 'Reposición de fondos Caja Menor',
-            sku: '-',
-            family: '-',
-            category: '-',
-            qty: 1,
-            total: 2000000,
-            iva: 0,
-            paymentMethod: 'Caja Menor',
-            posLocation: 'Sede Principal Centro'
-        });
-
-        const cmExpenses = [
-            { id: 'CE-CM01', date: '2026-06-03', client: 'Papelería El Cid', doc: 'Factura Papel y Carpetas', desc: 'Papelería de oficina y carpetas de archivo', total: 85000 },
-            { id: 'CE-CM02', date: '2026-06-05', client: 'Café Córdoba', doc: 'Recibo Cafetería', desc: 'Café, azúcar y vasos desechables', total: 45000 },
-            { id: 'CE-CM03', date: '2026-06-08', client: 'Distribuidora Envases', doc: 'Compra material empaque', desc: 'Envases plásticos de 1 Litro', total: 420000, sku: '202401', prodName: 'ENVASES PLASTICOS 1L' },
-            { id: 'CE-CM04', date: '2026-06-12', client: 'Ferretería El Tornillo', doc: 'Compra de bombillos y cinta', desc: 'Mantenimiento luces oficina y cinta adhesiva', total: 32000 },
-            { id: 'CE-CM05', date: '2026-06-15', client: 'Servicio de Aseo Limpio', doc: 'Servicios diversos', desc: 'Implementos de aseo y desinfectantes', total: 64000 },
-            { id: 'CE-CM06', date: '2026-06-18', client: 'Empaques de Colombia', doc: 'Compra cajas cartón', desc: 'Cajas de cartón corrugado para despacho', total: 350000, sku: '202402', prodName: 'CAJAS DE CARTON' },
-            { id: 'CE-CM07', date: '2026-06-22', client: 'Papelería El Cid', doc: 'Factura Lapiceros', desc: 'Lapiceros y marcadores para bodega', total: 28000 },
-            { id: 'CE-CM08', date: '2026-06-24', client: 'Café Córdoba', doc: 'Recibo Café', desc: 'Suministros de cafetería y galletas', total: 38000 }
-        ];
-
-        cmExpenses.forEach(exp => {
-            generated.push({
-                id: exp.id,
-                date: exp.date,
-                type: 'COMPRA',
-                client: exp.client,
-                clientId: 'C-VENDEDOR-VARIOS',
-                document: exp.doc,
-                productName: exp.prodName || exp.desc,
-                sku: exp.sku || '-',
-                family: exp.sku ? 'EMPAQUES' : 'DIVERSOS',
-                category: exp.sku ? 'FINISHED_GOOD' : 'SERVICE',
-                qty: exp.sku ? 100 : 1,
-                total: exp.total,
-                iva: 0,
-                paymentMethod: 'Caja Menor',
-                posLocation: 'Sede Principal Centro'
-            });
-        });
-
-        // 1.5 Inject a mock NOTA_CREDITO to test Commission Deductions
-        // We will assign it to a client owned by U-CARLOS (e.g. Restaurante La Parilla or similar if we have one)
-        // Let's just use the first CRM contact name (which is usually handled by CARLOS in mock data)
-        const mockTargetClient = CLIENTS_DATA.find(c => c.ownerId === 'U-001')?.company || 'Cliente Prueba NC';
-        generated.push({
-            id: 'NC-2026-001',
-            date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days ago
-            type: 'NOTA_CREDITO',
-            client: mockTargetClient,
-            document: 'Nota Crédito por Devolución Parcial',
-            productName: 'Devolución de Producto',
-            sku: '-',
-            qty: 1,
-            total: 1000000, // 1,000,000 COP deduction
-            iva: 190000,
-            paymentMethod: 'Aplicación NC',
-            posLocation: 'Sede Principal Centro'
-        });
-
-        // 1.8 Inject user mock data for bank reconciliation (Ventas pendientes de cruce)
-        const mockExtractoVentas = [
-            { date: '2025-05-02', total: 278470, doc: '42097' },
-            { date: '2025-05-02', total: 520434, doc: '42098' },
-            { date: '2025-05-02', total: 109143, doc: '42099' },
-            { date: '2025-05-02', total: 1203925, doc: '42100' },
-            { date: '2025-05-02', total: 269663, doc: '42101' },
-            { date: '2025-05-02', total: 453413, doc: '42102' },
-            { date: '2025-05-02', total: 1180271, doc: '42103' },
-            { date: '2025-05-05', total: 211305, doc: '42104' },
-            { date: '2025-05-05', total: 200079, doc: '42105' },
-            { date: '2025-05-05', total: 147820, doc: '42106' },
-            { date: '2025-05-05', total: 127161, doc: '42107' },
-            { date: '2025-05-05', total: 95843, doc: '42108' },
-            { date: '2025-05-05', total: 159800, doc: '42109' },
-            { date: '2025-05-05', total: 391058, doc: '42110' },
-            { date: '2025-05-06', total: 436572, doc: '42113' },
-            { date: '2025-05-06', total: 78296, doc: '42114' },
-            { date: '2025-05-06', total: 65750, doc: '42115' },
-            { date: '2025-05-07', total: 116595, doc: '42117' },
-            { date: '2025-05-08', total: 798432, doc: '42122' },
-            { date: '2025-05-09', total: 996754, doc: '42125' },
-            { date: '2025-05-09', total: 25548, doc: '42126' },
-            { date: '2025-05-12', total: 251497, doc: '42129' },
-            { date: '2025-05-12', total: 87164, doc: '42130' },
-            { date: '2025-05-12', total: 324069, doc: '42131' },
-            { date: '2025-05-13', total: 211305, doc: '42132' },
-            { date: '2025-05-13', total: 113765, doc: '42133' },
-            { date: '2025-05-13', total: 109143, doc: '42134' },
-            { date: '2025-05-13', total: 16843, doc: '42135' },
-            { date: '2025-05-14', total: 107539, doc: '42138' },
-            { date: '2025-05-14', total: 1714488, doc: '42139' },
-            { date: '2025-05-14', total: 357848, doc: '42140' },
-            { date: '2025-05-15', total: 107068, doc: '42146' },
-            { date: '2025-05-15', total: 532886, doc: '42147' },
-            { date: '2025-05-15', total: 341203, doc: '42148' },
-            { date: '2025-05-15', total: 747297, doc: '42149' },
-            { date: '2025-05-15', total: 689107, doc: '42150' },
-            { date: '2025-05-16', total: 110515, doc: '42151' },
-            { date: '2025-05-16', total: 55352, doc: '42152' },
-            { date: '2025-05-16', total: 50527, doc: '42153' },
-            { date: '2025-05-16', total: 427611, doc: '42154' },
-            { date: '2025-05-16', total: 175930, doc: '42155' },
-            { date: '2025-05-16', total: 96786, doc: '42156' },
-            { date: '2025-05-16', total: 21036, doc: '42157' },
-            { date: '2025-05-16', total: 39526, doc: '42158' },
-            { date: '2025-05-17', total: 424498, doc: '42159' },
-            { date: '2025-05-19', total: 508548, doc: '42160' },
-            { date: '2025-05-19', total: 109143, doc: '42161' },
-            { date: '2025-05-19', total: 241940, doc: '42162' },
-            { date: '2025-05-19', total: 1203925, doc: '42163' },
-            { date: '2025-05-19', total: 259698, doc: '42164' },
-            { date: '2025-05-19', total: 1419278, doc: '42165' },
-            { date: '2025-05-19', total: 2737631, doc: '42166' },
-            { date: '2025-05-20', total: 481474, doc: '42173' },
-            { date: '2025-05-20', total: 54996, doc: '42174' },
-            { date: '2025-05-20', total: 42166, doc: '42175' },
-            { date: '2025-05-20', total: 210740, doc: '42176' },
-            { date: '2025-05-20', total: 395726, doc: '42177' },
-            { date: '2025-05-21', total: 1356128, doc: '42178' },
-            { date: '2025-05-21', total: 86125, doc: '42179' },
-            { date: '2025-05-21', total: 150932, doc: '42180' },
-            { date: '2025-05-22', total: 1458402, doc: '42181' },
-            { date: '2025-05-22', total: 214796, doc: '42182' },
-            { date: '2025-05-22', total: 617691, doc: '42183' },
-            { date: '2025-05-23', total: 229134, doc: '42188' },
-            { date: '2025-05-23', total: 588353, doc: '42189' },
-            { date: '2025-05-23', total: 452797, doc: '42190' },
-            { date: '2025-05-23', total: 580052, doc: '42191' },
-            { date: '2025-05-23', total: 115558, doc: '42192' },
-            { date: '2025-05-23', total: 237020, doc: '42193' },
-            { date: '2025-05-26', total: 247906, doc: '42196' },
-            { date: '2025-05-26', total: 8396, doc: '42197' },
-            { date: '2025-05-26', total: 114330, doc: '42198' },
-            { date: '2025-05-26', total: 127726, doc: '42199' },
-            { date: '2025-05-26', total: 247238, doc: '42200' },
-            { date: '2025-05-26', total: 648516, doc: '42201' },
-            { date: '2025-05-27', total: 109143, doc: '42204' },
-            { date: '2025-05-27', total: 80372, doc: '42205' },
-            { date: '2025-05-28', total: 152819, doc: '42214' },
-            { date: '2025-05-28', total: 325919, doc: '42215' },
-            { date: '2025-05-29', total: 803120, doc: '42220' },
-            { date: '2025-05-29', total: 73957, doc: '42221' },
-            { date: '2025-05-30', total: 99143, doc: '42222' },
-            { date: '2025-05-30', total: 595899, doc: '42223' },
-            { date: '2025-05-30', total: 126123, doc: '42224' },
-            { date: '2025-05-30', total: 73235, doc: '42225' }
-        ];
-
-        mockExtractoVentas.forEach(v => {
-            generated.push({
-                id: 'FV-' + v.doc,
-                date: v.date,
-                type: 'VENTA',
-                client: 'Cliente Mostrador / Web (Mock)',
-                document: 'FV-' + v.doc,
-                productName: 'Productos Varios',
-                sku: '-',
-                family: 'DIVERSOS',
-                category: 'FINISHED_GOOD',
-                qty: 1,
-                total: v.total,
-                iva: Math.round(v.total * 0.19),
-                paymentMethod: 'Datáfonos',
-                posLocation: 'Sede Principal Centro',
-                validationStatus: 'PENDIENTE_VALIDACION'
-            });
-        });
-
-        // 2. Generate random Sales and Purchases
-        let ventaCounter = 1;
-        let compraCounter = 1;
-        let ajusteCounter = 1;
-
-        const methods = [
-            'Efectivo', 'Tarjeta', 'Transferencia', 'Nequi', 'Datáfonos (111505)'
-        ];
-
-        for (let i = 0; i < 200; i++) {
-            const rand = Math.random();
-            let type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' = 'VENTA';
-            if (rand > 0.8 && rand <= 0.95) type = 'COMPRA';
-            else if (rand > 0.95) type = 'AJUSTE_MERMA';
-
-            const contact = CLIENTS_DATA[Math.floor(Math.random() * CLIENTS_DATA.length)];
-            const product = INVENTORY_DATA[Math.floor(Math.random() * INVENTORY_DATA.length)];
-
-            const date = new Date(Date.now() - Math.floor(Math.random() * 60 * 24 * 60 * 60 * 1000));
-            const dateStr = date.toISOString().split('T')[0];
-            const qty = Math.floor(Math.random() * 15) + 1;
-
-            let id = '';
-            let total = 0;
-            let iva = 0;
-            let paymentMethod = '';
-
-            if (type === 'VENTA') {
-                id = `FV-${ventaCounter.toString().padStart(4, '0')}`;
-                ventaCounter++;
-                total = product.price * qty;
-                const rate = product.taxRate ?? 19;
-                iva = Math.round(total * (rate / 100));
-
-                const isCredit = Math.random() > 0.5;
-                paymentMethod = isCredit ? (Math.random() > 0.5 ? 'Crédito 30 días' : 'Crédito 60 días') : methods[Math.floor(Math.random() * methods.length)];
-            } else if (type === 'COMPRA') {
-                id = `ALB-${compraCounter.toString().padStart(4, '0')}`;
-                compraCounter++;
-                total = product.unitCost * qty;
-                iva = 0;
-                paymentMethod = 'Proveedores Nacionales (220505)';
-            } else {
-                id = `AJM-${ajusteCounter.toString().padStart(4, '0')}`;
-                ajusteCounter++;
-                total = product.unitCost * qty;
-                iva = 0;
-                paymentMethod = 'Inventario Físico';
-            }
-
-            let dueDate: string | undefined;
-            let paymentStatus: 'PENDIENTE' | 'PAGADA' | 'EN_MORA' | undefined;
-            let balance: number | undefined;
-
-            if (type === 'VENTA') {
-                const isCreditMethod = paymentMethod.toLowerCase().includes('cr') && (paymentMethod.toLowerCase().includes('30') || paymentMethod.toLowerCase().includes('60') || paymentMethod.toLowerCase().includes('di') || paymentMethod.toLowerCase().includes('d'));
-                if (isCreditMethod) {
-                    const days = paymentMethod.includes('30') ? 30 : 60;
-                    const due = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-                    dueDate = due.toISOString().split('T')[0];
-
-                    if (due < new Date()) {
-                        paymentStatus = Math.random() > 0.3 ? 'EN_MORA' : 'PAGADA';
-                    } else {
-                        paymentStatus = Math.random() > 0.7 ? 'PAGADA' : 'PENDIENTE';
-                    }
-                    balance = paymentStatus === 'PAGADA' ? 0 : total + iva;
-
-                    if (paymentStatus === 'PAGADA' || (paymentStatus === 'PENDIENTE' && Math.random() > 0.5)) {
-                        const paidAmount = paymentStatus === 'PAGADA' ? (total + iva) : Math.round((total + iva) * 0.6);
-                        balance = (total + iva) - paidAmount;
-
-                        generated.push({
-                            id: `RC-${id.split('-')[1]}`,
-                            date: new Date(date.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                            type: 'PAGO_RECIBIDO',
-                            client: contact.name,
-                            clientId: contact.id,
-                            document: `Abono/Pago Factura ${id}`,
-                            productName: `Recaudo de Cartera`,
-                            sku: '-',
-                            family: '-',
-                            category: '-',
-                            qty: 1,
-                            total: paidAmount,
-                            iva: 0,
-                            paymentMethod: 'Transferencia',
-                            posLocation: 'Sede Principal Centro'
-                        });
-                    }
-                } else {
-                    paymentStatus = 'PAGADA';
-                    balance = 0;
-                    dueDate = dateStr;
-                }
-            }
-
-            generated.push({
-                id,
-                date: dateStr,
-                type,
-                client: type === 'VENTA' ? contact.name : 'PROVEEDOR QUÍMICO S.A.',
-                clientId: type === 'VENTA' ? contact.id : 'V-001',
-                document: type === 'VENTA' ? `${contact.documentType || 'NIT'} ${contact.documentNumber}` : 'Orden Compra',
-                sku: product.sku,
-                productName: product.name,
-                qty,
-                total: total + iva,
-                iva,
-                paymentMethod,
-                posLocation: 'Sede Principal Centro',
-                dueDate,
-                paymentStatus,
-                balance
-            });
-        }
+        // 1. Usar el ledger de contabilidad estático (1 año de historial realista)
+        const generated: AccountingTransaction[] = [...ACCOUNTING_TRANSACTIONS];
 
         // 3. Update customer limits dynamically based on transactions
         const cts = CLIENTS_DATA.map((c, idx) => {
@@ -530,13 +287,53 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        return { txs: generated, cts };
+        const generatedDeals: CrmDeal[] = [];
+        const owners = ['3', '4', '5'];
+        let dealCounter = 1;
+        
+        // 1. Ganados a partir de transacciones reales
+        generated.filter(t => t.type === 'VENTA').forEach(t => {
+            const ownerId = owners[Math.floor(Math.random() * owners.length)];
+            generatedDeals.push({
+                id: `D-${dealCounter++}`,
+                title: `Venta a ${t.client}`,
+                contactId: t.clientId,
+                value: t.total,
+                stage: 'CLOSED_WON',
+                expectedCloseDate: t.date,
+                ownerId,
+                notes: 'Generado desde transacciones',
+                probability: 100
+            });
+        });
+
+        // 2. Abiertos (Pipeline)
+        const numOpenDeals = 30;
+        const stages: ('LEAD'|'QUALIFIED'|'PROPOSAL'|'NEGOTIATION')[] = ['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'];
+        for (let i = 0; i < numOpenDeals; i++) {
+            const ownerId = owners[Math.floor(Math.random() * owners.length)];
+            const contact = cts[Math.floor(Math.random() * cts.length)];
+            const stage = stages[Math.floor(Math.random() * stages.length)];
+            generatedDeals.push({
+                id: `D-${dealCounter++}`,
+                title: `Oportunidad ${contact.name}`,
+                contactId: contact.id,
+                value: Math.floor(Math.random() * 15000000) + 1000000,
+                stage: stage,
+                expectedCloseDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                ownerId,
+                notes: 'Oportunidad en curso',
+                probability: stage === 'LEAD' ? 10 : stage === 'QUALIFIED' ? 30 : stage === 'PROPOSAL' ? 50 : 80
+            });
+        }
+
+        return { txs: generated, cts, deals: generatedDeals };
     }, []);
 
+    const [deals, setDeals] = useState<CrmDeal[]>(seedData.deals);
     const [contacts, setContacts] = useState<CrmContact[]>(seedData.cts);
     const [activities, setActivities] = useState<CrmActivity[]>(MOCK_CRM_ACTIVITIES);
     const [events, setEvents] = useState<SystemEvent[]>(MOCK_EVENT_LOG);
-    const [crmUsers, setCrmUsers] = useState<CrmUser[]>(MOCK_CRM_USERS);
     const [receipts, setReceipts] = useState<InboundReceipt[]>(() => {
         const sampleItems = INVENTORY_DATA.slice(0, 4);
         return [{
@@ -1167,7 +964,7 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
 
     return (
         <EnterpriseContext.Provider value={{
-            inventory, deals, contacts, activities, events, receipts, crmUsers, crmSettings,
+            inventory, deals, contacts, activities, events, receipts, crmSettings,
             moveDealStage, moveContactPostSaleStage, addEvent, addContact, addDeal, updateDeal, addActivity, deleteContacts, reassignContacts,
             processInboundReceipt,
             distributeTransitInventory,
@@ -1238,7 +1035,11 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             updateDispatch,
             kardexTransactions,
             updateBatchStatus,
-            updateCrmSettings
+            updateCrmSettings,
+            commissionRules,
+            addCommissionRule,
+            updateCommissionRule,
+            deleteCommissionRule
         }}>
             {children}
         </EnterpriseContext.Provider>

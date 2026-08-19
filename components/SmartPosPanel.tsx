@@ -14,7 +14,7 @@ import { QuoteEmailModal } from './QuoteEmailModal';
 export const SmartPosPanel: React.FC = () => {
     const { 
         inventory, updateInventoryStock, updateInventoryProduct, 
-        addEvent, deals, receipts, crmUsers, 
+        addEvent, deals, receipts, systemUsers, 
         recipes, addRecipe, deleteRecipe,
         paymentMethods, pointsOfSale,
         taxRules, pricingRules, paymentRules, rawMaterialCategories,

@@ -166,24 +166,7 @@ export const MOCK_PAYMENT_RULES: PaymentRule[] = [];
 
 export const MOCK_CRM_DEALS: CrmDeal[] = [];
 export const MOCK_CRM_ACTIVITIES: CrmActivity[] = [];
-export const MOCK_CRM_USERS: CrmUser[] = [
-  {
-    id: 'U-ME',
-    name: 'Admin Global',
-    email: 'admin@procoquinal.com',
-    role: 'ADMIN',
-    quota: 20000000000,
-    region: 'Global'
-  },
-  {
-    id: 'U-CARLOS',
-    name: 'Carlos Perez',
-    email: 'cperez@procoquinal.com',
-    role: 'SALES_REP',
-    quota: 6000000000,
-    region: 'Norte'
-  }
-];
+
 export const MOCK_CRM_SETTINGS: CrmSettings = {
   leadSources: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'GOOGLE_ADS', 'MANUAL', 'STREET', 'REFERRAL', 'WEBSITE'],
   stages: [

@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileSpreadsheet, Download } from 'lucide-react';
-import { CrmContact, CrmUser } from '../types';
+import { CrmContact, SystemUser } from '../types';
 
 interface CrmExcelModalProps {
     isOpen: boolean;
     onClose: () => void;
     data: CrmContact[];
-    crmUsers: CrmUser[];
+    systemUsers: SystemUser[];
 }
 
-export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, data, crmUsers }) => {
+export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, data, systemUsers }) => {
     const columns = [
         { id: 'company', label: 'Empresa / Cliente', fixed: true },
         { id: 'document', label: 'NIT/Cédula' },
@@ -59,7 +59,7 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
     ];
 
     const getRowData = (item: CrmContact) => {
-        const owner = crmUsers.find(u => u.id === item.ownerId)?.name || 'Sin Asignar';
+        const owner = systemUsers.find(u => u.id === item.ownerId)?.name || 'Sin Asignar';
         const doc = item.documentNumber ? `${item.documentType || 'NIT'} ${item.documentNumber}` : 'N/A';
         const tags = item.tags ? item.tags.join(', ') : '';
         const ph = item.purchaseHistory;

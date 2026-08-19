@@ -43,7 +43,9 @@ export const AccountingModule: React.FC = () => {
     const [draftFilters, setDraftFilters] = useState(initialFilterState);
     const [appliedFilters, setAppliedFilters] = useState(initialFilterState);
     const [activeShortcutFilter, setActiveShortcutFilter] = useState<string>('Todos');
-    const [cierreTimeRange, setCierreTimeRange] = useState<'HOY' | 'ESTA_SEMANA' | 'ESTE_MES' | 'MES_PASADO' | 'ESTE_AÑO'>('ESTE_MES');
+    const [cierreTimeRange, setCierreTimeRange] = useState<'HOY' | 'ESTA_SEMANA' | 'ESTE_MES' | 'MES_PASADO' | 'ESTE_AÑO' | 'PERSONALIZADO'>('ESTE_MES');
+    const [cierreDateFrom, setCierreDateFrom] = useState('');
+    const [cierreDateTo, setCierreDateTo] = useState('');
     const [showZReport, setShowZReport] = useState(false);
 
     const soloVentas = useMemo(() => transactions.filter(t => t.type === 'VENTA'), [transactions]);
@@ -381,6 +383,10 @@ export const AccountingModule: React.FC = () => {
                 return (now.getTime() - d.getTime()) <= 30 * 24 * 60 * 60 * 1000;
             } else if (cierreTimeRange === 'ESTE_AÑO') {
                 return d.getFullYear() === now.getFullYear();
+            } else if (cierreTimeRange === 'PERSONALIZADO') {
+                if (cierreDateFrom && t.date < cierreDateFrom) return false;
+                if (cierreDateTo && t.date > cierreDateTo) return false;
+                return true;
             } else {
                 return d.getMonth() === (now.getMonth() === 0 ? 11 : now.getMonth() - 1);
             }
@@ -430,7 +436,7 @@ export const AccountingModule: React.FC = () => {
             totalVentas, totalEfectivo, totalBancos, totalIVA, totalCOGS, paymentMethodBreakdown,
             chartData: Object.values(chartMap).sort((a, b) => a.date.localeCompare(b.date))
         };
-    }, [transactions, cierreTimeRange, inventory]);
+    }, [transactions, cierreTimeRange, inventory, cierreDateFrom, cierreDateTo]);
 
     const handleCxPPaymentSubmit = () => {
         if (!selectedCxPInvoice || !cxPPaymentAmount) return;
@@ -1154,7 +1160,7 @@ export const AccountingModule: React.FC = () => {
                             <div className="space-y-6">
                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                                     <div className="flex bg-slate-100 p-1 rounded-lg">
-                                        {['HOY', 'ESTA_SEMANA', 'ESTE_MES', 'MES_PASADO', 'ESTE_AÑO'].map(range => (
+                                        {['HOY', 'ESTA_SEMANA', 'ESTE_MES', 'MES_PASADO', 'ESTE_AÑO', 'PERSONALIZADO'].map(range => (
                                             <button 
                                                 key={range}
                                                 onClick={() => setCierreTimeRange(range as any)}
@@ -1164,6 +1170,14 @@ export const AccountingModule: React.FC = () => {
                                             </button>
                                         ))}
                                     </div>
+                                    {cierreTimeRange === 'PERSONALIZADO' && (
+                                        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+                                            <Calendar className="w-4 h-4 ml-2 text-slate-500" />
+                                            <input type="date" value={cierreDateFrom} onChange={e => setCierreDateFrom(e.target.value)} className="px-2 py-1 border border-slate-300 rounded text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white" />
+                                            <span className="text-slate-500 text-sm font-medium">a</span>
+                                            <input type="date" value={cierreDateTo} onChange={e => setCierreDateTo(e.target.value)} className="px-2 py-1 border border-slate-300 rounded text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white mr-1" />
+                                        </div>
+                                    )}
                                     <button 
                                         onClick={() => setShowZReport(!showZReport)}
                                         className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 transition shadow-sm active:scale-95"

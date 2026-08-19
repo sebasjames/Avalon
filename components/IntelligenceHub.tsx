@@ -25,7 +25,7 @@ export const IntelligenceHub: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasRunAutoPrompt = useRef(false);
   
-  const { inventory, transactions, deals, contacts } = useEnterprise();
+  const { inventory, transactions, deals, contacts, systemUsers, commissionRules = [] } = useEnterprise();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,14 +55,31 @@ export const IntelligenceHub: React.FC = () => {
     setLoading(true);
 
     try {
+      // Construir resumen comercial
+      const comerciales = systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager').map(u => {
+          const userDeals = deals.filter(d => d.ownerId === u.id);
+          const wonDeals = userDeals.filter(d => d.stage === 'CLOSED_WON');
+          const actual = wonDeals.reduce((sum, d) => sum + d.value, 0);
+          return {
+              nombre: u.name,
+              rol: u.baseRole,
+              meta: u.quota || 0,
+              facturacion: actual,
+              cumplimiento: u.quota ? (actual / u.quota) * 100 : 0
+          };
+      });
+
       const contextData = {
         resumen: {
             totalProductosEnInventario: inventory.length,
             totalTransaccionesRegistradas: transactions.length,
             totalContactosCRM: contacts.length,
             totalNegociosPipeline: deals.length,
-            valorTotalInventarioCOP: inventory.reduce((acc, i) => acc + (i.unitCost * i.totalStock), 0)
+            valorTotalInventarioCOP: inventory.reduce((acc, i) => acc + (i.unitCost * i.totalStock), 0),
+            totalComerciales: comerciales.length
         },
+        comerciales: comerciales,
+        reglasComisionesActivas: commissionRules.filter(r => r.active).map(r => ({ nombre: r.name, tipo: r.type, valor: r.value })),
         inventory: inventory.map(i => ({ sku: i.sku, name: i.name, stock: i.totalStock, reserved: i.reservedStock, cost: i.unitCost })),
         transactions: transactions.slice(0, 100), // Enviar las ultimas 100 por tokens
         crmPipeline: deals
@@ -99,9 +116,9 @@ export const IntelligenceHub: React.FC = () => {
   };
 
   const suggestions = [
-    "Identificar riesgos de inventario silencioso",
+    "Identificar riesgos de inventario",
+    "Evaluar rendimiento de agentes comerciales",
     "¿Qué productos tienen mejor rendimiento (ABC)?",
-    "Sugerir estrategia de bundles para ítems lentos",
     "Calcular salud del inventario"
   ];
 

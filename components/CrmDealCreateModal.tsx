@@ -11,7 +11,7 @@ interface CrmDealCreateModalProps {
 }
 
 export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, onClose, contactId, companyName }) => {
-  const { addDeal, crmSettings, activeRole, crmUsers } = useEnterprise();
+  const { addDeal, crmSettings, activeRole, systemUsers } = useEnterprise();
   
   const [title, setTitle] = useState('');
   const [value, setValue] = useState<number | ''>('');
@@ -162,7 +162,7 @@ export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, 
                     // Initialize a generic split 50-50 for demo if enabling
                     setSplits([
                       { userId: '1', percentage: 50 },
-                      { userId: crmUsers.find(u => u.id !== '1')?.id || '2', percentage: 50 }
+                      { userId: systemUsers.find(u => u.id !== '1')?.id || '2', percentage: 50 }
                     ]);
                   } else if (isSplit) {
                     // Reset to 100% single owner if disabling
@@ -188,7 +188,7 @@ export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, 
                       }}
                       className="flex-1 bg-white border border-slate-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-500"
                     >
-                      {crmUsers.map(u => (
+                      {systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager' || u.baseRole === 'admin').map(u => (
                         <option key={u.id} value={u.id}>{u.name}</option>
                       ))}
                     </select>

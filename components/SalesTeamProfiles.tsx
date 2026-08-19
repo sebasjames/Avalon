@@ -2,108 +2,90 @@ import React, { useState } from 'react';
 import { 
     Users, Trophy, Target, TrendingUp, Phone, Mail, 
     Briefcase, Star, Award, ChevronRight, BarChart3, 
-    PieChart, Activity, UserCheck, Percent
+    PieChart, Activity, UserCheck, Percent, DollarSign
 } from 'lucide-react';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend
 } from 'recharts';
-
-// --- MOCK DATA ---
-const SALES_TEAM = [
-    { 
-        id: 1, 
-        name: "Ana García", 
-        role: "Senior Account Manager", 
-        avatar: "AG",
-        color: "bg-indigo-600",
-        quota: 150000, 
-        actual: 162000, 
-        deals: 12, 
-        conversion: 34,
-        phone: "+52 55 1234 5678",
-        email: "ana.garcia@procoquinal.com",
-        skills: { negotiation: 95, closing: 90, prospecting: 80, tech: 85, empathy: 92 },
-        recentActivity: [
-            { day: 'Lun', calls: 15, meetings: 3 },
-            { day: 'Mar', calls: 20, meetings: 4 },
-            { day: 'Mie', calls: 12, meetings: 5 },
-            { day: 'Jue', calls: 18, meetings: 2 },
-            { day: 'Vie', calls: 22, meetings: 4 },
-        ]
-    },
-    { 
-        id: 2, 
-        name: "Carlos Méndez", 
-        role: "Sales Executive", 
-        avatar: "CM",
-        color: "bg-emerald-600",
-        quota: 100000, 
-        actual: 85000, 
-        deals: 18, 
-        conversion: 22,
-        phone: "+52 55 8765 4321",
-        email: "carlos.mendez@procoquinal.com",
-        skills: { negotiation: 75, closing: 80, prospecting: 95, tech: 70, empathy: 85 },
-        recentActivity: [
-            { day: 'Lun', calls: 30, meetings: 1 },
-            { day: 'Mar', calls: 35, meetings: 2 },
-            { day: 'Mie', calls: 28, meetings: 1 },
-            { day: 'Jue', calls: 40, meetings: 3 },
-            { day: 'Vie', calls: 32, meetings: 2 },
-        ]
-    },
-    { 
-        id: 3, 
-        name: "Lucía Fernández", 
-        role: "Key Account Manager (KAM)", 
-        avatar: "LF",
-        color: "bg-rose-600",
-        quota: 200000, 
-        actual: 195000, 
-        deals: 5, 
-        conversion: 45,
-        phone: "+52 55 1122 3344",
-        email: "lucia.fernandez@procoquinal.com",
-        skills: { negotiation: 98, closing: 95, prospecting: 60, tech: 90, empathy: 88 },
-        recentActivity: [
-            { day: 'Lun', calls: 5, meetings: 4 },
-            { day: 'Mar', calls: 8, meetings: 3 },
-            { day: 'Mie', calls: 6, meetings: 5 },
-            { day: 'Jue', calls: 10, meetings: 2 },
-            { day: 'Vie', calls: 4, meetings: 4 },
-        ]
-    },
-    { 
-        id: 4, 
-        name: "Miguel Torres", 
-        role: "Junior Sales Rep", 
-        avatar: "MT",
-        color: "bg-amber-600",
-        quota: 50000, 
-        actual: 22000, 
-        deals: 40, 
-        conversion: 15,
-        phone: "+52 55 9988 7766",
-        email: "miguel.torres@procoquinal.com",
-        skills: { negotiation: 60, closing: 55, prospecting: 98, tech: 95, empathy: 75 },
-        recentActivity: [
-            { day: 'Lun', calls: 50, meetings: 0 },
-            { day: 'Mar', calls: 45, meetings: 1 },
-            { day: 'Mie', calls: 55, meetings: 0 },
-            { day: 'Jue', calls: 48, meetings: 1 },
-            { day: 'Vie', calls: 60, meetings: 0 },
-        ]
-    }
-];
+import { useEnterprise } from '../context/EnterpriseContext';
 
 export const SalesTeamProfiles: React.FC = () => {
-    const [selectedAgent, setSelectedAgent] = useState(SALES_TEAM[0]);
+    const { systemUsers, deals, activities, commissionRules = [] } = useEnterprise();
+    
+    // Derived Sales Team from System Users
+    const salesTeam = systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager').map(u => {
+        const userDeals = deals.filter(d => d.ownerId === u.id);
+        const wonDeals = userDeals.filter(d => d.stage === 'CLOSED_WON');
+        const closedDeals = userDeals.filter(d => d.stage === 'CLOSED_WON' || d.stage === 'CLOSED_LOST');
+        const actual = wonDeals.reduce((sum, d) => sum + d.value, 0);
+        const conversion = closedDeals.length > 0 ? Math.round((wonDeals.length / closedDeals.length) * 100) : 0;
+        
+        // Calcular Comisiones basadas en las Reglas Globales (Aproximación por Ventas Ganadas)
+        let totalCommission = 0;
+        commissionRules.filter(r => r.active).forEach(rule => {
+            if (rule.type === 'Porcentaje' && (rule.baseVariable === 'Facturación' || rule.baseVariable === 'Facturación Neta (Menos Retención)' || rule.baseVariable === 'Recaudo')) {
+                // Simplified commission base is actual won deals. In real life we'd filter by target/discounts.
+                let base = actual;
+                if (rule.target === 'Clientes Especiales (1%)') base = actual * 0.2; // simulate 20%
+                if (rule.target === 'Clientes Estándar / Regulares') base = actual * 0.8;
+                
+                let ruleCost = base * (rule.value / 100);
+                if (rule.hasAgingPenalty) ruleCost *= 0.8; // Simula castigo promedio
+                if (rule.hasDiscountPenalty) ruleCost *= 0.9;
+                
+                totalCommission += ruleCost;
+            } else if (rule.type === 'Fijo') {
+                totalCommission += rule.value;
+            }
+        });
+        
+        // Mock recent activity based on real activities or just random for visual if empty
+        const userActivities = activities.filter(a => a.actor_id === u.id);
+        const recentActivity = [
+            { day: 'Lun', calls: userActivities.filter(a=>a.type==='CALL').length || Math.floor(Math.random()*20), meetings: userActivities.filter(a=>a.type==='MEETING').length || Math.floor(Math.random()*5) },
+            { day: 'Mar', calls: Math.floor(Math.random()*20), meetings: Math.floor(Math.random()*5) },
+            { day: 'Mie', calls: Math.floor(Math.random()*20), meetings: Math.floor(Math.random()*5) },
+            { day: 'Jue', calls: Math.floor(Math.random()*20), meetings: Math.floor(Math.random()*5) },
+            { day: 'Vie', calls: Math.floor(Math.random()*20), meetings: Math.floor(Math.random()*5) },
+        ];
+
+        return {
+            id: u.id,
+            name: u.name,
+            role: u.baseRole === 'manager' ? 'Gerente Comercial' : 'Ejecutivo de Ventas',
+            avatar: u.avatar || u.name.substring(0, 2).toUpperCase(),
+            color: 'bg-indigo-600',
+            quota: u.quota || 100000000,
+            actual,
+            deals: userDeals.length,
+            conversion,
+            commission: Math.round(totalCommission),
+            phone: u.phone || '+57 300 000 0000',
+            email: u.email,
+            skills: u.skills || { negotiation: 85, closing: conversion || 50, prospecting: 70, tech: 80, empathy: 90 },
+            recentActivity
+        };
+    });
+
+    const [selectedAgentId, setSelectedAgentId] = useState(salesTeam.length > 0 ? salesTeam[0].id : null);
+
+    if (salesTeam.length === 0) {
+        return (
+            <div className="p-6 bg-slate-50 min-h-screen flex flex-col items-center justify-center">
+                <h2 className="text-xl font-bold text-slate-700">No hay perfiles comerciales</h2>
+                <p className="text-slate-500 mt-2">Asegúrate de configurar usuarios con el rol 'Comercial' o 'Administrador Comercial' en la sección de Configuración.</p>
+            </div>
+        );
+    }
+
+    const selectedAgent = salesTeam.find(a => a.id === selectedAgentId) || salesTeam[0];
 
     // Aggregate Metrics
-    const totalRevenue = SALES_TEAM.reduce((acc, curr) => acc + curr.actual, 0);
-    const totalQuota = SALES_TEAM.reduce((acc, curr) => acc + curr.quota, 0);
-    const quotaAttainment = (totalRevenue / totalQuota) * 100;
+    const totalRevenue = salesTeam.reduce((acc, curr) => acc + curr.actual, 0);
+    const totalQuota = salesTeam.reduce((acc, curr) => acc + curr.quota, 0);
+    const totalCommissions = salesTeam.reduce((acc, curr) => acc + curr.commission, 0);
+    const quotaAttainment = totalQuota > 0 ? (totalRevenue / totalQuota) * 100 : 0;
 
     const radarData = [
         { subject: 'Negociación', A: selectedAgent.skills.negotiation, fullMark: 100 },
@@ -112,6 +94,8 @@ export const SalesTeamProfiles: React.FC = () => {
         { subject: 'Tech/CRM', A: selectedAgent.skills.tech, fullMark: 100 },
         { subject: 'Empatía', A: selectedAgent.skills.empathy, fullMark: 100 },
     ];
+
+    if (!selectedAgent) return <div className="p-8 text-center text-slate-500">No hay agentes comerciales configurados.</div>;
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -137,21 +121,26 @@ export const SalesTeamProfiles: React.FC = () => {
                             <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${Math.min(quotaAttainment, 100)}%` }}></div>
                         </div>
                         <div className="flex justify-between mt-2 text-xs">
-                            <span className="text-slate-500">${(totalRevenue/1000).toFixed(0)}k</span>
-                            <span className="text-slate-400">/ ${(totalQuota/1000).toFixed(0)}k</span>
+                            <span className="text-slate-500">${(totalRevenue/1000000).toFixed(1)}M</span>
+                            <span className="text-slate-400">/ ${(totalQuota/1000000).toFixed(1)}M</span>
                         </div>
+                    </div>
+
+                    <div className="mt-2 bg-indigo-50 border border-indigo-100 p-3 rounded-xl flex items-center justify-between">
+                        <span className="text-xs font-bold text-indigo-800">Comisiones Generadas</span>
+                        <span className="text-sm font-black text-indigo-600">${totalCommissions.toLocaleString('es-CO')}</span>
                     </div>
                 </div>
                 
                 <div className="flex-1 p-4 space-y-3">
-                    {SALES_TEAM.map((agent) => {
-                        const percent = (agent.actual / agent.quota) * 100;
+                    {salesTeam.map((agent) => {
+                        const percent = agent.quota > 0 ? (agent.actual / agent.quota) * 100 : 0;
                         const isSelected = selectedAgent.id === agent.id;
                         
                         return (
-                            <button
+                            <div 
                                 key={agent.id}
-                                onClick={() => setSelectedAgent(agent)}
+                                onClick={() => setSelectedAgentId(agent.id)}
                                 className={`w-full text-left p-4 rounded-xl border transition-all hover:shadow-md group relative overflow-hidden ${
                                     isSelected 
                                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200' 
@@ -188,7 +177,7 @@ export const SalesTeamProfiles: React.FC = () => {
                                         ></div>
                                     </div>
                                 </div>
-                            </button>
+                            </div>
                         );
                     })}
                 </div>
@@ -274,13 +263,22 @@ export const SalesTeamProfiles: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Percent className="w-5 h-5 text-amber-500 bg-amber-100 p-1 rounded-lg" />
-                                    <span className="text-slate-500 font-medium text-sm">Tasa Conversión</span>
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Percent className="w-5 h-5 text-amber-500 bg-amber-100 p-1 rounded-lg" />
+                                        <span className="text-slate-500 font-medium text-sm">Tasa Conversión</span>
+                                    </div>
+                                    <div className="text-3xl font-bold text-slate-900">{selectedAgent.conversion}%</div>
+                                    <div className="text-xs text-emerald-600 font-bold mt-1">Top 15% de la industria</div>
                                 </div>
-                                <div className="text-3xl font-bold text-slate-900">{selectedAgent.conversion}%</div>
-                                <div className="text-xs text-emerald-600 font-bold mt-1">Top 15% de la industria</div>
+                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mt-4">
+                                    <div className="flex items-center text-indigo-700 mb-1">
+                                        <DollarSign className="w-5 h-5 mr-1" />
+                                        <span className="font-bold text-xl">${selectedAgent.commission.toLocaleString('es-CO')}</span>
+                                    </div>
+                                    <div className="text-xs text-indigo-500/80 font-medium">Comisiones (Reglas Activas)</div>
+                                </div>
                             </div>
 
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">

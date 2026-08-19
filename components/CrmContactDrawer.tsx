@@ -23,7 +23,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
   const [nextAction, setNextAction] = useState('');
   const [nextActionDate, setNextActionDate] = useState('');
   const [expenseAmount, setExpenseAmount] = useState<string>('');
-  const { setFullProfileContactId, taxRules, pricingRules, paymentRules, updateContact, updateDeal, crmUsers } = useEnterprise();
+  const { setFullProfileContactId, taxRules, pricingRules, paymentRules, updateContact, updateDeal, systemUsers } = useEnterprise();
 
   const [mockFiles, setMockFiles] = useState([
     { id: 'f1', name: 'Cotizacion_Procoquinal_v2.pdf', size: '1.2 MB', date: 'Hoy' },
@@ -682,7 +682,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                         <span className="text-[10px] font-bold text-slate-500 uppercase">Comisiones Compartidas (Splits)</span>
                         <button 
                           onClick={() => {
-                            const newSplits = [...(deal.splits || []), { userId: crmUsers[0]?.id || '', percentage: 50 }];
+                            const newSplits = [...(deal.splits || []), { userId: systemUsers[0]?.id || '', percentage: 50 }];
                             updateDeal(deal.id, { splits: newSplits });
                           }}
                           className="text-[10px] bg-slate-100 text-slate-600 hover:bg-slate-200 px-2 py-1 rounded font-bold transition-colors flex items-center gap-1"
@@ -705,7 +705,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
                                 }}
                                 className="flex-1 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
                               >
-                                {crmUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                {systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager' || u.baseRole === 'admin').map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                               </select>
                               <div className="flex items-center gap-1">
                                 <input 

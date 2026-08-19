@@ -5,7 +5,7 @@ import { useEnterprise } from '../context/EnterpriseContext';
 import { getSourceBadge } from './CrmFull';
 
 export const CrmDashboard: React.FC = () => {
-  const { deals, contacts, activities, crmUsers, crmSettings } = useEnterprise();
+  const { deals, contacts, activities, systemUsers, crmSettings } = useEnterprise();
 
   // Global metrics (ignoring filterOwner because this is a global dashboard)
   const totalPipelineValue = deals.reduce((sum, deal) => sum + deal.value, 0);
@@ -100,7 +100,7 @@ export const CrmDashboard: React.FC = () => {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 col-span-1">
           <h3 className="text-lg font-semibold text-slate-900 mb-4">Top Vendedores (Leaderboard)</h3>
           <div className="space-y-4">
-            {crmUsers.filter(u => u.role === 'SALES_REP').map(user => {
+            {systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager').map(user => {
               const userWon = deals.filter(d => d.ownerId === user.id && d.stage === 'CLOSED_WON').reduce((s, d) => s + d.value, 0);
               const userPct = Math.min((userWon / user.quota) * 100, 100);
               return (

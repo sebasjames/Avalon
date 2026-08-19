@@ -5,11 +5,11 @@ import { User, Target, BarChart2, Calendar, Phone, Mail, X, Activity, TrendingDo
 import { CrmUser } from '../types';
 
 export const CrmTeam: React.FC = () => {
-  const { crmUsers, deals, activities, contacts } = useEnterprise();
+  const { systemUsers, deals, activities, contacts } = useEnterprise();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  const selectedUser = crmUsers.find(u => u.id === selectedUserId);
-  const salesReps = crmUsers.filter(u => u.role === 'SALES_REP' || u.role === 'MANAGER');
+  const selectedUser = systemUsers.find(u => u.id === selectedUserId);
+  const salesReps = systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager' || u.baseRole === 'admin');
 
   return (
     <div className="space-y-6 relative">

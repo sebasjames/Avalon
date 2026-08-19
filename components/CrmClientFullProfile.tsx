@@ -11,7 +11,7 @@ interface CrmClientFullProfileProps {
 }
 
 export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ contactId, onBack }) => {
-  const { contacts, deals, activities, crmUsers, assignmentLogs, getContactHealthScore, taxRules, pricingRules, paymentRules } = useEnterprise();
+  const { contacts, deals, activities, systemUsers, assignmentLogs, getContactHealthScore, taxRules, pricingRules, paymentRules } = useEnterprise();
   const [isDealModalOpen, setIsDealModalOpen] = useState(false);
   const contact = contacts.find(c => c.id === contactId);
 
@@ -20,7 +20,7 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
   const contactDeals = deals.filter(d => d.contactId === contact.id);
   const contactActivities = activities.filter(a => a.contactId === contact.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const contactAssignments = assignmentLogs.filter(a => a.contactId === contact.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const assignedUser = crmUsers.find(u => u.id === contact.ownerId);
+  const assignedUser = systemUsers.find(u => u.id === contact.ownerId);
 
   const healthScore = getContactHealthScore(contact.id);
   const healthColor = healthScore === 'GREEN' ? 'bg-emerald-500' : healthScore === 'YELLOW' ? 'bg-amber-500' : 'bg-rose-500';

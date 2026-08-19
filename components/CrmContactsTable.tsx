@@ -111,11 +111,11 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
-  const { crmUsers, reassignContacts, getContactHealthScore, updateContact, cleanGarbageLeads } = useEnterprise();
+  const { systemUsers, reassignContacts, getContactHealthScore, updateContact, cleanGarbageLeads } = useEnterprise();
 
   // Mocking the current active user for security rules (Requirement 9)
-  const currentUser = crmUsers.find(u => u.id === 'U-ME') || crmUsers[0]; 
-  const canReassign = currentUser.role === 'ADMIN' || currentUser.role === 'MANAGER';
+  const currentUser = systemUsers.find(u => u.id === '1') || systemUsers[0]; 
+  const canReassign = currentUser.baseRole === 'admin' || currentUser.baseRole === 'manager';
 
   const handleSave = (contactId: string, field: string, val: string | number) => {
     updateContact(contactId, { [field]: val });
@@ -574,9 +574,9 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   )}
 
                   {visibleColumns.includes('ownerId') && renderSelectCell('ownerId',
-                    crmUsers.map(u => ({value: u.id, label: u.name})),
+                    systemUsers.map(u => ({value: u.id, label: u.name})),
                     <span className="text-xs text-slate-700 font-medium whitespace-nowrap">
-                      {crmUsers.find(u => u.id === contact.ownerId)?.name || 'Sin Asignar'}
+                      {systemUsers.find(u => u.id === contact.ownerId)?.name || 'Sin Asignar'}
                     </span>
                   )}
                   
@@ -671,8 +671,8 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
                   className="w-full border rounded-lg p-2 text-sm"
                 >
                   <option value="">Selecciona un usuario...</option>
-                  {crmUsers.filter(u => u.role === 'SALES_REP' || u.role === 'MANAGER').map(u => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                  {systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager' || u.baseRole === 'admin').map(u => (
+                    <option key={u.id} value={u.id}>{u.name} ({u.baseRole})</option>
                   ))}
                 </select>
               </div>
@@ -735,7 +735,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
           isOpen={isExcelModalOpen} 
           onClose={() => setIsExcelModalOpen(false)} 
           data={filteredContacts}
-          crmUsers={crmUsers}
+          systemUsers={systemUsers}
       />
     </div>
   );

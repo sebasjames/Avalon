@@ -580,6 +580,29 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
     const [selectedFamilies, setSelectedFamilies] = useState<string[]>([]);
     const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+    
+    // Column Visibility State
+    const ALL_COLUMNS = useMemo(() => [
+        { id: 'indicator', label: 'Indicador Estado' },
+        { id: 'sku', label: 'SKU / Producto' },
+        { id: 'barcode', label: 'Barcode' },
+        { id: 'category', label: 'Categoría' },
+        { id: 'family', label: 'Familia' },
+        { id: 'brand', label: 'Marca/Prov.' },
+        { id: 'baseUnit', label: 'Unidad de Medida' },
+        { id: 'abc', label: 'Clase' },
+        { id: 'stock', label: 'Físico' },
+        { id: 'unitCost', label: 'Costo Unit.' },
+        { id: 'price', label: 'Precio Unit.' },
+        { id: 'tax', label: 'IVA %' },
+        { id: 'reserved', label: 'Reservado' },
+        { id: 'atp', label: 'ATP (Disp)' },
+        { id: 'minStock', label: 'Mínimo Stock' },
+        { id: 'value', label: 'Valor Total' },
+        { id: 'status', label: 'Estado' },
+        { id: 'agingDays', label: 'Aging (Días)' }
+    ], []);
+    const [visibleCols, setVisibleCols] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
 
     const availableBrands = useMemo(() => {
         const brandSet = new Set<string>();
@@ -882,6 +905,13 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                             selected={selectedSizes} 
                             onChange={setSelectedSizes} 
                         />
+
+                        <CheckboxDropdown 
+                            title="Columnas" 
+                            options={ALL_COLUMNS} 
+                            selected={visibleCols} 
+                            onChange={setVisibleCols} 
+                        />
                         
                         <select 
                             value={filter} 
@@ -978,39 +1008,48 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase tracking-wider font-bold text-slate-400">
-                                            <th className="p-4 w-4"></th>
-                                            <th className="p-4">SKU / Producto</th>
-                                            <th className="p-4 text-center">Barcode</th>
-                                            <th className="p-4">Categoría</th>
-                                            <th className="p-4">Familia</th>
-                                            <th className="p-4">Marca/Prov.</th>
-                                            <th className="p-4 text-center">Clase</th>
-                                            <th className="p-4 text-center">Físico</th>
-                                            <th className="p-4 text-center text-indigo-600">Precio Unit.</th>
-                                            <th className="p-4 text-center">IVA %</th>
-                                            <th className="p-4 text-center">Reservado</th>
-                                            <th className="p-4 text-center text-indigo-600">ATP (Disp)</th>
-                                            <th className="p-4 text-center text-rose-600">Minimo Stock</th>
-                                            <th className="p-4 text-right">Valor Total (Costo)</th>
+                                            {visibleCols.includes('indicator') && <th className="p-4 w-4"></th>}
+                                            {visibleCols.includes('sku') && <th className="p-4">SKU / Producto</th>}
+                                            {visibleCols.includes('barcode') && <th className="p-4 text-center">Barcode</th>}
+                                            {visibleCols.includes('category') && <th className="p-4">Categoría</th>}
+                                            {visibleCols.includes('family') && <th className="p-4">Familia</th>}
+                                            {visibleCols.includes('brand') && <th className="p-4">Marca/Prov.</th>}
+                                            {visibleCols.includes('baseUnit') && <th className="p-4 text-center">Unidad</th>}
+                                            {visibleCols.includes('abc') && <th className="p-4 text-center">Clase</th>}
+                                            {visibleCols.includes('stock') && <th className="p-4 text-center">Físico</th>}
+                                            {visibleCols.includes('unitCost') && <th className="p-4 text-center">Costo Unit.</th>}
+                                            {visibleCols.includes('price') && <th className="p-4 text-center text-indigo-600">Precio Unit.</th>}
+                                            {visibleCols.includes('tax') && <th className="p-4 text-center">IVA %</th>}
+                                            {visibleCols.includes('reserved') && <th className="p-4 text-center">Reservado</th>}
+                                            {visibleCols.includes('atp') && <th className="p-4 text-center text-indigo-600">ATP (Disp)</th>}
+                                            {visibleCols.includes('minStock') && <th className="p-4 text-center text-rose-600">Minimo Stock</th>}
+                                            {visibleCols.includes('value') && <th className="p-4 text-right">Valor Total (Costo)</th>}
+                                            {visibleCols.includes('status') && <th className="p-4 text-center">Estado</th>}
+                                            {visibleCols.includes('agingDays') && <th className="p-4 text-center">Aging</th>}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {isLoading ? (
                                             Array.from({ length: 10 }).map((_, i) => (
                                                 <tr key={i} className="animate-pulse">
-                                                    <td className="p-4"><div className="w-2 h-2 rounded-full bg-slate-200"></div></td>
-                                                    <td className="p-4"><div className="w-12 h-4 bg-slate-200 rounded"></div></td>
-                                                    <td className="p-4"><div className="w-40 h-4 bg-slate-200 rounded"></div></td>
-                                                    <td className="p-4"><div className="w-20 h-4 bg-slate-200 rounded"></div></td>
-                                                    <td className="p-4"><div className="w-16 h-4 bg-slate-200 rounded"></div></td>
-                                                    <td className="p-4"><div className="w-10 h-4 bg-slate-200 rounded"></div></td>
-                                                    <td className="p-4 text-center"><div className="w-6 h-4 bg-slate-200 rounded mx-auto"></div></td>
-                                                    <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>
-                                                    <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
-                                                    <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
-                                                    <td className="p-4 text-center"><div className="w-12 h-4 bg-slate-200 rounded mx-auto font-black"></div></td>
-                                                    <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>
-                                                    <td className="p-4 text-right"><div className="w-24 h-4 bg-slate-200 rounded ml-auto"></div></td>
+                                                    {visibleCols.includes('indicator') && <td className="p-4"><div className="w-2 h-2 rounded-full bg-slate-200"></div></td>}
+                                                    {visibleCols.includes('sku') && <td className="p-4"><div className="w-12 h-4 bg-slate-200 rounded"></div></td>}
+                                                    {visibleCols.includes('barcode') && <td className="p-4"><div className="w-40 h-4 bg-slate-200 rounded"></div></td>}
+                                                    {visibleCols.includes('category') && <td className="p-4"><div className="w-20 h-4 bg-slate-200 rounded"></div></td>}
+                                                    {visibleCols.includes('family') && <td className="p-4"><div className="w-16 h-4 bg-slate-200 rounded"></div></td>}
+                                                    {visibleCols.includes('brand') && <td className="p-4"><div className="w-10 h-4 bg-slate-200 rounded"></div></td>}
+                                                    {visibleCols.includes('baseUnit') && <td className="p-4"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('abc') && <td className="p-4 text-center"><div className="w-6 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('stock') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('unitCost') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('price') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('tax') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('reserved') && <td className="p-4 text-center"><div className="w-12 h-4 bg-slate-200 rounded mx-auto font-black"></div></td>}
+                                                    {visibleCols.includes('atp') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('minStock') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('value') && <td className="p-4 text-right"><div className="w-24 h-4 bg-slate-200 rounded ml-auto"></div></td>}
+                                                    {visibleCols.includes('status') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('agingDays') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
                                                 </tr>
                                             ))
                                         ) : (
@@ -1025,137 +1064,193 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                         onClick={() => !isEditing && setSelectedProduct(product)}
                                                         className="hover:bg-slate-50 cursor-pointer transition-colors group"
                                                     >
-                                                        <td className="p-4">
-                                                            <div className={`w-2 h-2 rounded-full ${atp <= 0 ? 'bg-rose-500' : atp < 10 ? 'bg-amber-400' : 'bg-emerald-500'}`}></div>
-                                                        </td>
-                                                        <td className="p-4">
-                                                            <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{product.name}</div>
-                                                            <div className="text-xs font-mono text-slate-400">{product.sku}</div>
-                                                        </td>
-                                                        <td className="p-4 text-center">
-                                                            {isEditing ? (
-                                                                <input 
-                                                                    type="text" 
-                                                                    className="w-24 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-xs"
-                                                                    placeholder="Escanear..."
-                                                                    value={editedRows[product.id]?.barcode ?? product.barcode ?? ''}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], barcode: e.target.value } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                />
-                                                            ) : (
-                                                                <span className="text-xs font-mono text-slate-500">{product.barcode || '-'}</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4">
-                                                            {isEditing ? (
-                                                                <select
-                                                                    className="w-32 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
-                                                                    value={editedRows[product.id]?.category ?? product.category}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], category: e.target.value as Category } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                    disabled={transactions.some(t => t.sku === product.sku)}
-                                                                >
-                                                                    {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
-                                                                </select>
-                                                            ) : (
-                                                                <span className="text-xs text-slate-600">{product.category}</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4">
-                                                            {isEditing ? (
-                                                                <input
-                                                                    type="text"
-                                                                    className="w-28 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
-                                                                    value={editedRows[product.id]?.family ?? product.family ?? ''}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], family: e.target.value } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                    disabled={transactions.some(t => t.sku === product.sku)}
-                                                                />
-                                                            ) : (
-                                                                <span className="text-xs text-slate-600">{product.family || '-'}</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4">
-                                                            {isEditing ? (
-                                                                <input
-                                                                    type="text"
-                                                                    className="w-28 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
-                                                                    value={editedRows[product.id]?.brand ?? product.brand ?? ''}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], brand: e.target.value } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                    disabled={transactions.some(t => t.sku === product.sku)}
-                                                                />
-                                                            ) : (
-                                                                <span className="text-xs text-slate-600">{product.brand || '-'}</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4 text-center">
-                                                            <span className="text-[10px] bg-slate-100 font-bold px-2 py-1 rounded text-slate-600">
-                                                                {product.abc}{product.xyz}
-                                                            </span>
-                                                        </td>
-                                                        <td className="p-4 text-center font-semibold text-slate-600">
-                                                            {isEditing ? (
-                                                                <input 
-                                                                    type="number" 
-                                                                    className="w-20 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                                                                    value={editedRows[product.id]?.totalStock ?? product.totalStock}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], totalStock: Number(e.target.value) } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                />
-                                                            ) : (
-                                                                product.category === Category.SERVICE ? '∞' : product.totalStock
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4 text-center font-semibold text-indigo-600">
-                                                            {isEditing ? (
-                                                                <input 
-                                                                    type="number" 
-                                                                    className="w-24 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                                                                    value={editedRows[product.id]?.price ?? product.price}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], price: Number(e.target.value) } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                />
-                                                            ) : (
-                                                                formatCOP(product.price || 0)
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4 text-center font-semibold text-slate-600">
-                                                            {isEditing ? (
-                                                                <select 
-                                                                    className="w-16 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                                                                    value={editedRows[product.id]?.taxRate ?? product.taxRate ?? 19}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], taxRate: Number(e.target.value) } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                >
-                                                                    <option value={19}>19%</option>
-                                                                    <option value={5}>5%</option>
-                                                                    <option value={0}>0%</option>
-                                                                </select>
-                                                            ) : (
-                                                                `${product.taxRate ?? 19}%`
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4 text-center font-semibold text-amber-600">{product.reservedStock}</td>
-                                                        <td className="p-4 text-center font-black text-indigo-600 bg-indigo-50/30">
-                                                            {product.category === Category.SERVICE ? '∞' : atp}
-                                                        </td>
-                                                        <td className="p-4 text-center font-bold text-rose-600">
-                                                            {isEditing ? (
-                                                                <input 
-                                                                    type="number" 
-                                                                    className="w-16 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                                                                    value={editedRows[product.id]?.minStock ?? product.minStock ?? 0}
-                                                                    onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], minStock: Number(e.target.value) } }))}
-                                                                    onClick={e => e.stopPropagation()}
-                                                                />
-                                                            ) : (
-                                                                product.category === Category.SERVICE ? '-' : (product.minStock || 0)
-                                                            )}
-                                                        </td>
-                                                        <td className="p-4 text-right font-bold text-slate-700">
-                                                            {product.category === Category.SERVICE ? formatCOP(0) : formatCOP(val)}
-                                                        </td>
+                                                        {visibleCols.includes('indicator') && (
+                                                            <td className="p-4">
+                                                                <div className={`w-2 h-2 rounded-full ${atp <= 0 ? 'bg-rose-500' : atp < 10 ? 'bg-amber-400' : 'bg-emerald-500'}`}></div>
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('sku') && (
+                                                            <td className="p-4">
+                                                                <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{product.name}</div>
+                                                                <div className="text-xs font-mono text-slate-400">{product.sku}</div>
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('barcode') && (
+                                                            <td className="p-4 text-center">
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="text" 
+                                                                        className="w-24 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-xs"
+                                                                        placeholder="Escanear..."
+                                                                        value={editedRows[product.id]?.barcode ?? product.barcode ?? ''}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], barcode: e.target.value } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-xs font-mono text-slate-500">{product.barcode || '-'}</span>
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('category') && (
+                                                            <td className="p-4">
+                                                                {isEditing ? (
+                                                                    <select
+                                                                        className="w-32 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                                                        value={editedRows[product.id]?.category ?? product.category}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], category: e.target.value as Category } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                        disabled={transactions.some(t => t.sku === product.sku)}
+                                                                    >
+                                                                        {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
+                                                                    </select>
+                                                                ) : (
+                                                                    <span className="text-xs text-slate-600">{product.category}</span>
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('family') && (
+                                                            <td className="p-4">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="text"
+                                                                        className="w-28 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                                                        value={editedRows[product.id]?.family ?? product.family ?? ''}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], family: e.target.value } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                        disabled={transactions.some(t => t.sku === product.sku)}
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-xs text-slate-600">{product.family || '-'}</span>
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('brand') && (
+                                                            <td className="p-4">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="text"
+                                                                        className="w-28 border border-indigo-300 rounded px-1 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                                                        value={editedRows[product.id]?.brand ?? product.brand ?? ''}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], brand: e.target.value } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                        disabled={transactions.some(t => t.sku === product.sku)}
+                                                                    />
+                                                                ) : (
+                                                                    <span className="text-xs text-slate-600">{product.brand || '-'}</span>
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('baseUnit') && (
+                                                            <td className="p-4 text-center">
+                                                                <span className="text-xs font-semibold text-slate-500">{product.baseUnit || '-'}</span>
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('abc') && (
+                                                            <td className="p-4 text-center">
+                                                                <span className="text-[10px] bg-slate-100 font-bold px-2 py-1 rounded text-slate-600">
+                                                                    {product.abc}{product.xyz}
+                                                                </span>
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('stock') && (
+                                                            <td className="p-4 text-center font-semibold text-slate-600">
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="number" 
+                                                                        className="w-20 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                                                        value={editedRows[product.id]?.totalStock ?? product.totalStock}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], totalStock: Number(e.target.value) } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                    />
+                                                                ) : (
+                                                                    product.category === Category.SERVICE ? '∞' : product.totalStock
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('unitCost') && (
+                                                            <td className="p-4 text-center font-semibold text-slate-600">
+                                                                {formatCOP(product.unitCost || 0)}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('price') && (
+                                                            <td className="p-4 text-center font-semibold text-indigo-600">
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="number" 
+                                                                        className="w-24 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                                                        value={editedRows[product.id]?.price ?? product.price}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], price: Number(e.target.value) } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                    />
+                                                                ) : (
+                                                                    formatCOP(product.price || 0)
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('tax') && (
+                                                            <td className="p-4 text-center font-semibold text-slate-600">
+                                                                {isEditing ? (
+                                                                    <select 
+                                                                        className="w-16 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                                                        value={editedRows[product.id]?.taxRate ?? product.taxRate ?? 19}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], taxRate: Number(e.target.value) } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                    >
+                                                                        <option value={19}>19%</option>
+                                                                        <option value={5}>5%</option>
+                                                                        <option value={0}>0%</option>
+                                                                    </select>
+                                                                ) : (
+                                                                    `${product.taxRate ?? 19}%`
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('reserved') && (
+                                                            <td className="p-4 text-center font-semibold text-amber-600">{product.reservedStock}</td>
+                                                        )}
+                                                        {visibleCols.includes('atp') && (
+                                                            <td className="p-4 text-center font-black text-indigo-600 bg-indigo-50/30">
+                                                                {product.category === Category.SERVICE ? '∞' : atp}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('minStock') && (
+                                                            <td className="p-4 text-center font-bold text-rose-600">
+                                                                {isEditing ? (
+                                                                    <input 
+                                                                        type="number" 
+                                                                        className="w-16 text-center border border-indigo-300 rounded px-1 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                                                        value={editedRows[product.id]?.minStock ?? product.minStock ?? 0}
+                                                                        onChange={(e) => setEditedRows(prev => ({ ...prev, [product.id]: { ...prev[product.id], minStock: Number(e.target.value) } }))}
+                                                                        onClick={e => e.stopPropagation()}
+                                                                    />
+                                                                ) : (
+                                                                    product.category === Category.SERVICE ? '-' : (product.minStock || 0)
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('value') && (
+                                                            <td className="p-4 text-right font-bold text-slate-700">
+                                                                {product.category === Category.SERVICE ? formatCOP(0) : formatCOP(val)}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('status') && (
+                                                            <td className="p-4 text-center">
+                                                                <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                                                                    product.status === 'Activo' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                                                }`}>
+                                                                    {product.status || 'Activo'}
+                                                                </span>
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('agingDays') && (
+                                                            <td className="p-4 text-center">
+                                                                <span className={`text-xs font-bold ${
+                                                                    (product.agingDays || 0) > 60 ? 'text-rose-500' : 'text-slate-500'
+                                                                }`}>
+                                                                    {product.agingDays || 0}
+                                                                </span>
+                                                            </td>
+                                                        )}
                                                     </tr>
                                                 );
                                             })

@@ -20,13 +20,13 @@ interface Rule {
   minVolumeThreshold?: number; // Condicional: Solo si representa > X% de la venta total
 }
 
+import { useEnterprise } from '../context/EnterpriseContext';
+
 export const MatrixComisiones: React.FC = () => {
-  const [rules, setRules] = useState<Rule[]>([
-    { id: '1', name: 'Comisión Estándar (2%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 2.0, target: 'Clientes Estándar / Regulares', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
-    { id: '2', name: 'Comisión Clientes Especiales (1%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 1.0, target: 'Clientes Especiales (1%)', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
-    { id: '3', name: 'Bono Volumen CARPOLY (>30%)', type: 'Porcentaje', baseVariable: 'Familia', value: 3.0, target: 'Todos', active: true, minVolumeThreshold: 30 },
-    { id: '4', name: 'Compensación Quiebre de Stock (Manual)', type: 'Fijo', baseVariable: 'Selección Manual' as any, value: 50000, target: 'Selección Manual', active: false },
-  ]);
+  const { commissionRules, addCommissionRule, updateCommissionRule, deleteCommissionRule } = useEnterprise();
+
+  // Alias the global state variable
+  const rules = commissionRules;
 
   // --- SIMULATION LOGIC ---
   // Proxy historical data (Last Month)
@@ -114,24 +114,23 @@ export const MatrixComisiones: React.FC = () => {
   const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6', '#06b6d4'];
 
   const toggleRule = (id: string) => {
-    setRules(rules.map(r => r.id === id ? { ...r, active: !r.active } : r));
+    const rule = rules.find(r => r.id === id);
+    if (rule) updateCommissionRule(id, { active: !rule.active });
   };
 
   const deleteRule = (id: string) => {
-    setRules(rules.filter(r => r.id !== id));
+    deleteCommissionRule(id);
   };
 
   const addNewRule = () => {
-    const newRule: Rule = {
-      id: Math.random().toString(36).substr(2, 9),
+    addCommissionRule({
       name: 'Nueva Regla',
       type: 'Porcentaje',
       baseVariable: 'Facturación',
       value: 1,
       target: 'Todos',
       active: false
-    };
-    setRules([...rules, newRule]);
+    });
   };
 
   return (
@@ -185,7 +184,7 @@ export const MatrixComisiones: React.FC = () => {
                     <input 
                       type="text" 
                       value={rule.name}
-                      onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, name: e.target.value } : r))}
+                      onChange={(e) => updateCommissionRule(rule.id, { name: e.target.value })}
                       className="bg-transparent text-lg font-bold text-white border-b border-transparent hover:border-slate-600 focus:border-indigo-500 focus:outline-none w-full max-w-xs transition-colors"
                     />
                   </div>
@@ -198,7 +197,7 @@ export const MatrixComisiones: React.FC = () => {
                       <label className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Variable Base</label>
                       <select 
                         value={rule.baseVariable}
-                        onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, baseVariable: e.target.value as any } : r))}
+                        onChange={(e) => updateCommissionRule(rule.id, { baseVariable: e.target.value as any })}
                         className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       >
                         <option value="Recaudo">Recaudo (Dinero en Banco)</option>
@@ -241,7 +240,7 @@ export const MatrixComisiones: React.FC = () => {
                             min="0"
                             placeholder="Ej. 30"
                             value={rule.minVolumeThreshold || ''}
-                            onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, minVolumeThreshold: e.target.value ? parseInt(e.target.value) : undefined } : r))}
+                            onChange={(e) => updateCommissionRule(rule.id, { minVolumeThreshold: e.target.value ? parseInt(e.target.value) : undefined })}
                             className="w-full mt-1 bg-slate-800 border border-amber-500/50 text-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-amber-400"
                           />
                           <p className="text-[9px] text-amber-500/70 mt-1 leading-tight">La regla solo aplica si la venta de esta familia supera este % sobre la facturación total mensual.</p>
@@ -254,7 +253,7 @@ export const MatrixComisiones: React.FC = () => {
                       <label className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Cálculo</label>
                       <select 
                         value={rule.type}
-                        onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, type: e.target.value as any } : r))}
+                        onChange={(e) => updateCommissionRule(rule.id, { type: e.target.value as any })}
                         className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       >
                         <option value="Porcentaje">% Porcentaje</option>
@@ -271,7 +270,7 @@ export const MatrixComisiones: React.FC = () => {
                         <input 
                           type="number" 
                           value={rule.value}
-                          onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, value: parseFloat(e.target.value) || 0 } : r))}
+                          onChange={(e) => updateCommissionRule(rule.id, { value: parseFloat(e.target.value) || 0 })}
                           className={`w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg py-2 text-sm focus:outline-none focus:border-indigo-500 ${rule.type === 'Fijo' ? 'pl-7' : 'px-3'}`}
                         />
                         {rule.type === 'Porcentaje' && <span className="absolute right-3 top-2 text-slate-400 text-sm">%</span>}
@@ -283,7 +282,7 @@ export const MatrixComisiones: React.FC = () => {
                       <label className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Asignación / Filtro</label>
                       <select 
                         value={rule.target}
-                        onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, target: e.target.value as any } : r))}
+                        onChange={(e) => updateCommissionRule(rule.id, { target: e.target.value as any })}
                         className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       >
                         <option value="Todos">Todos los Clientes/Agentes (Sin filtro)</option>
@@ -302,7 +301,7 @@ export const MatrixComisiones: React.FC = () => {
                             type="number" 
                             min="1"
                             value={rule.validityMonths || 3}
-                            onChange={(e) => setRules(rules.map(r => r.id === rule.id ? { ...r, validityMonths: parseInt(e.target.value) || 3 } : r))}
+                            onChange={(e) => updateCommissionRule(rule.id, { validityMonths: parseInt(e.target.value) || 3 })}
                             className="w-full mt-1 bg-slate-800 border border-indigo-500/50 text-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-indigo-400"
                           />
                         </div>
@@ -318,7 +317,7 @@ export const MatrixComisiones: React.FC = () => {
                         <p className="text-[10px] text-slate-400 mt-0.5">0-30d: 100%, 31-60d: 50%, {'>'}90d: 0%</p>
                       </div>
                       <button 
-                        onClick={() => setRules(rules.map(r => r.id === rule.id ? { ...r, hasAgingPenalty: !r.hasAgingPenalty } : r))}
+                        onClick={() => updateCommissionRule(rule.id, { hasAgingPenalty: !rule.hasAgingPenalty })}
                         className="transition-transform hover:scale-110 ml-4 flex-shrink-0"
                       >
                         {rule.hasAgingPenalty ? (
@@ -336,7 +335,7 @@ export const MatrixComisiones: React.FC = () => {
                         <p className="text-[10px] text-slate-400 mt-0.5">Descuentos agresivos ({'>'}5%) bajan la comisión</p>
                       </div>
                       <button 
-                        onClick={() => setRules(rules.map(r => r.id === rule.id ? { ...r, hasDiscountPenalty: !r.hasDiscountPenalty } : r))}
+                        onClick={() => updateCommissionRule(rule.id, { hasDiscountPenalty: !rule.hasDiscountPenalty })}
                         className="transition-transform hover:scale-110 ml-4 flex-shrink-0"
                       >
                         {rule.hasDiscountPenalty ? (
