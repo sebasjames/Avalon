@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction } from '../types';
+import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS, DEFAULT_SETTINGS } from '../constants';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, NotificationRule, FloatingNote, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction, CommissionRule, ResolvedNotification, ToastAlert } from '../types';
+import { NotificationService } from '../services/NotificationService';
 import clientsData from '../data/clients.json';
 import { KARDEX_TRANSACTIONS } from '../data/kardex_ledger';
 import { ACCOUNTING_TRANSACTIONS } from '../data/accounting_ledger';
@@ -85,9 +86,28 @@ interface EnterpriseContextType {
     // --- Auto Auditor ---
     auditReports: AuditReport[];
     runAuditAction: () => void;
-    clearNotifications: () => void;
+    clearNotifications: () => Promise<void>;
+    resolveNotification: (id: string, action: 'resolved' | 'delegated', delegatedToUserId?: string) => Promise<void>;
+    snoozeNotification: (id: string, untilDateIso: string) => void;
+    resolvedNotifications: ResolvedNotification[];
+    
+    // --- Toasts ---
+    toasts: ToastAlert[];
+    addToast: (toast: Omit<ToastAlert, 'id'>) => void;
+    removeToast: (id: string) => void;
+    
+    // --- Notification Rules Engine ---
+    notificationRules: NotificationRule[];
+    updateNotificationRules: (rules: NotificationRule[]) => void;
+    
+    // --- Floating Note ---
+    floatingNote: FloatingNote | null;
+    setFloatingNote: (note: FloatingNote | null) => void;
+    
     activeRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos';
     setActiveRole: (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos') => void;
+    activeUserId: string;
+    setActiveUserId: (id: string) => void;
 
     // --- RBAC ---
     systemUsers: SystemUser[];
@@ -121,7 +141,8 @@ interface EnterpriseContextType {
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
 
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [activeRole, setActiveRole] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos'>('admin');
+    const [activeRole, setActiveRoleState] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos'>('admin');
+    const [activeUserId, setActiveUserId] = useState<string>('1');
     const [inventory, setInventory] = useState<Product[]>(INVENTORY_DATA);
     
     const [systemUsers, setSystemUsers] = useState<SystemUser[]>([
@@ -130,7 +151,18 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         { id: '3', name: 'Ana García', email: 'ana@avalon.com', baseRole: 'Comercial', customPermissions: {} as any, quota: 150000000, region: 'Norte', avatar: 'AG', phone: '+52 55 1234 5678' },
         { id: '4', name: 'Carlos Méndez', email: 'carlos@avalon.com', baseRole: 'Comercial', customPermissions: {} as any, quota: 100000000, region: 'Sur', avatar: 'CM', phone: '+52 55 8765 4321' },
         { id: '5', name: 'Lucía Fernández', email: 'lucia@avalon.com', baseRole: 'manager', customPermissions: {} as any, quota: 200000000, region: 'Global', avatar: 'LF', phone: '+52 55 1122 3344' },
+        { id: '6', name: 'Punto de Venta 1', email: 'pos1@avalon.com', baseRole: 'POS', customPermissions: {} as any },
+        { id: '7', name: 'Bodega Principal', email: 'bodega@avalon.com', baseRole: 'Despachos', customPermissions: {} as any },
     ]);
+
+    const setActiveRole = (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos') => {
+        setActiveRoleState(role);
+        const match = systemUsers.find(u => u.baseRole === role);
+        if (match) {
+            setActiveUserId(match.id);
+        }
+    };
+
     const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
     const [importDossiers, setImportDossiers] = useState<ImportDossier[]>([]);
     const [dispatches, setDispatches] = useState<DispatchLog[]>([
@@ -212,12 +244,30 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const updateSupplier = (id: string, updates: Partial<Supplier>) => setSuppliers(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
     const deleteSupplier = (id: string) => setSuppliers(prev => prev.filter(s => s.id !== id));
 
-    const addImportDossier = (dossier: ImportDossier) => setImportDossiers(prev => [...prev, dossier]);
+    const addImportDossier = (importDossier: ImportDossier) => setImportDossiers(prev => [...prev, importDossier]);
 
     const addDispatch = (d: DispatchLog) => setDispatches(prev => [...prev, d]);
     const updateDispatch = (id: string, updates: Partial<DispatchLog>) => setDispatches(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
 
     const [kardexTransactions, setKardexTransactions] = useState<KardexTransaction[]>(KARDEX_TRANSACTIONS);
+
+    // --- Notification Rules Engine State ---
+    const [notificationRules, setNotificationRules] = useState<NotificationRule[]>(DEFAULT_SETTINGS.notifications.rules);
+    const updateNotificationRules = (rules: NotificationRule[]) => setNotificationRules(rules);
+
+    // --- Floating Note State ---
+    const [floatingNote, setFloatingNote] = useState<FloatingNote | null>(null);
+
+    // --- Snooze State & Timer ---
+    const [snoozedNotifs, setSnoozedNotifs] = useState<Record<string, string>>({});
+    const [timeTick, setTimeTick] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeTick(prev => prev + 1);
+        }, 10000); // Check every 10 seconds for awoken notifications
+        return () => clearInterval(interval);
+    }, []);
 
     const updateBatchStatus = (productId: string, batchId: string, status: 'Disponible' | 'Cuarentena' | 'Retenido') => {
         setInventory(prev => prev.map(p => {
@@ -351,7 +401,6 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             }))
         }];
     });
-    const [dismissedNotifIds, setDismissedNotifIds] = useState<string[]>([]);
     const [assignmentLogs, setAssignmentLogs] = useState<CrmAssignmentLog[]>([]);
 
     // --- POS Configurations ---
@@ -393,22 +442,29 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ]);
 
     // Liters to Cuñetes Rules
-    const [litersToCunetesRules, setLitersToCunetesRules] = useState<string[]>([
-        'TZ 13', 'TZ 29', 'TZ 35', 'TZ 66', 'TZ 99', 'TM 893', 'TM 047',
-        'TE 12', 'TE 34', 'TF 25', 'TF 45'
-    ]);
+    const [litersToCunetesRules, setLitersToCunetesRules] = useState<string[]>(DEFAULT_SETTINGS.litersToCunetes);
 
     // Fractional Sales Rules
-    const [fractionalRules, setFractionalRules] = useState<string[]>([
-        'PL 800', 'PM 800', 'TP 60', 'PL 720/10', 'TO 800', 'TO 840/10',
-        'TINTILLA DE COLORES DESARROLADOS',
-        'TINTILLA HIDROSOLUBLES',
-        'TINTILLA COLORES BASE BLANCA',
-        'TINTILLA SEMIPIGMENTARIA',
-        'HNS 2A02', 'TS 364', 'COLOR'
-    ]);
-    const [rawMaterialCategories, setRawMaterialCategories] = useState<string[]>(['Materia Prima Nacional', 'Materia Prima Importada']);
-    const [accountingShortcuts, setAccountingShortcuts] = useState<string[]>(['Datáfonos (111505)', 'Crédito 30 días (130505)', 'Crédito 60 días (130505)', 'Crédito 90 días (130505)', 'Caja Menor (110510)']);
+    const [fractionalRules, setFractionalRules] = useState<string[]>(DEFAULT_SETTINGS.fractionalMaterials);
+    
+    // Categories and Shortcuts
+    const [rawMaterialCategories, setRawMaterialCategories] = useState<string[]>(DEFAULT_SETTINGS.rawMaterialCategories);
+    const [accountingShortcuts, setAccountingShortcuts] = useState<string[]>(DEFAULT_SETTINGS.accountingShortcuts);
+
+    // --- Resolved Notifications & Toasts ---
+    const [resolvedNotifications, setResolvedNotifications] = useState<ResolvedNotification[]>([]);
+    const [toasts, setToasts] = useState<ToastAlert[]>([]);
+
+    const addToast = (toastData: Omit<ToastAlert, 'id'>) => {
+        const newToast: ToastAlert = { ...toastData, id: `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` };
+        setToasts(prev => [...prev, newToast]);
+        setTimeout(() => removeToast(newToast.id), 4000);
+    };
+
+    const removeToast = (id: string) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+    };
+
 
     // Tax Rates
     const [taxRates, setTaxRates] = useState<TaxRate[]>([
@@ -928,6 +984,7 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
                         notifs.push({
                             id: `notif-bd-${c.id}-${dm.name}`,
                             type: 'BIRTHDAY',
+                            severity: 'INFO',
                             title: 'Cumpleaños Próximo',
                             message: `${dm.name} (${c.name}) cumple años en ${diffDays} días.`,
                             date: today.toISOString(),
@@ -945,6 +1002,7 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
                     notifs.push({
                         id: `notif-gb-${c.id}`,
                         type: 'GARBAGE_WARNING',
+                        severity: 'WARNING',
                         title: 'Lead Inactivo',
                         message: `${c.name} lleva ${diffDays} días sin contacto.`,
                         date: today.toISOString(),
@@ -954,12 +1012,55 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
                 }
             }
         });
-        return notifs.filter(n => !dismissedNotifIds.includes(n.id));
+        
+        // --- Rules Engine Filter ---
+        const filteredNotifs = notifs.filter(notif => {
+            // Find the rule for this notification type
+            const rule = notificationRules.find(r => r.type === notif.type);
+            // If no rule exists, default to show. If rule exists, check if active and if activeRole is in targetRoles.
+            if (!rule) return true;
+            if (!rule.active) return false;
+            return rule.targetRoles.includes(activeRole);
+        });
+
+        const resolvedIds = resolvedNotifications.map(r => r.id);
+        const now = new Date().getTime();
+        
+        return filteredNotifs.filter(n => {
+            if (resolvedIds.includes(n.id)) return false;
+            
+            if (snoozedNotifs[n.id]) {
+                const snoozeTime = new Date(snoozedNotifs[n.id]).getTime();
+                if (snoozeTime > now) {
+                    return false; // Still snoozed
+                }
+            }
+            return true;
+        });
     };
 
-    const clearNotifications = () => {
+    const resolveNotification = async (id: string, action: 'resolved' | 'delegated', delegatedToUserId?: string) => {
         const active = getActiveNotifications();
-        setDismissedNotifIds(prev => [...prev, ...active.map(n => n.id)]);
+        const notif = active.find(n => n.id === id);
+        if (!notif) return;
+
+        // 1. Call the async service
+        const response = await NotificationService.resolveNotification(id, action, activeUserId, delegatedToUserId);
+        
+        // 2. Update local state
+        setResolvedNotifications(prev => [{...notif, ...response.data} as ResolvedNotification, ...prev]);
+    };
+
+    const clearNotifications = async () => {
+        const active = getActiveNotifications();
+        await Promise.all(active.map(n => resolveNotification(n.id, 'resolved')));
+    };
+
+    const snoozeNotification = (id: string, untilDateIso: string) => {
+        setSnoozedNotifs(prev => ({
+            ...prev,
+            [id]: untilDateIso
+        }));
     };
 
     return (
@@ -1018,8 +1119,20 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             auditReports,
             runAuditAction,
             clearNotifications,
+            resolveNotification,
+            snoozeNotification,
+            resolvedNotifications,
+            toasts,
+            addToast,
+            removeToast,
+            notificationRules,
+            updateNotificationRules,
+            floatingNote,
+            setFloatingNote,
             activeRole,
             setActiveRole,
+            activeUserId,
+            setActiveUserId,
             systemUsers,
             addSystemUser,
             updateSystemUser,

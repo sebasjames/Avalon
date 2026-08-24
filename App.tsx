@@ -19,15 +19,17 @@ import { SalesPerformance } from './components/SalesPerformance';
 import { AdvancedAnalytics } from './components/AdvancedAnalytics';
 import { EventLog } from './components/EventLog';
 import { InventoryHub } from './components/InventoryHub';
-import { SmartDataMapper } from './components/SmartDataMapper';
 import { SalesTeamProfiles } from './components/SalesTeamProfiles';
 import { Configuration } from './components/Configuration';
 import { GestionComercial } from './components/GestionComercial';
 import { ComisionesLogros } from './components/ComisionesLogros';
 import { MatrixComisiones } from './components/MatrixComisiones';
 import { CrmFull } from './components/CrmFull';
+import { NotificationsPage } from './components/NotificationsPage';
+import { FloatingTaskNote } from './components/FloatingTaskNote';
+import { TintometriaPanel } from './components/TintometriaPanel';
+import { MezclasTablero } from './components/MezclasTablero';
 
-import { AlbaranIngestion } from './components/AlbaranIngestion';
 import { InventarioTransito } from './components/InventarioTransito';
 import { SmartPosPanel } from './components/SmartPosPanel';
 import { AccountingModule } from './components/AccountingModule';
@@ -116,8 +118,6 @@ const App: React.FC = () => {
 
             <Route path="/pos" element={<SmartPosPanel />} />
             <Route path="/inventory-hub" element={<InventoryHub />} />
-            <Route path="/inventory-mapper" element={<SmartDataMapper />} />
-            <Route path="/albaranes" element={<AlbaranIngestion />} />
             <Route path="/inventario-transito" element={<InventarioTransito />} />
             <Route path="/sales-performance" element={<SalesPerformance />} />
             <Route path="/financial" element={<FinancialImpact />} />
@@ -125,6 +125,10 @@ const App: React.FC = () => {
             <Route path="/forecast" element={<ForecastPlanning />} />
             <Route path="/action-center" element={<ActionCenter />} />
             <Route path="/production" element={<ProductionManagement />} />
+            <Route path="/dispensador" element={<DispatchModule />} />
+            <Route path="/tintometria" element={<TintometriaPanel />} />
+            <Route path="/mezclas" element={<MezclasTablero />} />
+            <Route path="/ajustes" element={<Configuration />} />
             <Route path="/atp" element={<ATPAllocation />} />
             <Route path="/governance" element={<DataGovernance />} />
             <Route path="/intelligence" element={<IntelligenceHub />} />
@@ -138,10 +142,13 @@ const App: React.FC = () => {
             <Route path="/accounting/:tabId" element={<AccountingModule />} />
             <Route path="/returns" element={<ReturnsPanel />} />
             <Route path="/dispatch" element={<DispatchModule />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </div>
         </main>
+        
+        <FloatingTaskNote />
       </div>
     </HashRouter>
     </EnterpriseProvider>

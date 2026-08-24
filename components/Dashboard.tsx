@@ -4,9 +4,10 @@ import {
   LineChart, Line, AreaChart, Area 
 } from 'recharts';
 import { TrendingUp, AlertTriangle, Package, DollarSign, Activity, Truck } from 'lucide-react';
-import { SALES_DATA, INVENTORY_DATA } from '../constants';
+import { SALES_DATA } from '../constants';
 import { InventoryStatus, Category } from '../types';
 import { formatCOP } from '../utils/format';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -29,10 +30,12 @@ const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
 );
 
 export const Dashboard: React.FC = () => {
+  const { inventory } = useEnterprise();
+
   // Calculated metrics
-  const totalValue = INVENTORY_DATA.reduce((acc, item) => acc + (item.category === Category.SERVICE ? 0 : item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
-  const silentStockCount = INVENTORY_DATA.filter(i => i.status === InventoryStatus.SILENT).length;
-  const activeStockCount = INVENTORY_DATA.filter(i => i.status === InventoryStatus.ACTIVE).length;
+  const totalValue = inventory.reduce((acc, item) => acc + (item.category === Category.SERVICE ? 0 : item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
+  const silentStockCount = inventory.filter(i => i.status === InventoryStatus.SILENT).length;
+  const activeStockCount = inventory.filter(i => i.status === InventoryStatus.ACTIVE).length;
 
   return (
     <div className="p-6 space-y-6 bg-slate-50 min-h-screen">
@@ -110,7 +113,7 @@ export const Dashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={[
                 { name: 'Activo', value: activeStockCount, color: '#10b981' },
-                { name: 'Lento', value: INVENTORY_DATA.filter(i => i.status === InventoryStatus.SLOW).length, color: '#f59e0b' },
+                { name: 'Lento', value: inventory.filter(i => i.status === InventoryStatus.SLOW).length, color: '#f59e0b' },
                 { name: 'Silencioso', value: silentStockCount, color: '#ef4444' },
               ]}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />

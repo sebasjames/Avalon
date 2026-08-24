@@ -6,7 +6,7 @@ import {
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
     PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
-    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck
+    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck, Droplet, Beaker
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -105,8 +105,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
             { to: "/inventory-hub", icon: PackageSearch, label: "Centro de Inventarios" },
             { to: "/inventario-transito", icon: PackageOpen, label: "Inventario Tránsito" },
             { to: "/production", icon: FlaskConical, label: "Producción y Lotes" },
-            { to: "/albaranes", icon: ScanBarcode, label: "Ingesta de Albaranes" },
-            { to: "/inventory-mapper", icon: Database, label: "Asistente de Ingesta (ETL)" },
+            { to: "/mezclas", icon: Beaker, label: "Tablero de Mezclas" },
+            { to: "/tintometria", icon: Droplet, label: "Tintometría y Colores" },
         ]
     },
 
@@ -212,6 +212,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
                 return null;
             }
             if (activeRole === 'Despachos') {
+                if (group.label === 'Despachos & Logística') return group;
+                return null;
+            }
+            if (activeRole === 'Mezclas') {
+                if (group.label === 'Operación') {
+                    return {
+                        ...group,
+                        children: group.children.filter((c: any) => c.to === '/mezclas' || c.to === '/inventory-hub' || c.to === '/tintometria')
+                    };
+                }
                 if (group.label === 'Despachos & Logística') return group;
                 return null;
             }

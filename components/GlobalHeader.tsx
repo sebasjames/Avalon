@@ -63,8 +63,6 @@ export const GlobalHeader: React.FC = () => {
         if (path === '/crm/hobbies') return { title: 'Afinidades y Hobbies', icon: Heart };
         if (path === '/pos') return { title: 'Punto de Venta | B2B', icon: ShoppingCart };
         if (path.includes('/inventory-hub')) return { title: 'Centro de Inventarios', icon: Package };
-        if (path === '/inventory-mapper') return { title: 'Flujo de Datos (Ingesta MP)', icon: Database };
-        if (path === '/albaranes') return { title: 'Ingesta de Albaranes', icon: FileSpreadsheet };
         if (path === '/sales-performance') return { title: 'Desempeño de Ventas', icon: TrendingUp };
         if (path === '/financial') return { title: 'Impacto Financiero', icon: DollarSign };
         if (path === '/forecast') return { title: 'Planeación de Demanda', icon: LineChart };
@@ -82,6 +80,7 @@ export const GlobalHeader: React.FC = () => {
         if (path === '/config') return { title: 'Panel de Control Maestro', icon: Settings };
         if (path.startsWith('/accounting')) return { title: 'Contabilidad & Interfaces', icon: Calculator };
         if (path === '/returns') return { title: 'Gestión de Devoluciones', icon: RefreshCcw };
+        if (path === '/notifications') return { title: 'Centro de Notificaciones', icon: Bell };
         return { title: '', icon: null };
     };
 
@@ -267,20 +266,32 @@ export const GlobalHeader: React.FC = () => {
                             <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between font-bold text-sm text-slate-800">
                                 <span>Notificaciones ({notifications.length})</span>
                                 {notifications.length > 0 && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            clearNotifications();
-                                        }}
-                                        className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-semibold"
-                                    >
-                                        Marcar todo como leído
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                clearNotifications();
+                                            }}
+                                            className="text-xs text-slate-500 hover:text-slate-700 hover:underline transition-colors"
+                                        >
+                                            Marcar todo como leído
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsNotifOpen(false);
+                                                navigate('/notifications');
+                                            }}
+                                            className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-semibold"
+                                        >
+                                            Ver todas
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                             <div className="max-h-96 overflow-y-auto">
                                 {notifications.length > 0 ? notifications.map(n => (
-                                    <div key={n.id} onClick={() => { if (n.relatedContactId) handleSelectResult(n.relatedContactId); setIsNotifOpen(false); }} className="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors">
+                                    <div key={n.id} onClick={() => { navigate(`/notifications#notif-${n.id}`); setIsNotifOpen(false); }} className="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors">
                                         <div className="flex gap-3 relative">
                                             <div className="mt-0.5 shrink-0">
                                                 {n.type === 'BIRTHDAY' ? '🎂' : n.type === 'GARBAGE_WARNING' ? '⚠️' : n.type === 'COMERCIAL' ? '💼' : n.type === 'INVENTARIO' ? '📦' : n.type === 'PRODUCCION' ? '⚙️' : n.type === 'FINANZAS' ? '💰' : n.type === 'LOGISTICA' ? '🚚' : n.type === 'CONTABILIDAD' ? '🧾' : '🔔'}

@@ -35,6 +35,27 @@ export const INVENTORY_DATA: Product[] = [
     "minStock": 20
   },
   {
+    "id": "mock-pl-800",
+    "sku": "IL-PL 800",
+    "originalSku": "PL 800",
+    "name": "BASE PASTEL POLIURETANO PL 800",
+    "category": Category.FINISHED_GOOD as any,
+    "family": "PU Bases",
+    "brand": "ILVA",
+    "baseUnit": "GL",
+    "density": 1.1,
+    "unitCost": 50000,
+    "price": 80000,
+    "totalStock": 100,
+    "reservedStock": 0,
+    "status": InventoryStatus.ACTIVE as any,
+    "abc": ABCClass.A as any,
+    "xyz": XYZClass.X as any,
+    "agingDays": 10,
+    "batches": [],
+    "tintometricBaseType": "SOLVENTE INTERNO"
+  },
+  {
     "id": "1004",
     "sku": "IL-TAS 124 GL",
     "originalSku": "TAS 124 GL",

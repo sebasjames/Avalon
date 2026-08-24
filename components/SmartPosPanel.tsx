@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { formatCOP } from '../utils/format';
 import { Product, CrmContact, CustomerTier } from '../types';
+import tintometriaData from '../data/tintometria_raw.json';
 import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
 import { QuoteEmailModal } from './QuoteEmailModal';
 
@@ -28,13 +29,12 @@ export const SmartPosPanel: React.FC = () => {
         const n = (product.name || '').toUpperCase();
         const b = (product.brand || '').toUpperCase();
         const f = (product.family || '').toUpperCase();
-        return reverseDisplayRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+        return (reverseDisplayRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
     };
 
     const isTintometric = (product: Product) => {
-        const s = (product.sku || '').toUpperCase();
-        const n = (product.name || '').toUpperCase();
-        return tintometricRules.some(trigger => s.includes(trigger) || n.includes(trigger));
+        const type = product.tintometricBaseType;
+        return !!type && type.trim().toUpperCase() !== 'N/A' && type.trim() !== '';
     };
 
     const isCuneteEligible = (product: Product) => {
@@ -42,7 +42,7 @@ export const SmartPosPanel: React.FC = () => {
         const n = (product.name || '').toUpperCase();
         const b = (product.brand || '').toUpperCase();
         const f = (product.family || '').toUpperCase();
-        return litersToCunetesRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+        return (litersToCunetesRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
     };
 
     const isFractionalEligible = (product: Product) => {
@@ -50,7 +50,7 @@ export const SmartPosPanel: React.FC = () => {
         const n = (product.name || '').toUpperCase();
         const b = (product.brand || '').toUpperCase();
         const f = (product.family || '').toUpperCase();
-        return fractionalRules.some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+        return (fractionalRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
     };
 
     const [search, setSearch] = useState('');
@@ -96,12 +96,27 @@ export const SmartPosPanel: React.FC = () => {
 
     const [isMarginMode, setIsMarginMode] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
-    const [recentColors, setRecentColors] = useState<string[]>(() => {
+    const colorsByBaseType = useMemo(() => {
+        const map: Record<string, string[]> = {};
         try {
-            const saved = localStorage.getItem('avalon_recent_colors');
-            return saved ? JSON.parse(saved) : ['RAL 9010', 'RAL 9005', 'BLANCO NIEVE'];
-        } catch(e) { return []; }
-    });
+            Object.entries(tintometriaData).forEach(([tabName, tabData]: [string, any]) => {
+                const colorSet = new Set<string>();
+                if (Array.isArray(tabData)) {
+                    tabData.forEach(row => {
+                        if (row && typeof row === 'object' && row['Colore']) {
+                            colorSet.add(String(row['Colore']).toUpperCase());
+                        }
+                    });
+                }
+                const colors = Array.from(colorSet).sort();
+                const defaults = ['RAL 9010', 'RAL 9005', 'BLANCO NIEVE'];
+                map[tabName] = Array.from(new Set([...defaults, ...colors]));
+            });
+        } catch (e) {
+            console.error("Error parsing colors:", e);
+        }
+        return map;
+    }, []);
 
     // --- NUEVO: ESTADO REGISTRO DE GASTOS POS (CAJA MENOR EN TIEMPO REAL) ---
     const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -308,7 +323,7 @@ export const SmartPosPanel: React.FC = () => {
     // Financials
     const subtotal = useMemo(() => {
         return cart.reduce((acc, item) => {
-            const price = rawMaterialCategories.includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
+            const price = (rawMaterialCategories || []).includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
             const multiplier = item.isCunete ? 20 : 1;
             return acc + (price * item.qty * multiplier);
         }, 0);
@@ -331,7 +346,7 @@ export const SmartPosPanel: React.FC = () => {
         }
 
         cart.forEach(item => {
-            const price = rawMaterialCategories.includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
+            const price = (rawMaterialCategories || []).includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
             const multiplier = item.isCunete ? 20 : 1;
             const lineTotal = price * item.qty * multiplier;
             const discountRatio = discountPercent > 0 ? (1 - discountPercent / 100) : 1;
@@ -381,9 +396,11 @@ export const SmartPosPanel: React.FC = () => {
     const grossMargin = (subtotal - discountAmount) - totalCost;
     const marginPercent = subtotal > 0 ? (grossMargin / (subtotal - discountAmount)) * 100 : 0;
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         if (cart.length === 0) return;
         
+        setIsProcessingPayment(true);
+
         // Guardar historial de colores usados
         const newColors = [...recentColors];
         let hasNew = false;
@@ -404,10 +421,12 @@ export const SmartPosPanel: React.FC = () => {
         if (selectedPaymentMethod === 'Saldo a Favor') {
             if (!activeCustomer) {
                 alert('Debe seleccionar un cliente para pagar con Saldo a Favor.');
+                setIsProcessingPayment(false);
                 return;
             }
             if ((activeCustomer.accountBalance || 0) < total) {
                 alert(`El cliente no tiene suficiente Saldo a Favor. Saldo actual: ${formatCOP(activeCustomer.accountBalance || 0)}`);
+                setIsProcessingPayment(false);
                 return;
             }
         }
@@ -416,15 +435,18 @@ export const SmartPosPanel: React.FC = () => {
         if (isCreditSale) {
             if (!activeCustomer) {
                 alert('Las ventas a crédito requieren seleccionar un cliente del CRM.');
+                setIsProcessingPayment(false);
                 return;
             }
             if (activeCustomer.hasOverdueBills) {
                 alert('OPERACIÓN DENEGADA: El cliente tiene facturas en mora / saldos vencidos en cartera. Despacho no autorizado.');
+                setIsProcessingPayment(false);
                 return;
             }
             const remainingLimit = (activeCustomer.creditLimit || 0) - (activeCustomer.creditLimitUsed || 0);
             if (total > remainingLimit) {
                 alert(`OPERACIÓN DENEGADA: La venta supera el cupo de crédito disponible del cliente.\n\nCupo Total: ${formatCOP(activeCustomer.creditLimit || 0)}\nUtilizado: ${formatCOP(activeCustomer.creditLimitUsed || 0)}\nDisponible: ${formatCOP(remainingLimit)}\nRequerido para esta venta: ${formatCOP(total)}`);
+                setIsProcessingPayment(false);
                 return;
             }
         }
@@ -453,81 +475,104 @@ export const SmartPosPanel: React.FC = () => {
             if (product && product.category !== 'Servicio') {
                 if (product.totalStock < qtyNeeded) {
                     alert(`Operación denegada: Stock insuficiente para "${product.name}". Requerido: ${qtyNeeded.toFixed(2)}, Disponible: ${product.totalStock.toFixed(2)}`);
+                    setIsProcessingPayment(false);
                     return; // Bloquear el checkout
                 }
             }
         }
 
-        // --- CONECTAR CON INVENTARIO Y CONTABILIDAD ---
-        const invoiceId = `FV-${Math.floor(Math.random() * 9000) + 1000}`;
-        const dateStr = new Date().toISOString().split('T')[0];
-        
-        cart.forEach(item => {
-            const recipe = recipes.find(r => r.finalProductId === item.product.id);
-            const multiplier = item.isCunete ? 20 : 1;
-
-            // Descontar inventario real (solo si no es un servicio)
-            if (item.product.category !== 'Servicio') {
-                if (recipe) {
-                    recipe.ingredients.forEach(ing => {
-                        const ingProduct = inventory.find(p => p.id === ing.productId);
-                        if (ingProduct && ingProduct.category !== 'Servicio') {
-                            updateInventoryStock(ing.productId, -(ing.quantity * item.qty * multiplier));
-                        }
-                    });
-                } else {
-                    updateInventoryStock(item.product.id, -(item.qty * multiplier));
-                }
-            }
-
-            // Calcular valores
-            const price = isMarginMode ? (item.product.unitCost * 1.3) : (item.product.price || item.product.unitCost * 1.3);
-            const appliedPrice = activeCustomer ? price * (1 - discountPercent / 100) : price;
-            const subtotalLine = appliedPrice * item.qty * multiplier;
-            
-            const defaultTax = taxRates?.find(t => t.isDefault) || { percentage: 19 };
-            const rate = item.product.taxRate ?? defaultTax.percentage;
-            const iva = subtotalLine * (rate / 100);
-
-            // Registrar transacción en Sábana General
-            let prodName = item.product.name + (item.colorNote ? ` [${item.colorNote}]` : '');
-            if (item.isCunete) prodName += ' (Facturado en Cuñetes 20L)';
-
-            addTransaction({
-                id: invoiceId,
-                date: dateStr,
-                type: 'VENTA',
-                client: activeCustomer ? activeCustomer.name : 'Consumidor Final',
-                document: activeCustomer ? `${activeCustomer.documentType || 'NIT'} ${activeCustomer.documentNumber}` : '222222222',
-                productName: prodName,
-                sku: item.product.sku,
-                qty: item.qty * multiplier,
-                total: subtotalLine,
-                iva: iva,
+        try {
+            // --- CONECTAR CON SERVICIO CLOUD (IDEMPOTENCIA & LATENCIA) ---
+            const response = await PosService.processSale({
+                cart,
+                customer: activeCustomer,
                 paymentMethod: selectedPaymentMethod,
                 posLocation: selectedPointOfSale,
-                dueDate: isCreditSale ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
-                paymentStatus: isCreditSale ? 'PENDIENTE' : 'PAGADA',
-                balance: isCreditSale ? subtotalLine : 0
+                subtotal,
+                iva: taxes,
+                total,
+                isCreditSale,
+                discountPercent,
+                activeUserId: '1' // MOCK: Obtener de contexto real en el futuro
             });
-        });
 
-        if (isCreditSale && activeCustomer) {
-            updateContact(activeCustomer.id, {
-                creditLimitUsed: (activeCustomer.creditLimitUsed || 0) + total
+            // Si falla, arrojará excepción y no continuará. Si no, actualizamos estado local.
+            const invoiceId = response.transactionId;
+            const dateStr = response.timestamp.split('T')[0];
+            
+            cart.forEach(item => {
+                const recipe = recipes.find(r => r.finalProductId === item.product.id);
+                const multiplier = item.isCunete ? 20 : 1;
+
+                // Descontar inventario real (solo si no es un servicio)
+                if (item.product.category !== 'Servicio') {
+                    if (recipe) {
+                        recipe.ingredients.forEach(ing => {
+                            const ingProduct = inventory.find(p => p.id === ing.productId);
+                            if (ingProduct && ingProduct.category !== 'Servicio') {
+                                updateInventoryStock(ing.productId, -(ing.quantity * item.qty * multiplier));
+                            }
+                        });
+                    } else {
+                        updateInventoryStock(item.product.id, -(item.qty * multiplier));
+                    }
+                }
+
+                // Calcular valores
+                const price = isMarginMode ? (item.product.unitCost * 1.3) : (item.product.price || item.product.unitCost * 1.3);
+                const appliedPrice = activeCustomer ? price * (1 - discountPercent / 100) : price;
+                const subtotalLine = appliedPrice * item.qty * multiplier;
+                
+                const defaultTax = taxRates?.find(t => t.isDefault) || { percentage: 19 };
+                const rate = item.product.taxRate ?? defaultTax.percentage;
+                const iva = subtotalLine * (rate / 100);
+
+                // Registrar transacción en Sábana General
+                let prodName = item.product.name + (item.colorNote ? ` [${item.colorNote}]` : '');
+                if (item.isCunete) prodName += ' (Facturado en Cuñetes 20L)';
+
+                addTransaction({
+                    id: invoiceId,
+                    date: dateStr,
+                    type: 'VENTA',
+                    client: activeCustomer ? activeCustomer.name : 'Consumidor Final',
+                    document: activeCustomer ? `${activeCustomer.documentType || 'NIT'} ${activeCustomer.documentNumber}` : '222222222',
+                    productName: prodName,
+                    sku: item.product.sku,
+                    qty: item.qty * multiplier,
+                    total: subtotalLine,
+                    iva: iva,
+                    paymentMethod: selectedPaymentMethod,
+                    posLocation: selectedPointOfSale,
+                    dueDate: isCreditSale ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+                    paymentStatus: isCreditSale ? 'PENDIENTE' : 'PAGADA',
+                    balance: isCreditSale ? subtotalLine : 0
+                });
             });
-        }
 
-        if (selectedPaymentMethod === 'Saldo a Favor' && activeCustomer) {
-            updateContact(activeCustomer.id, { accountBalance: (activeCustomer.accountBalance || 0) - total });
-        }
+            if (isCreditSale && activeCustomer) {
+                updateContact(activeCustomer.id, {
+                    creditLimitUsed: (activeCustomer.creditLimitUsed || 0) + total
+                });
+            }
 
-        setShowSuccess(true);
-        setTimeout(() => {
-            setShowSuccess(false);
-            setCart([]);
-            setSelectedCustomerId('');
-        }, 3000);
+            if (selectedPaymentMethod === 'Saldo a Favor' && activeCustomer) {
+                updateContact(activeCustomer.id, { accountBalance: (activeCustomer.accountBalance || 0) - total });
+            }
+
+            setShowSuccess(true);
+            setTimeout(() => {
+                setShowSuccess(false);
+                setCart([]);
+                setSelectedCustomerId('');
+            }, 3000);
+
+        } catch(error) {
+            console.error("Transacción fallida", error);
+            alert("No se pudo procesar el pago. Intente nuevamente.");
+        } finally {
+            setIsProcessingPayment(false);
+        }
     };
 
     const handleCheckoutRef = useRef(handleCheckout);
@@ -652,7 +697,7 @@ export const SmartPosPanel: React.FC = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <AnimatePresence>
                             {filteredCatalog.map((product) => {
-                                const price = rawMaterialCategories.includes(product.category) ? product.unitCost * 1.3 : product.price;
+                                const price = (rawMaterialCategories || []).includes(product.category) ? product.unitCost * 1.3 : product.price;
                                 const atp = product.totalStock - product.reservedStock;
                                 const reversed = isReversedDisplay(product);
                                 
@@ -808,7 +853,7 @@ export const SmartPosPanel: React.FC = () => {
                             </motion.div>
                         ) : (
                             cart.map((item) => {
-                                const price = rawMaterialCategories.includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
+                                const price = (rawMaterialCategories || []).includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
                                 const multiplier = item.isCunete ? 20 : 1;
                                 const totalItem = price * item.qty * multiplier;
                                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
@@ -841,7 +886,7 @@ export const SmartPosPanel: React.FC = () => {
                                                     </label>
                                                     <input 
                                                         type="text" 
-                                                        list="recent-colors"
+                                                        list={item.product.tintometricBaseType ? `colors-${item.product.tintometricBaseType}` : undefined}
                                                         placeholder="Ej: RAL 9010, NCS S 1080-Y..."
                                                         value={item.colorNote || ''}
                                                         onChange={(e) => updateColor(item.id, e.target.value)}
@@ -1304,15 +1349,17 @@ export const SmartPosPanel: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            <datalist id="recent-colors">
-                {recentColors.map(c => <option key={c} value={c} />)}
-            </datalist>
+            {Object.entries(colorsByBaseType).map(([baseType, colors]) => (
+                <datalist key={baseType} id={`colors-${baseType}`}>
+                    {colors.map(c => <option key={c} value={c} />)}
+                </datalist>
+            ))}
 
             <QuoteEmailModal 
                 isOpen={isQuoteModalOpen} 
                 onClose={() => setIsQuoteModalOpen(false)} 
                 cart={cart.map(c => {
-                    const basePrice = rawMaterialCategories.includes(c.product.category) ? c.product.unitCost * 1.3 : c.product.price;
+                    const basePrice = (rawMaterialCategories || []).includes(c.product.category) ? c.product.unitCost * 1.3 : c.product.price;
                     const multiplier = c.isCunete ? 20 : 1;
                     return { 
                         id: c.id, 

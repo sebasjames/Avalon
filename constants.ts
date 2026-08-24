@@ -96,6 +96,20 @@ export const DEFAULT_SETTINGS: SystemSettings = {
     ],
     globalSkuPattern: '[BRAND][ORIGINAL]',
     skuSeparator: '-'
+  },
+  notifications: {
+    rules: [
+      { id: '1', type: 'INVENTARIO', active: true, targetRoles: ['admin', 'Despachos', 'manager'] },
+      { id: '2', type: 'COMERCIAL', active: true, targetRoles: ['admin', 'Comercial', 'manager'] },
+      { id: '3', type: 'PRODUCCION', active: true, targetRoles: ['admin', 'manager'] },
+      { id: '4', type: 'FINANZAS', active: true, targetRoles: ['admin', 'Contabilidad', 'manager'] },
+      { id: '5', type: 'LOGISTICA', active: true, targetRoles: ['admin', 'Despachos', 'manager'] },
+      { id: '6', type: 'CONTABILIDAD', active: true, targetRoles: ['admin', 'Contabilidad', 'manager'] },
+      { id: '7', type: 'SYSTEM', active: true, targetRoles: ['admin'] },
+      { id: '8', type: 'GARBAGE_WARNING', active: true, targetRoles: ['admin', 'Comercial', 'manager'] },
+      { id: '9', type: 'BIRTHDAY', active: true, targetRoles: ['admin', 'Comercial', 'manager'] },
+      { id: '10', type: 'HOBBY_MATCH', active: true, targetRoles: ['admin', 'Comercial'] }
+    ]
   }
 };
 

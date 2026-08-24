@@ -134,6 +134,7 @@ export interface Product {
       family?: string;
       brand?: string;
   };
+  tintometricBaseType?: string; // e.g. "SOLVENTE INTERNO", "ACQUA INT."
 }
 
 export interface Transfer {
@@ -478,11 +479,40 @@ export interface CrmAssignmentLog {
 export interface CrmNotification {
   id: string;
   type: 'BIRTHDAY' | 'HOBBY_MATCH' | 'GARBAGE_WARNING' | 'SYSTEM' | 'COMERCIAL' | 'INVENTARIO' | 'PRODUCCION' | 'FINANZAS' | 'LOGISTICA' | 'CONTABILIDAD';
+  severity?: 'CRITICAL' | 'WARNING' | 'INFO';
   title: string;
   message: string;
   date: string;
   read: boolean;
   relatedContactId?: string;
+}
+
+export interface ResolvedNotification extends CrmNotification {
+  resolvedAt: string;
+  resolvedByUserId: string;
+  resolutionAction: 'resolved' | 'delegated';
+  delegatedToUserId?: string;
+}
+
+export interface ToastAlert {
+  id: string;
+  title: string;
+  message: string;
+  severity: 'CRITICAL' | 'WARNING' | 'INFO' | 'SUCCESS';
+  type: CrmNotification['type'];
+}
+
+export interface FloatingNote {
+  id: string;
+  title: string;
+  message: string;
+}
+
+export interface NotificationRule {
+  id: string;
+  type: CrmNotification['type'];
+  active: boolean;
+  targetRoles: string[];
 }
 
 // --- SYSTEM CONFIGURATION TYPES ---
@@ -538,6 +568,9 @@ export interface SystemSettings {
     }[];
     globalSkuPattern: string;
     skuSeparator: string;
+  };
+  notifications: {
+    rules: NotificationRule[];
   };
 }
 
@@ -614,17 +647,49 @@ export interface AuditReport {
     issues: AuditIssue[];
 }
 
+export interface Notification {
+    id: string;
+    title: string;
+    message: string;
+    type: 'alert' | 'success' | 'info';
+    date: string;
+    read: boolean;
+}
+
+export enum MezclaStatus {
+    PENDING = 'PENDING',
+    IN_PROGRESS = 'IN_PROGRESS',
+    READY = 'READY'
+}
+
+export interface MezclaOrder {
+    id: string;
+    saleId: string;
+    clientName: string;
+    colorId: string;
+    baseSku: string;
+    baseName: string;
+    formula: Record<string, string>; // e.g., { "TINTA AMARILLA": "15oz", ... }
+    status: MezclaStatus;
+    baseType?: string; // Enlace a la tecnología (ej. SOLVENTE INTERNO)
+    requestedAt: string;
+    completedAt?: string;
+    operatorName?: string;
+}
+
 export type PermissionKey = 
-    | 'VER_INVENTARIO' | 'AJUSTES_STOCK' | 'INGESTA_ALBARANES'
+    | 'VER_INVENTARIO' | 'AJUSTES_STOCK'
     | 'ACCESO_POS' | 'VER_CRM' | 'ASIGNAR_PROSPECTOS'
     | 'MODULOS_FINANCIEROS' | 'EXPORTAR_SIIGO' | 'CIERRES_CAJA'
     | 'PANEL_MAESTRO' | 'GESTION_USUARIOS';
+
+export type UserRole = 'admin' | 'manager' | 'POS' | 'Contabilidad' | 'Comercial' | 'Mezclas' | 'Despachos';
 
 export interface SystemUser {
   id: string;
   name: string;
   email: string;
-  baseRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS';
+  baseRole: UserRole;
   customPermissions: Record<PermissionKey, boolean>;
   avatar?: string;
   quota?: number; // Monthly sales quota
