@@ -600,7 +600,14 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
         { id: 'minStock', label: 'Mínimo Stock' },
         { id: 'value', label: 'Valor Total' },
         { id: 'status', label: 'Estado' },
-        { id: 'agingDays', label: 'Aging (Días)' }
+        { id: 'agingDays', label: 'Aging (Días)' },
+        { id: 'density', label: 'Densidad' },
+        { id: 'flashPoint', label: 'Punto Inflam.' },
+        { id: 'unNumber', label: 'ONU' },
+        { id: 'appearance', label: 'Apariencia' },
+        { id: 'solidContent', label: 'Sólidos %' },
+        { id: 'hazards', label: 'Peligros' },
+        { id: 'components', label: 'Componentes' }
     ], []);
     const [visibleCols, setVisibleCols] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
 
@@ -1026,6 +1033,13 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                             {visibleCols.includes('value') && <th className="p-4 text-right">Valor Total (Costo)</th>}
                                             {visibleCols.includes('status') && <th className="p-4 text-center">Estado</th>}
                                             {visibleCols.includes('agingDays') && <th className="p-4 text-center">Aging</th>}
+                                            {visibleCols.includes('density') && <th className="p-4 text-center">Densidad</th>}
+                                            {visibleCols.includes('flashPoint') && <th className="p-4 text-center">Punto Inflam.</th>}
+                                            {visibleCols.includes('unNumber') && <th className="p-4 text-center">ONU</th>}
+                                            {visibleCols.includes('appearance') && <th className="p-4">Apariencia</th>}
+                                            {visibleCols.includes('solidContent') && <th className="p-4 text-center">Sólidos %</th>}
+                                            {visibleCols.includes('hazards') && <th className="p-4 text-center">Peligros</th>}
+                                            {visibleCols.includes('components') && <th className="p-4 text-center">Componentes</th>}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
@@ -1050,6 +1064,13 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                     {visibleCols.includes('value') && <td className="p-4 text-right"><div className="w-24 h-4 bg-slate-200 rounded ml-auto"></div></td>}
                                                     {visibleCols.includes('status') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
                                                     {visibleCols.includes('agingDays') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('density') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('flashPoint') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('unNumber') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('appearance') && <td className="p-4"><div className="w-16 h-4 bg-slate-200 rounded"></div></td>}
+                                                    {visibleCols.includes('solidContent') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('hazards') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('components') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
                                                 </tr>
                                             ))
                                         ) : (
@@ -1058,6 +1079,9 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                 const currentPrice = isEditing ? (editedRows[product.id]?.price ?? product.price) : product.price;
                                                 const atp = currentStock - product.reservedStock;
                                                 const val = currentPrice * currentStock;
+                                                const p: any = product;
+                                                const hazardsCount = p.hazards ? p.hazards.length : 0;
+                                                const compCount = p.chemicalComponents ? p.chemicalComponents.length : 0;
                                                 return (
                                                     <tr 
                                                         key={product.id} 
@@ -1249,6 +1273,69 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                                 }`}>
                                                                     {product.agingDays || 0}
                                                                 </span>
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('density') && (
+                                                            <td className="p-4 text-center text-slate-500 font-mono text-xs">
+                                                                {p.density || '-'}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('flashPoint') && (
+                                                            <td className="p-4 text-center text-slate-500 font-mono text-xs">
+                                                                {p.flashPoint || '-'}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('unNumber') && (
+                                                            <td className="p-4 text-center text-slate-500 font-mono text-xs">
+                                                                {p.unNumber ? `UN ${p.unNumber}` : '-'}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('appearance') && (
+                                                            <td className="p-4 text-slate-500 text-xs truncate max-w-[150px]" title={p.appearance}>
+                                                                {p.appearance || '-'}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('solidContent') && (
+                                                            <td className="p-4 text-center text-slate-500 font-mono text-xs font-bold">
+                                                                {p.solidContent || '-'}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('hazards') && (
+                                                            <td className="p-4 text-center">
+                                                                {hazardsCount > 0 ? (
+                                                                    <div className="relative group/tooltip inline-block">
+                                                                        <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-[10px] font-bold border border-rose-200 cursor-help">
+                                                                            {hazardsCount} Peligro{hazardsCount !== 1 && 's'}
+                                                                        </span>
+                                                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover/tooltip:block w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-xl z-50">
+                                                                            <ul className="list-disc pl-4 space-y-1 text-left">
+                                                                                {p.hazards.map((h: string, i: number) => (
+                                                                                    <li key={i}>{h}</li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : <span className="text-slate-300">-</span>}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('components') && (
+                                                            <td className="p-4 text-center">
+                                                                {compCount > 0 ? (
+                                                                    <div className="relative group/tooltip inline-block">
+                                                                        <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold border border-indigo-200 cursor-help">
+                                                                            {compCount} Componente{compCount !== 1 && 's'}
+                                                                        </span>
+                                                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover/tooltip:block w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-xl z-50">
+                                                                            <ul className="list-disc pl-4 space-y-1 text-left">
+                                                                                {p.chemicalComponents.map((c: any, i: number) => (
+                                                                                    <li key={i}>
+                                                                                        {c.name} {c.percentage && c.percentage !== 'N/A' ? `(${c.percentage})` : ''}
+                                                                                    </li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : <span className="text-slate-300">-</span>}
                                                             </td>
                                                         )}
                                                     </tr>

@@ -110,7 +110,11 @@ export const DEFAULT_SETTINGS: SystemSettings = {
       { id: '9', type: 'BIRTHDAY', active: true, targetRoles: ['admin', 'Comercial', 'manager'] },
       { id: '10', type: 'HOBBY_MATCH', active: true, targetRoles: ['admin', 'Comercial'] }
     ]
-  }
+  },
+  litersToCunetes: ['TZ', 'PINTURA'],
+  fractionalMaterials: ['KILO', 'LITRO', 'PL 800'],
+  rawMaterialCategories: ['Materia Prima Nacional', 'Materia Prima Importada'],
+  accountingShortcuts: ['Efectivo (110505)', 'Bancos (111005)']
 };
 
 export { INVENTORY_DATA } from './data/inventory';

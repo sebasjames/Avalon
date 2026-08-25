@@ -19,7 +19,7 @@ interface EnterpriseContextType {
     updateCrmSettings: (updates: Partial<CrmSettings>) => void;
     moveDealStage: (dealId: string, newStage: CrmDealStage | 'CLOSED_LOST', lostReason?: string) => void;
     moveContactPostSaleStage: (contactId: string, newStage: CrmPostSaleStage) => void;
-    addEvent: (event: SystemEvent) => void;
+    addAuditEvent: (event: Omit<SystemEvent, 'event_id' | 'timestamp'>) => void;
     addContact: (contact: CrmContact) => void;
     addDeal: (deal: CrmDeal) => void;
     updateDeal: (dealId: string, updates: Partial<CrmDeal>) => void;
@@ -680,7 +680,14 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         ));
     };
 
-    const addEvent = (event: SystemEvent) => setEvents(prev => [event, ...prev]);
+    const addAuditEvent = (event: Omit<SystemEvent, 'event_id' | 'timestamp'>) => {
+        const newEvent: SystemEvent = {
+            ...event,
+            event_id: `EVT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+            timestamp: new Date().toISOString()
+        };
+        setEvents(prev => [newEvent, ...prev]);
+    };
     const addContact = (contact: CrmContact) => setContacts(prev => [contact, ...prev]);
     const addDeal = (deal: CrmDeal) => {
         setDeals(prev => [...prev, deal]);
@@ -760,16 +767,13 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             ));
         }
 
-        // Add a system event for the bulk reassignment
-        const logEntry: SystemEvent = {
-            event_id: `EVT-REASSIGN-${Date.now()}`,
-            event_type: 'CONTACT_REASSIGN',
+        const logEntry: Omit<SystemEvent, 'event_id' | 'timestamp'> = {
+            event_type: 'MASS_REASSIGN',
             event_category: 'OPERATIONS',
             entity_type: 'CONTACT',
-            entity_id: contactIds.length === 1 ? contactIds[0] : 'BULK',
+            entity_id: 'MULTIPLE',
             actor_type: 'HUMAN',
             actor_id: 'USER',
-            timestamp: new Date().toISOString(),
             previous_state: null,
             new_state: { newOwnerId },
             context: {
@@ -779,7 +783,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             causal_chain_id: `REASSIGN-${Date.now()}`,
             confidence_level: 'MANUAL'
         };
-        addEvent(logEntry);
+        addAuditEvent(logEntry);
     };
 
     const moveContactPostSaleStage = (contactId: string, newStage: CrmPostSaleStage) => {
@@ -1066,7 +1070,7 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
     return (
         <EnterpriseContext.Provider value={{
             inventory, deals, contacts, activities, events, receipts, crmSettings,
-            moveDealStage, moveContactPostSaleStage, addEvent, addContact, addDeal, updateDeal, addActivity, deleteContacts, reassignContacts,
+            moveDealStage, moveContactPostSaleStage, addAuditEvent, addContact, addDeal, updateDeal, addActivity, deleteContacts, reassignContacts,
             processInboundReceipt,
             distributeTransitInventory,
             getContactHealthScore,

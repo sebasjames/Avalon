@@ -135,6 +135,14 @@ export interface Product {
       brand?: string;
   };
   tintometricBaseType?: string; // e.g. "SOLVENTE INTERNO", "ACQUA INT."
+  
+  // Ficha Técnica / Technical Data
+  chemicalComponents?: { name: string; percentage: string; cas: string }[];
+  hazards?: string[];
+  technicalSheetUrl?: string;
+  unNumber?: string;
+  flashPoint?: string;
+  appearance?: string;
 }
 
 export interface Transfer {
@@ -572,6 +580,10 @@ export interface SystemSettings {
   notifications: {
     rules: NotificationRule[];
   };
+  litersToCunetes: string[];
+  fractionalMaterials: string[];
+  rawMaterialCategories: string[];
+  accountingShortcuts: string[];
 }
 
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { INVENTORY_DATA } from '../constants';
 import { InventoryStatus, ABCClass, XYZClass, Category } from '../types';
-import { Search, Filter, AlertCircle, CheckCircle2, Clock, XCircle, X } from 'lucide-react';
+import { Search, Filter, AlertCircle, CheckCircle2, Clock, XCircle, X, Columns } from 'lucide-react';
 import { formatCOP } from '../utils/format';
 
 const StatusBadge = ({ status }: { status: InventoryStatus }) => {
@@ -30,11 +30,31 @@ const MatrixBadge = ({ abc, xyz }: { abc: ABCClass, xyz: XYZClass }) => {
     );
 }
 
+const ALL_COLUMNS = [
+    'SKU / Producto', 
+    'Categoría', 
+    'Estatus', 
+    'ABC/XYZ', 
+    'Stock Total', 
+    'ATP (Libre)', 
+    'Minimo Stock', 
+    'Aging (Días)', 
+    'Valor Total (Costo)',
+    'Densidad',
+    'Punto de Inflamación',
+    'Número ONU',
+    'Apariencia',
+    'Peligros',
+    'Componentes'
+];
+
 export const InventoryTable: React.FC = () => {
   const [search, setSearch] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('Todos');
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(ALL_COLUMNS);
   
   const filteredData = INVENTORY_DATA.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -52,6 +72,20 @@ export const InventoryTable: React.FC = () => {
     setStatusFilter('Todos');
     setIsFilterOpen(false);
   };
+
+  const toggleColumn = (col: string) => {
+      if (visibleColumns.includes(col)) {
+          setVisibleColumns(prev => prev.filter(c => c !== col));
+      } else {
+          // Mantener el orden original
+          setVisibleColumns(prev => {
+              const next = [...prev, col];
+              return ALL_COLUMNS.filter(c => next.includes(c));
+          });
+      }
+  };
+
+  const showCol = (col: string) => visibleColumns.includes(col);
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen">
@@ -74,7 +108,51 @@ export const InventoryTable: React.FC = () => {
             
             <div className="relative">
                 <button 
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    onClick={() => {
+                        setIsColumnMenuOpen(!isColumnMenuOpen);
+                        if (isFilterOpen) setIsFilterOpen(false);
+                    }}
+                    className={`flex items-center px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
+                        isColumnMenuOpen
+                        ? 'bg-slate-100 border-slate-300 text-slate-800' 
+                        : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                    }`}
+                >
+                    <Columns className="w-4 h-4 mr-2" />
+                    Columnas
+                </button>
+
+                {isColumnMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 p-4">
+                        <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+                            <h3 className="font-semibold text-sm text-slate-900">Ver Columnas</h3>
+                            <button onClick={() => setIsColumnMenuOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {ALL_COLUMNS.map(col => (
+                                <label key={col} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={visibleColumns.includes(col)}
+                                        onChange={() => toggleColumn(col)}
+                                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    {col}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="relative">
+                <button 
+                    onClick={() => {
+                        setIsFilterOpen(!isFilterOpen);
+                        if (isColumnMenuOpen) setIsColumnMenuOpen(false);
+                    }}
                     className={`flex items-center px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
                         isFilterOpen || activeFiltersCount > 0
                         ? 'bg-blue-50 border-blue-200 text-blue-700' 
@@ -149,58 +227,148 @@ export const InventoryTable: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden w-full overflow-x-auto">
+        <div className="inline-block min-w-full">
+          <table className="min-w-full text-left text-sm text-slate-600">
+            <thead className="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200 whitespace-nowrap">
               <tr>
-                <th className="px-6 py-4">SKU / Producto</th>
-                <th className="px-6 py-4">Categoría</th>
-                <th className="px-6 py-4">Estatus</th>
-                <th className="px-6 py-4">ABC/XYZ</th>
-                <th className="px-6 py-4 text-right">Stock Total</th>
-                <th className="px-6 py-4 text-right">ATP (Libre)</th>
-                <th className="px-6 py-4 text-right">Minimo Stock</th>
-                <th className="px-6 py-4 text-right">Aging (Días)</th>
-                <th className="px-6 py-4 text-right">Valor Total (Costo)</th>
+                {showCol('SKU / Producto') && <th className="px-6 py-4 sticky left-0 bg-slate-50 z-10 border-r border-slate-100">SKU / Producto</th>}
+                {showCol('Categoría') && <th className="px-6 py-4">Categoría</th>}
+                {showCol('Estatus') && <th className="px-6 py-4">Estatus</th>}
+                {showCol('ABC/XYZ') && <th className="px-6 py-4">ABC/XYZ</th>}
+                {showCol('Stock Total') && <th className="px-6 py-4 text-right">Stock Total</th>}
+                {showCol('ATP (Libre)') && <th className="px-6 py-4 text-right">ATP (Libre)</th>}
+                {showCol('Minimo Stock') && <th className="px-6 py-4 text-right">Minimo Stock</th>}
+                {showCol('Aging (Días)') && <th className="px-6 py-4 text-right">Aging (Días)</th>}
+                {showCol('Valor Total (Costo)') && <th className="px-6 py-4 text-right">Valor Total (Costo)</th>}
+                
+                {showCol('Densidad') && <th className="px-6 py-4 text-slate-400">Densidad</th>}
+                {showCol('Punto de Inflamación') && <th className="px-6 py-4 text-slate-400">Punto de Inflamación</th>}
+                {showCol('Número ONU') && <th className="px-6 py-4 text-slate-400">Número ONU</th>}
+                {showCol('Apariencia') && <th className="px-6 py-4 text-slate-400">Apariencia</th>}
+                {showCol('Peligros') && <th className="px-6 py-4 text-slate-400">Peligros</th>}
+                {showCol('Componentes') && <th className="px-6 py-4 text-slate-400">Componentes</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredData.map((item) => {
+              {filteredData.map((item: any) => {
                  const atp = item.totalStock - item.reservedStock;
                  const value = (item.category.includes('Materia Prima') ? item.unitCost : item.price) * item.totalStock;
+                 
+                 // Resumen de peligros y componentes
+                 const hazardsCount = item.hazards ? item.hazards.length : 0;
+                 const compCount = item.chemicalComponents ? item.chemicalComponents.length : 0;
+
                  return (
-                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                        <span className="font-medium text-slate-900">{item.name}</span>
-                        <span className="text-xs text-slate-400 font-mono">{item.sku}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-slate-600">{item.category}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={item.status} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <MatrixBadge abc={item.abc} xyz={item.xyz} />
-                  </td>
-                   <td className="px-6 py-4 text-right font-medium">
-                     {item.category === Category.SERVICE ? '∞' : item.totalStock.toLocaleString('es-CO')}
-                   </td>
-                   <td className={`px-6 py-4 text-right font-bold ${atp < 100 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                     {item.category === Category.SERVICE ? '∞' : atp.toLocaleString('es-CO')}
-                   </td>
-                   <td className={`px-6 py-4 text-right font-bold text-slate-500`}>
-                     {item.category === Category.SERVICE ? '-' : (item.minStock || 0).toLocaleString('es-CO')}
-                   </td>
-                   <td className="px-6 py-4 text-right">
-                     <span className={`${item.agingDays > 90 ? 'text-rose-600 font-bold' : ''}`}>{item.agingDays}</span>
-                   </td>
-                   <td className="px-6 py-4 text-right">
-                     {item.category === Category.SERVICE ? formatCOP(0) : formatCOP(value)}
-                   </td>
+                <tr key={item.id} className="hover:bg-slate-50 transition-colors whitespace-nowrap group">
+                  {showCol('SKU / Producto') && (
+                    <td className="px-6 py-4 sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-slate-100 transition-colors">
+                        <div className="flex flex-col">
+                            <span className="font-medium text-slate-900">{item.name}</span>
+                            <span className="text-xs text-slate-400 font-mono">{item.sku}</span>
+                        </div>
+                    </td>
+                  )}
+                  {showCol('Categoría') && (
+                    <td className="px-6 py-4">
+                        <span className="text-slate-600">{item.category}</span>
+                    </td>
+                  )}
+                  {showCol('Estatus') && (
+                    <td className="px-6 py-4">
+                        <StatusBadge status={item.status} />
+                    </td>
+                  )}
+                  {showCol('ABC/XYZ') && (
+                    <td className="px-6 py-4">
+                        <MatrixBadge abc={item.abc} xyz={item.xyz} />
+                    </td>
+                  )}
+                  {showCol('Stock Total') && (
+                    <td className="px-6 py-4 text-right font-medium">
+                        {item.category === Category.SERVICE ? '∞' : item.totalStock.toLocaleString('es-CO')}
+                    </td>
+                  )}
+                  {showCol('ATP (Libre)') && (
+                    <td className={`px-6 py-4 text-right font-bold ${atp < 100 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {item.category === Category.SERVICE ? '∞' : atp.toLocaleString('es-CO')}
+                    </td>
+                  )}
+                  {showCol('Minimo Stock') && (
+                    <td className={`px-6 py-4 text-right font-bold text-slate-500`}>
+                        {item.category === Category.SERVICE ? '-' : (item.minStock || 0).toLocaleString('es-CO')}
+                    </td>
+                  )}
+                  {showCol('Aging (Días)') && (
+                    <td className="px-6 py-4 text-right">
+                        <span className={`${item.agingDays > 90 ? 'text-rose-600 font-bold' : ''}`}>{item.agingDays}</span>
+                    </td>
+                  )}
+                  {showCol('Valor Total (Costo)') && (
+                    <td className="px-6 py-4 text-right">
+                        {item.category === Category.SERVICE ? formatCOP(0) : formatCOP(value)}
+                    </td>
+                  )}
+
+                  {/* Nuevas Columnas Técnicas */}
+                  {showCol('Densidad') && (
+                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">
+                        {item.density || '-'}
+                    </td>
+                  )}
+                  {showCol('Punto de Inflamación') && (
+                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">
+                        {item.flashPoint || '-'}
+                    </td>
+                  )}
+                  {showCol('Número ONU') && (
+                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">
+                        {item.unNumber ? `UN ${item.unNumber}` : '-'}
+                    </td>
+                  )}
+                  {showCol('Apariencia') && (
+                    <td className="px-6 py-4 text-slate-500 text-xs truncate max-w-[150px]" title={item.appearance}>
+                        {item.appearance || '-'}
+                    </td>
+                  )}
+                  {showCol('Peligros') && (
+                    <td className="px-6 py-4">
+                        {hazardsCount > 0 ? (
+                            <div className="relative group/tooltip inline-block">
+                                <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-[10px] font-bold border border-rose-200 cursor-help">
+                                    {hazardsCount} Peligro{hazardsCount !== 1 && 's'}
+                                </span>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover/tooltip:block w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-xl z-50">
+                                    <ul className="list-disc pl-4 space-y-1">
+                                        {item.hazards.map((h: string, i: number) => (
+                                            <li key={i}>{h}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        ) : <span className="text-slate-300">-</span>}
+                    </td>
+                  )}
+                  {showCol('Componentes') && (
+                    <td className="px-6 py-4">
+                        {compCount > 0 ? (
+                            <div className="relative group/tooltip inline-block">
+                                <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold border border-indigo-200 cursor-help">
+                                    {compCount} Componente{compCount !== 1 && 's'}
+                                </span>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover/tooltip:block w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-xl z-50">
+                                    <ul className="list-disc pl-4 space-y-1">
+                                        {item.chemicalComponents.map((c: any, i: number) => (
+                                            <li key={i}>
+                                                {c.name} {c.percentage && c.percentage !== 'N/A' ? `(${c.percentage})` : ''}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        ) : <span className="text-slate-300">-</span>}
+                    </td>
+                  )}
                 </tr>
               )})}
             </tbody>

@@ -53,8 +53,10 @@ export const INVENTORY_DATA: Product[] = [
     "xyz": XYZClass.X as any,
     "agingDays": 10,
     "batches": [],
-    "tintometricBaseType": "SOLVENTE INTERNO"
-  },
+    "tintometricBaseType": "SOLVENTE INTERNO",
+      density: "1.300",
+      solidContent: "50%"
+},
   {
     "id": "1004",
     "sku": "IL-TAS 124 GL",
@@ -152,8 +154,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 75
-  },
+    "minStock": 75,
+      density: "1.500",
+      solidContent: "76%"
+},
   {
     "id": "1007",
     "sku": "IL-PA 420 GL",
@@ -185,8 +189,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 14
-  },
+    "minStock": 14,
+      density: "1.500",
+      solidContent: "76%"
+},
   {
     "id": "1008",
     "sku": "IL-PA 420 QT",
@@ -218,8 +224,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 53
-  },
+    "minStock": 53,
+      density: "1.500",
+      solidContent: "76%"
+},
   {
     "id": "1009",
     "sku": "IL-TO 03",
@@ -449,8 +457,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 25
-  },
+    "minStock": 25,
+      density: "1.400",
+      solidContent: "76%"
+},
   {
     "id": "1016",
     "sku": "IL-PM 300 GL",
@@ -482,8 +492,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 54
-  },
+    "minStock": 54,
+      density: "1.400",
+      solidContent: "76%"
+},
   {
     "id": "1017",
     "sku": "IL-PM 300 QT",
@@ -515,8 +527,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 46
-  },
+    "minStock": 46,
+      density: "1.400",
+      solidContent: "76%"
+},
   {
     "id": "1018",
     "sku": "IL-PL 50",
@@ -977,8 +991,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 27
-  },
+    "minStock": 27,
+      density: "1.020",
+      solidContent: "60%"
+},
   {
     "id": "1034",
     "sku": "IL-PM 69 GL",
@@ -1010,8 +1026,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 87
-  },
+    "minStock": 87,
+      density: "1.020",
+      solidContent: "60%"
+},
   {
     "id": "1035",
     "sku": "IL-PM 69 QT",
@@ -1043,8 +1061,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 53
-  },
+    "minStock": 53,
+      density: "1.020",
+      solidContent: "60%"
+},
   {
     "id": "1036",
     "sku": "IL-PLM 5AF34",
@@ -1076,8 +1096,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 94
-  },
+    "minStock": 94,
+      density: "0.936",
+      solidContent: "70%"
+},
   {
     "id": "1037",
     "sku": "IL-PLM 5AF34 GL",
@@ -1109,8 +1131,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 32
-  },
+    "minStock": 32,
+      density: "0.936",
+      solidContent: "70%"
+},
   {
     "id": "1038",
     "sku": "IL-PLM 5AF34 QT",
@@ -1142,8 +1166,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 79
-  },
+    "minStock": 79,
+      density: "0.936",
+      solidContent: "70%"
+},
   {
     "id": "1039",
     "sku": "IL-TA 591",
@@ -1670,8 +1696,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 10
-  },
+    "minStock": 10,
+      density: "0.906",
+      solidContent: "18%"
+},
   {
     "id": "1055",
     "sku": "IL-TS 18 GL",
@@ -1703,8 +1731,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 10
-  },
+    "minStock": 10,
+      density: "0.906",
+      solidContent: "18%"
+},
   {
     "id": "1056",
     "sku": "IL-TS 18 QT",
@@ -1736,8 +1766,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 28
-  },
+    "minStock": 28,
+      density: "0.906",
+      solidContent: "18%"
+},
   {
     "id": "1057",
     "sku": "IL-TS 364",
@@ -1967,8 +1999,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 49
-  },
+    "minStock": 49,
+      density: "1.060",
+      solidContent: "33%"
+},
   {
     "id": "1064",
     "sku": "IL-PL 1W07 GL",
@@ -2000,8 +2034,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 59
-  },
+    "minStock": 59,
+      density: "1.060",
+      solidContent: "33%"
+},
   {
     "id": "1065",
     "sku": "IL-PL 1W07 QT",
@@ -2033,8 +2069,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 45
-  },
+    "minStock": 45,
+      density: "1.060",
+      solidContent: "33%"
+},
   {
     "id": "1066",
     "sku": "IL-PL 1W03",
@@ -2066,8 +2104,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 81
-  },
+    "minStock": 81,
+      density: "1.060",
+      solidContent: "33%"
+},
   {
     "id": "1067",
     "sku": "IL-PL 1W03 GL",
@@ -2099,8 +2139,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 43
-  },
+    "minStock": 43,
+      density: "1.060",
+      solidContent: "33%"
+},
   {
     "id": "1068",
     "sku": "IL-PL 1W03 QT",
@@ -2132,8 +2174,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 67
-  },
+    "minStock": 67,
+      density: "1.060",
+      solidContent: "33%"
+},
   {
     "id": "1069",
     "sku": "IL-TSG 5AA10",
@@ -2165,8 +2209,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 73
-  },
+    "minStock": 73,
+      density: "0.975",
+      solidContent: "70%"
+},
   {
     "id": "1070",
     "sku": "IL-TSG 5AA10 GL",
@@ -2198,8 +2244,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 91
-  },
+    "minStock": 91,
+      density: "0.975",
+      solidContent: "70%"
+},
   {
     "id": "1071",
     "sku": "IL-TSG 5AA10 QT",
@@ -2231,8 +2279,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 54
-  },
+    "minStock": 54,
+      density: "0.975",
+      solidContent: "70%"
+},
   {
     "id": "1072",
     "sku": "IL-LUR 6AF87",
@@ -2264,8 +2314,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 15
-  },
+    "minStock": 15,
+      density: "1.180",
+      solidContent: "57.5%"
+},
   {
     "id": "1073",
     "sku": "IL-LUR 6AF87 GL",
@@ -2297,8 +2349,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 48
-  },
+    "minStock": 48,
+      density: "1.180",
+      solidContent: "57.5%"
+},
   {
     "id": "1074",
     "sku": "IL-LUR 6AF87 QT",
@@ -2330,8 +2384,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 84
-  },
+    "minStock": 84,
+      density: "1.180",
+      solidContent: "57.5%"
+},
   {
     "id": "1075",
     "sku": "IL-THS 504",
@@ -2363,8 +2419,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 77
-  },
+    "minStock": 77,
+      density: "0.903",
+      solidContent: "70%"
+},
   {
     "id": "1076",
     "sku": "IL-THS 504 GL",
@@ -2396,8 +2454,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 42
-  },
+    "minStock": 42,
+      density: "0.903",
+      solidContent: "70%"
+},
   {
     "id": "1077",
     "sku": "IL-THS 504 QT",
@@ -2429,8 +2489,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 99
-  },
+    "minStock": 99,
+      density: "0.903",
+      solidContent: "70%"
+},
   {
     "id": "1078",
     "sku": "IL-TM 893",
@@ -2561,8 +2623,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 22
-  },
+    "minStock": 22,
+      density: "0.977",
+      solidContent: "26.2%"
+},
   {
     "id": "1088",
     "sku": "IL-TX 19 GL",
@@ -2594,8 +2658,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 20
-  },
+    "minStock": 20,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1089",
     "sku": "IL-TX 19 QT",
@@ -2627,8 +2693,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 73
-  },
+    "minStock": 73,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1090",
     "sku": "IL-TXS 522",
@@ -2660,8 +2728,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 12
-  },
+    "minStock": 12,
+      density: "1.080",
+      solidContent: "62.8%"
+},
   {
     "id": "1091",
     "sku": "IL-TXS 522 GL",
@@ -2693,8 +2763,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 88
-  },
+    "minStock": 88,
+      density: "1.080",
+      solidContent: "62.8%"
+},
   {
     "id": "1092",
     "sku": "IL-TXS 522 QT",
@@ -2726,8 +2798,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 66
-  },
+    "minStock": 66,
+      density: "1.080",
+      solidContent: "62.8%"
+},
   {
     "id": "1093",
     "sku": "IL-TX 124",
@@ -2792,8 +2866,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 56
-  },
+    "minStock": 56,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1095",
     "sku": "IL-TX 124 QT",
@@ -2825,8 +2901,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 87
-  },
+    "minStock": 87,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1096",
     "sku": "IL-TX 50",
@@ -2858,8 +2936,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 70
-  },
+    "minStock": 70,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1097",
     "sku": "IL-TX 50 GL",
@@ -2891,8 +2971,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 40
-  },
+    "minStock": 40,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1098",
     "sku": "IL-TX 50 QT",
@@ -2924,8 +3006,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 74
-  },
+    "minStock": 74,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1099",
     "sku": "IL-TXS 530",
@@ -2957,8 +3041,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 89
-  },
+    "minStock": 89,
+      density: "0.950",
+      solidContent: "26.4%"
+},
   {
     "id": "1100",
     "sku": "IL-TXS 530 GL",
@@ -2990,8 +3076,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 67
-  },
+    "minStock": 67,
+      density: "0.950",
+      solidContent: "26.4%"
+},
   {
     "id": "1101",
     "sku": "IL-TXS 530 QT",
@@ -3023,8 +3111,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 84
-  },
+    "minStock": 84,
+      density: "0.950",
+      solidContent: "26.4%"
+},
   {
     "id": "1102",
     "sku": "IL-TXS 521",
@@ -3056,8 +3146,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 14
-  },
+    "minStock": 14,
+      density: "0.947",
+      solidContent: "25.4%"
+},
   {
     "id": "1103",
     "sku": "IL-TXS 521 GL",
@@ -3089,8 +3181,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 29
-  },
+    "minStock": 29,
+      density: "0.947",
+      solidContent: "25.4%"
+},
   {
     "id": "1104",
     "sku": "IL-TXS 521 QT",
@@ -3122,8 +3216,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 29
-  },
+    "minStock": 29,
+      density: "0.947",
+      solidContent: "25.4%"
+},
   {
     "id": "1105",
     "sku": "IL-TX 72",
@@ -3155,8 +3251,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 22
-  },
+    "minStock": 22,
+      density: "0.970",
+      solidContent: "25.6%"
+},
   {
     "id": "1106",
     "sku": "IL-TX 72 GL",
@@ -3188,8 +3286,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 82
-  },
+    "minStock": 82,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1107",
     "sku": "IL-TX 72 QT",
@@ -3221,8 +3321,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 59
-  },
+    "minStock": 59,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1108",
     "sku": "IL-TX 75",
@@ -3254,8 +3356,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 37
-  },
+    "minStock": 37,
+      density: "0.985",
+      solidContent: "37.7%"
+},
   {
     "id": "1109",
     "sku": "IL-TX 75 GL",
@@ -3287,8 +3391,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 58
-  },
+    "minStock": 58,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1110",
     "sku": "IL-TX 75 QT",
@@ -3320,8 +3426,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 28
-  },
+    "minStock": 28,
+      density: "2.369",
+      solidContent: "75%"
+},
   {
     "id": "1111",
     "sku": "IL-TX 90 X 12,5",
@@ -3353,8 +3461,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 75
-  },
+    "minStock": 75,
+      solidContent: "75%"
+},
   {
     "id": "1112",
     "sku": "IL-TX 90 X 12,5 GL",
@@ -3386,8 +3495,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 34
-  },
+    "minStock": 34,
+      solidContent: "75%"
+},
   {
     "id": "1113",
     "sku": "IL-TX 90 X 12,5 QT",
@@ -3419,8 +3529,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 51
-  },
+    "minStock": 51,
+      solidContent: "75%"
+},
   {
     "id": "1114",
     "sku": "IL-TX 90",
@@ -3452,8 +3563,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 57
-  },
+    "minStock": 57,
+      density: "0.950",
+      solidContent: "29.9%"
+},
   {
     "id": "1115",
     "sku": "IL-TX 90 GL",
@@ -3485,8 +3598,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 27
-  },
+    "minStock": 27,
+      solidContent: "75%"
+},
   {
     "id": "1116",
     "sku": "IL-TX 90 QT",
@@ -3518,8 +3632,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 98
-  },
+    "minStock": 98,
+      solidContent: "75%"
+},
   {
     "id": "1117",
     "sku": "IL-TX 92",
@@ -3584,8 +3699,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 58
-  },
+    "minStock": 58,
+      solidContent: "75%"
+},
   {
     "id": "1119",
     "sku": "IL-TX 92 QT",
@@ -3617,8 +3733,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 94
-  },
+    "minStock": 94,
+      solidContent: "75%"
+},
   {
     "id": "1120",
     "sku": "IL-TXS 5900",
@@ -3650,8 +3767,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 92
-  },
+    "minStock": 92,
+      density: "0.987",
+      solidContent: "70%"
+},
   {
     "id": "1121",
     "sku": "IL-TXS 5900 GL",
@@ -3683,8 +3802,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 43
-  },
+    "minStock": 43,
+      density: "0.987",
+      solidContent: "70%"
+},
   {
     "id": "1122",
     "sku": "IL-TXS 5900 QT",
@@ -3716,8 +3837,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 80
-  },
+    "minStock": 80,
+      density: "0.987",
+      solidContent: "70%"
+},
   {
     "id": "1123",
     "sku": "IL-TO 800",
@@ -3749,8 +3872,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 62
-  },
+    "minStock": 62,
+      density: "1.000",
+      solidContent: "50%"
+},
   {
     "id": "1124",
     "sku": "IL-TO 800 GL",
@@ -3848,8 +3973,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 74
-  },
+    "minStock": 74,
+      density: "1.300",
+      solidContent: "50%"
+},
   {
     "id": "1127",
     "sku": "IL-PL 800 GL",
@@ -4145,8 +4272,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 91
-  },
+    "minStock": 91,
+      density: "0.950",
+      solidContent: "50%"
+},
   {
     "id": "1136",
     "sku": "IL-TO 840/10 GL",
@@ -4178,8 +4307,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 43
-  },
+    "minStock": 43,
+      density: "0.950",
+      solidContent: "50%"
+},
   {
     "id": "1137",
     "sku": "IL-TO 840/10 QT",
@@ -4211,8 +4342,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 58
-  },
+    "minStock": 58,
+      density: "0.950",
+      solidContent: "50%"
+},
   {
     "id": "1138",
     "sku": "IL-TOM 5396",
@@ -4343,8 +4476,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 99
-  },
+    "minStock": 99,
+      density: "1.20",
+      solidContent: "50%"
+},
   {
     "id": "1142",
     "sku": "IL-PM 800 GL",
@@ -4376,8 +4511,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 79
-  },
+    "minStock": 79,
+      density: "1.20",
+      solidContent: "50%"
+},
   {
     "id": "1143",
     "sku": "IL-PM 800 QT",
@@ -4409,8 +4546,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 37
-  },
+    "minStock": 37,
+      density: "1.20",
+      solidContent: "50%"
+},
   {
     "id": "1144",
     "sku": "IL-PLM 5927",
@@ -4442,8 +4581,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 32
-  },
+    "minStock": 32,
+      density: "1.370",
+      solidContent: "70%"
+},
   {
     "id": "1145",
     "sku": "IL-PLM 5927 GL",
@@ -4475,8 +4616,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 63
-  },
+    "minStock": 63,
+      density: "1.370",
+      solidContent: "70%"
+},
   {
     "id": "1146",
     "sku": "IL-PLM 5927 QT",
@@ -4508,8 +4651,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 39
-  },
+    "minStock": 39,
+      density: "1.370",
+      solidContent: "70%"
+},
   {
     "id": "1147",
     "sku": "IL-TOM 5617",
@@ -4541,8 +4686,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 57
-  },
+    "minStock": 57,
+      density: "1.000",
+      solidContent: "70%"
+},
   {
     "id": "1148",
     "sku": "IL-TOM 5617 GL",
@@ -4574,8 +4721,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 40
-  },
+    "minStock": 40,
+      density: "1.000",
+      solidContent: "70%"
+},
   {
     "id": "1149",
     "sku": "IL-TOM 5617 QT",
@@ -4607,8 +4756,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 10
-  },
+    "minStock": 10,
+      density: "1.000",
+      solidContent: "70%"
+},
   {
     "id": "1151",
     "sku": "IL-HMM B056 GL",
@@ -4937,8 +5088,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 71
-  },
+    "minStock": 71,
+      density: "1.382",
+      solidContent: "70%"
+},
   {
     "id": "1163",
     "sku": "IL-WBS 5AA5 GL",
@@ -4970,8 +5123,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 17
-  },
+    "minStock": 17,
+      density: "1.382",
+      solidContent: "70%"
+},
   {
     "id": "1164",
     "sku": "IL-WBS 5AA5 QT",
@@ -5003,8 +5158,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 17
-  },
+    "minStock": 17,
+      density: "1.382",
+      solidContent: "70%"
+},
   {
     "id": "1165",
     "sku": "IL-HNS 2A02",
@@ -5036,8 +5193,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 21
-  },
+    "minStock": 21,
+      density: "1.010",
+      solidContent: "10%"
+},
   {
     "id": "1166",
     "sku": "IL-HNS 2A02 GL",
@@ -5135,8 +5294,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 84
-  },
+    "minStock": 84,
+      density: "1.047",
+      solidContent: "37%"
+},
   {
     "id": "1169",
     "sku": "IL-HTM 5A994 GL",
@@ -5234,8 +5395,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 45
-  },
+    "minStock": 45,
+      density: "1.020",
+      solidContent: "70%"
+},
   {
     "id": "1172",
     "sku": "IL-TW 18 GL",
@@ -5267,8 +5430,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 53
-  },
+    "minStock": 53,
+      density: "1.020",
+      solidContent: "70%"
+},
   {
     "id": "1173",
     "sku": "IL-TW 18 QT",
@@ -5300,8 +5465,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 65
-  },
+    "minStock": 65,
+      density: "1.020",
+      solidContent: "70%"
+},
   {
     "id": "1174",
     "sku": "IL-HTM 5058",
@@ -5333,8 +5500,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 12
-  },
+    "minStock": 12,
+      density: "1.029",
+      solidContent: "28.6%"
+},
   {
     "id": "1175",
     "sku": "IL-HTM 5058 GL",
@@ -5366,8 +5535,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 81
-  },
+    "minStock": 81,
+      density: "1.029",
+      solidContent: "28.6%"
+},
   {
     "id": "1176",
     "sku": "IL-HTM 5058 QT",
@@ -5399,8 +5570,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 87
-  },
+    "minStock": 87,
+      density: "1.029",
+      solidContent: "28.6%"
+},
   {
     "id": "1177",
     "sku": "IL-TDS 500",
@@ -5432,8 +5605,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 71
-  },
+    "minStock": 71,
+      density: "0.970",
+      solidContent: "70%"
+},
   {
     "id": "1178",
     "sku": "IL-TDS 500 GL",
@@ -5465,8 +5640,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 20
-  },
+    "minStock": 20,
+      density: "0.970",
+      solidContent: "70%"
+},
   {
     "id": "1179",
     "sku": "IL-TDS 500 QT",
@@ -5498,8 +5675,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 29
-  },
+    "minStock": 29,
+      density: "0.970",
+      solidContent: "70%"
+},
   {
     "id": "1180",
     "sku": "IL-TTM 5023",
@@ -5531,8 +5710,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 63
-  },
+    "minStock": 63,
+      density: "1.000",
+      solidContent: "70%"
+},
   {
     "id": "1181",
     "sku": "IL-TTM 5023 GL",
@@ -5729,8 +5910,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 45
-  },
+    "minStock": 45,
+      density: "1.020",
+      solidContent: "5%"
+},
   {
     "id": "1190",
     "sku": "IL-HNS 5AA1 GL",
@@ -5762,8 +5945,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 52
-  },
+    "minStock": 52,
+      density: "1.020",
+      solidContent: "5%"
+},
   {
     "id": "1191",
     "sku": "IL-HNS 5AA1 QT",
@@ -5795,8 +5980,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 84
-  },
+    "minStock": 84,
+      density: "1.020",
+      solidContent: "5%"
+},
   {
     "id": "1192",
     "sku": "IL-TTM 5AA1",
@@ -5828,8 +6015,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 42
-  },
+    "minStock": 42,
+      density: "1.025",
+      solidContent: "70%"
+},
   {
     "id": "1193",
     "sku": "IL-TTM 5AA1 GL",
@@ -6191,8 +6380,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 60
-  },
+    "minStock": 60,
+      density: "1.035",
+      solidContent: "70%"
+},
   {
     "id": "1205",
     "sku": "IL-HOM 5AA77 GL",
@@ -6224,8 +6415,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 15
-  },
+    "minStock": 15,
+      density: "1.035",
+      solidContent: "70%"
+},
   {
     "id": "1206",
     "sku": "IL-HOM 5AA77 QT",
@@ -6257,8 +6450,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 80
-  },
+    "minStock": 80,
+      density: "1.035",
+      solidContent: "70%"
+},
   {
     "id": "1207",
     "sku": "IL-WBS 503",
@@ -6587,8 +6782,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 89
-  },
+    "minStock": 89,
+      density: "1.206",
+      solidContent: "70%"
+},
   {
     "id": "1217",
     "sku": "IL-PW 710 GL",
@@ -6785,8 +6982,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 55
-  },
+    "minStock": 55,
+      density: "1.050",
+      solidContent: "36%"
+},
   {
     "id": "1223",
     "sku": "IL-TW 710 GL",
@@ -7841,8 +8040,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 14
-  },
+    "minStock": 14,
+      density: "2.369"
+},
   {
     "id": "1256",
     "sku": "IL-TZ 03 GL",
@@ -8138,8 +8338,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 100
-  },
+    "minStock": 100,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1265",
     "sku": "IME2208 GL",
@@ -8171,8 +8401,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 86
-  },
+    "minStock": 86,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1266",
     "sku": "IME2208 QT",
@@ -8204,8 +8464,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 75
-  },
+    "minStock": 75,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1267",
     "sku": "IRPE6108",
@@ -8303,8 +8593,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 56
-  },
+    "minStock": 56,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1270",
     "sku": "ITD1224 GL",
@@ -8336,8 +8656,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 41
-  },
+    "minStock": 41,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1271",
     "sku": "ITD1224 QT",
@@ -8369,8 +8719,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 87
-  },
+    "minStock": 87,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1272",
     "sku": "ID122",
@@ -8600,8 +8980,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 74
-  },
+    "minStock": 74,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1279",
     "sku": "IG23EL LT",
@@ -8633,8 +9061,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 55
-  },
+    "minStock": 55,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1280",
     "sku": "IMD8400",
@@ -8666,8 +9142,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 14
-  },
+    "minStock": 14,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1281",
     "sku": "IMD8400 GL",
@@ -8699,8 +9205,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 54
-  },
+    "minStock": 54,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1282",
     "sku": "IMD8400 QT",
@@ -8732,8 +9268,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 21
-  },
+    "minStock": 21,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1283",
     "sku": "IMD8405S",
@@ -8864,8 +9430,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 92
-  },
+    "minStock": 92,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1287",
     "sku": "IGH822 GL",
@@ -8897,8 +9511,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 85
-  },
+    "minStock": 85,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1288",
     "sku": "IGH822 QT",
@@ -8930,8 +9592,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 63
-  },
+    "minStock": 63,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1289",
     "sku": "IGH822E",
@@ -9062,8 +9772,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 56
-  },
+    "minStock": 56,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1293",
     "sku": "IGH908 GL",
@@ -9095,8 +9853,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 63
-  },
+    "minStock": 63,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1294",
     "sku": "IGH908 QT",
@@ -9128,8 +9934,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 92
-  },
+    "minStock": 92,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1295",
     "sku": "IPP106B",
@@ -9227,8 +10081,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 95
-  },
+    "minStock": 95,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1298",
     "sku": "ILM1007",
@@ -9260,8 +10144,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 66
-  },
+    "minStock": 66,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1299",
     "sku": "ILM1007 GL",
@@ -9293,8 +10207,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 68
-  },
+    "minStock": 68,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1300",
     "sku": "ILM1007 QT",
@@ -9326,8 +10270,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 38
-  },
+    "minStock": 38,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1301",
     "sku": "IGH800L",
@@ -9854,8 +10828,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 18
-  },
+    "minStock": 18,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1317",
     "sku": "IYM521 GL",
@@ -9887,8 +10891,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 70
-  },
+    "minStock": 70,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1318",
     "sku": "IYM521 QT",
@@ -9920,8 +10954,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 51
-  },
+    "minStock": 51,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1319",
     "sku": "IYM522",
@@ -10547,8 +11611,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 74
-  },
+    "minStock": 74,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o vapores."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1338",
     "sku": "IG82XE GL",
@@ -10580,8 +11692,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 37
-  },
+    "minStock": 37,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o vapores."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1339",
     "sku": "IG82XE QT",
@@ -10613,8 +11773,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 54
-  },
+    "minStock": 54,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o vapores."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1340",
     "sku": "ISY5102",
@@ -10844,8 +12052,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 64
-  },
+    "minStock": 64,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1347",
     "sku": "IRGH200 LT",
@@ -10877,8 +12133,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 44
-  },
+    "minStock": 44,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1348",
     "sku": "IPT1000",
@@ -11009,8 +12313,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 41
-  },
+    "minStock": 41,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1352",
     "sku": "ITD9010 GL",
@@ -11042,8 +12376,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 73
-  },
+    "minStock": 73,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1353",
     "sku": "IH678",
@@ -11306,8 +12670,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 32
-  },
+    "minStock": 32,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1363",
     "sku": "IPT7146 GL",
@@ -11339,8 +12733,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 87
-  },
+    "minStock": 87,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1364",
     "sku": "IPT7146 QT",
@@ -11372,8 +12796,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 79
-  },
+    "minStock": 79,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1365",
     "sku": "IGH880 GL",
@@ -11405,8 +12859,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 45
-  },
+    "minStock": 45,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1366",
     "sku": "IGH880 LT",
@@ -11438,8 +12940,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 34
-  },
+    "minStock": 34,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1367",
     "sku": "IYM8601A",
@@ -11603,8 +13153,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 74
-  },
+    "minStock": 74,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1372",
     "sku": "IPT1090 GL",
@@ -11636,8 +13216,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 85
-  },
+    "minStock": 85,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1373",
     "sku": "IPT1090 QT",
@@ -11669,8 +13279,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 22
-  },
+    "minStock": 22,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1374",
     "sku": "IPT1090-30",
@@ -12296,8 +13936,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 19
-  },
+    "minStock": 19,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1396",
     "sku": "IMPH973 GL",
@@ -12329,8 +14017,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 54
-  },
+    "minStock": 54,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1397",
     "sku": "IMPH973 QT",
@@ -12362,8 +14098,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 46
-  },
+    "minStock": 46,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1398",
     "sku": "2716 QT",
@@ -12395,8 +14179,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 71
-  },
+    "minStock": 71,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1399",
     "sku": "2717 GL",
@@ -12428,8 +14223,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 45
-  },
+    "minStock": 45,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1400",
     "sku": "2717 QT",
@@ -12461,8 +14267,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 74
-  },
+    "minStock": 74,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1401",
     "sku": "2718 QT",
@@ -12494,8 +14311,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 80
-  },
+    "minStock": 80,
+      "unNumber": "1306",
+      "flashPoint": "39 ºC",
+      "appearance": "Incoloro, Teca, Nogal, Castaño, Pino, Caoba, Roble Claro, Palisandro, Pino Oregón, Pino Tea, Ébano y Sapely.",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1402",
     "sku": "2718 GL",
@@ -12527,8 +14356,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 40
-  },
+    "minStock": 40,
+      "unNumber": "1306",
+      "flashPoint": "39 ºC",
+      "appearance": "Incoloro, Teca, Nogal, Castaño, Pino, Caoba, Roble Claro, Palisandro, Pino Oregón, Pino Tea, Ébano y Sapely.",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1403",
     "sku": "2719 QT",
@@ -12560,8 +14401,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 10
-  },
+    "minStock": 10,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1404",
     "sku": "2719 GL",
@@ -12593,8 +14445,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 83
-  },
+    "minStock": 83,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1405",
     "sku": "2786 QT",
@@ -12626,8 +14489,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 55
-  },
+    "minStock": 55,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "appearance": "Incoloro, Teca, Nogal, Castaño, Pino, Caoba, Roble Claro, Palisandro, Pino Oregón, Pino Tea, Ébano y Sapely.",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1406",
     "sku": "2786 GL",
@@ -12659,8 +14534,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 79
-  },
+    "minStock": 79,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "appearance": "Incoloro, Teca, Nogal, Castaño, Pino, Caoba, Roble Claro, Palisandro, Pino Oregón, Pino Tea, Ébano y Sapely.",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1407",
     "sku": "2811 QT",
@@ -12692,8 +14579,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 49
-  },
+    "minStock": 49,
+      "unNumber": "1306",
+      "flashPoint": "36 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1408",
     "sku": "2811 GL",
@@ -12725,8 +14623,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 35
-  },
+    "minStock": 35,
+      "unNumber": "1306",
+      "flashPoint": "36 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1409",
     "sku": "2832 QT",
@@ -12758,8 +14667,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 65
-  },
+    "minStock": 65,
+      "unNumber": "1263",
+      "flashPoint": "38 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Sens. 1A: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1410",
     "sku": "2871 QT",
@@ -12791,8 +14711,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 10
-  },
+    "minStock": 10,
+      "unNumber": "1263",
+      "flashPoint": "38 ºC",
+      "appearance": "Incoloro",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Sens. 1A: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1411",
     "sku": "2871 GL",
@@ -12824,8 +14756,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 47
-  },
+    "minStock": 47,
+      "unNumber": "1263",
+      "flashPoint": "38 ºC",
+      "appearance": "Incoloro",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Sens. 1A: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1412",
     "sku": "2905 QT",
@@ -12857,8 +14801,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 61
-  },
+    "minStock": 61,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "appearance": "Incoloro, Teca.",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1413",
     "sku": "2905 2,5LT",
@@ -12890,8 +14846,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 65
-  },
+    "minStock": 65,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "appearance": "Incoloro, Teca.",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1415",
     "sku": "2905 2,5LT QT",
@@ -12923,8 +14891,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 24
-  },
+    "minStock": 24,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "appearance": "Incoloro, Teca.",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1416",
     "sku": "2918 QT",
@@ -12956,8 +14936,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 81
-  },
+    "minStock": 81,
+      "unNumber": "1306",
+      "flashPoint": "36 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1417",
     "sku": "2918 GL",
@@ -12989,8 +14980,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 86
-  },
+    "minStock": 86,
+      "unNumber": "1306",
+      "flashPoint": "36 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1418",
     "sku": "2782 QT",
@@ -13088,8 +15090,17 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 84
-  },
+    "minStock": 84,
+      "flashPoint": "No inflamable (>60 ºC)",
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración 2"
+            }
+          ]
+},
   {
     "id": "1421",
     "sku": "A4103",
@@ -13121,8 +15132,17 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 86
-  },
+    "minStock": 86,
+      "flashPoint": "No inflamable (>60 ºC)",
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración 2"
+            }
+          ]
+},
   {
     "id": "1422",
     "sku": "A4638 GL",
@@ -13154,8 +15174,18 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 86
-  },
+    "minStock": 86,
+      "flashPoint": "70 ºC (No mantiene la combustión)",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración 2"
+            }
+          ]
+},
   {
     "id": "1425",
     "sku": "2084 QT",
@@ -13187,8 +15217,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 81
-  },
+    "minStock": 81,
+      "unNumber": "1263",
+      "flashPoint": "24 ºC",
+      "appearance": "Incoloro en película seca",
+      "hazards": ["Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Resp. Sens. 1: H334 - Puede provocar síntomas de alergia o asma o dificultades respiratorias en caso de inhalación.","Skin Sens. 1: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración A"
+            }
+          ]
+},
   {
     "id": "1429",
     "sku": "2801 QT",
@@ -13220,8 +15262,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 42
-  },
+    "minStock": 42,
+      "unNumber": "3082",
+      "flashPoint": "82 ºC (No mantiene la combustión)",
+      "appearance": "Incoloro, pino, castaño, nogal, teca, caoba, roble  , p alisandro , coco, nude, turquesa, indigo,  camel, y zafiro.",
+      "hazards": ["Aquatic Chronic 2: H411 - Tóxico para los organismos acuáticos, con efectos duraderos.","Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Skin Irrit. 2: H315 - Provoca irritación cutánea."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 01/01/2001            Revisión: 15/10/2025            Versión: 30 (sustituye a 29) Página 1/17  .2801 - BARPIDECOR AL AGUA INCOLORO Ficha de datos de seguridad según REGLAMENTO (UE) 2"
+            }
+          ]
+},
   {
     "id": "1430",
     "sku": "2801 GL",
@@ -13253,8 +15307,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 13
-  },
+    "minStock": 13,
+      "unNumber": "3082",
+      "flashPoint": "82 ºC (No mantiene la combustión)",
+      "appearance": "Incoloro, pino, castaño, nogal, teca, caoba, roble  , p alisandro , coco, nude, turquesa, indigo,  camel, y zafiro.",
+      "hazards": ["Aquatic Chronic 2: H411 - Tóxico para los organismos acuáticos, con efectos duraderos.","Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Skin Irrit. 2: H315 - Provoca irritación cutánea."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 01/01/2001            Revisión: 15/10/2025            Versión: 30 (sustituye a 29) Página 1/17  .2801 - BARPIDECOR AL AGUA INCOLORO Ficha de datos de seguridad según REGLAMENTO (UE) 2"
+            }
+          ]
+},
   {
     "id": "1431",
     "sku": "2951 QT",
@@ -13286,8 +15352,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 62
-  },
+    "minStock": 62,
+      "flashPoint": "82 ºC (No mantiene la combustión)",
+      "appearance": "Incoloro",
+      "hazards": ["Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Skin Irrit. 2: H315 - Provoca irritación cutánea."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 15/10/2007            Revisión: 15/10/2025            Versión: 20 (sustituye a 19) Página 1/14  .2951 - BARNIZ INTE"
+            }
+          ]
+},
   {
     "id": "1432",
     "sku": "A2726 QT",
@@ -13319,8 +15396,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 66
-  },
+    "minStock": 66,
+      "flashPoint": "83 ºC (No mantiene la combustión)",
+      "appearance": "Incoloro en película seca.",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos.","Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Skin Irrit. 2: H315 - Provoca irritación cutánea."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 18/05/2016            Revisión: 29/10/2025            Versión: 15 (sustituye a 14) Página 1/16  A2726 - BARNIZ IGNIFUGO ECOBARP AL AGUA SATINADO Ficha de datos de seguridad según REGL"
+            }
+          ]
+},
   {
     "id": "1433",
     "sku": "A2726 GL",
@@ -13352,8 +15440,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 49
-  },
+    "minStock": 49,
+      "flashPoint": "83 ºC (No mantiene la combustión)",
+      "appearance": "Incoloro en película seca.",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos.","Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Skin Irrit. 2: H315 - Provoca irritación cutánea."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 18/05/2016            Revisión: 29/10/2025            Versión: 15 (sustituye a 14) Página 1/16  A2726 - BARNIZ IGNIFUGO ECOBARP AL AGUA SATINADO Ficha de datos de seguridad según REGL"
+            }
+          ]
+},
   {
     "id": "1434",
     "sku": "A4103 GL X5",
@@ -13385,8 +15484,17 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 53
-  },
+    "minStock": 53,
+      "flashPoint": "No inflamable (>60 ºC)",
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración 2"
+            }
+          ]
+},
   {
     "id": "1435",
     "sku": "A4103 GL X5 GL",
@@ -13418,8 +15526,17 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 56
-  },
+    "minStock": 56,
+      "flashPoint": "No inflamable (>60 ºC)",
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración 2"
+            }
+          ]
+},
   {
     "id": "1437",
     "sku": "K0298 2,5",
@@ -13451,8 +15568,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 55
-  },
+    "minStock": 55,
+      "unNumber": "1993",
+      "flashPoint": "30 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Sens. 1: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H335 - Puede irritar las vías respiratorias.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo.","Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No aplicable 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1439",
     "sku": "K0298 2,5 QT",
@@ -13484,8 +15612,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 70
-  },
+    "minStock": 70,
+      "unNumber": "1993",
+      "flashPoint": "30 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Sens. 1: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H335 - Puede irritar las vías respiratorias.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo.","Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No aplicable 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1440",
     "sku": "DA-CU",
@@ -14903,8 +17042,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 18
-  },
+    "minStock": 18,
+      density: "0.936",
+      solidContent: "70%"
+},
   {
     "id": "1483",
     "sku": "IL-TF 25 GL",
@@ -14936,8 +17077,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 73
-  },
+    "minStock": 73,
+      density: "0.936",
+      solidContent: "70%"
+},
   {
     "id": "1484",
     "sku": "IL-TF 25 QT",
@@ -14969,8 +17112,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 87
-  },
+    "minStock": 87,
+      density: "0.936",
+      solidContent: "70%"
+},
   {
     "id": "1485",
     "sku": "IL-TV 19",
@@ -15035,8 +17180,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 71
-  },
+    "minStock": 71,
+      density: "1.877",
+      solidContent: "70%"
+},
   {
     "id": "1487",
     "sku": "IL-PZ 331",
@@ -15530,8 +17677,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 53
-  },
+    "minStock": 53,
+      solidContent: "70%"
+},
   {
     "id": "1502",
     "sku": "IL-PR 30",
@@ -15662,8 +17810,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 12
-  },
+    "minStock": 12,
+      density: "0.940",
+      solidContent: "25.3%"
+},
   {
     "id": "1506",
     "sku": "IL-PR V2265",
@@ -15728,8 +17878,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 91
-  },
+    "minStock": 91,
+      density: "0.909",
+      solidContent: "10.9%"
+},
   {
     "id": "1508",
     "sku": "IL-PZS 206",
@@ -15860,8 +18012,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 82
-  },
+    "minStock": 82,
+      density: "0.940",
+      solidContent: "34.00%"
+},
   {
     "id": "1512",
     "sku": "IL-PR 073",
@@ -15992,8 +18146,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 52
-  },
+    "minStock": 52,
+      density: "0.850",
+      solidContent: "2%"
+},
   {
     "id": "1516",
     "sku": "IL-PSM 18323",
@@ -16025,8 +18181,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 96
-  },
+    "minStock": 96,
+      density: "0.947",
+      solidContent: "28%"
+},
   {
     "id": "1517",
     "sku": "IL-TSM 1V670",
@@ -16124,8 +18282,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 36
-  },
+    "minStock": 36,
+      density: "0.825",
+      solidContent: "30.0%"
+},
   {
     "id": "1520",
     "sku": "IL-PSM 4V2310",
@@ -16157,8 +18317,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 26
-  },
+    "minStock": 26,
+      density: "0.825",
+      solidContent: "30.0%"
+},
   {
     "id": "1521",
     "sku": "IL-PSM 4V2320",
@@ -16190,8 +18352,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 51
-  },
+    "minStock": 51,
+      density: "0.825",
+      solidContent: "30.0%"
+},
   {
     "id": "1522",
     "sku": "IL-PSM 2V7860",
@@ -16223,8 +18387,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 69
-  },
+    "minStock": 69,
+      density: "0.825",
+      solidContent: "30.0%"
+},
   {
     "id": "1523",
     "sku": "IL-PR 16742",
@@ -16388,8 +18554,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 23
-  },
+    "minStock": 23,
+      density: "1.010",
+      solidContent: "10%"
+},
   {
     "id": "1528",
     "sku": "IL-PZ 404",
@@ -16685,8 +18853,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 97
-  },
+    "minStock": 97,
+      density: "2.100",
+      solidContent: "70%"
+},
   {
     "id": "1537",
     "sku": "IL-PZ 522",
@@ -17114,8 +19284,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 94
-  },
+    "minStock": 94,
+      density: "2.369",
+      solidContent: "70%"
+},
   {
     "id": "1550",
     "sku": "IL-TVS 5AA1",
@@ -17147,8 +19319,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 91
-  },
+    "minStock": 91,
+      density: "0.910",
+      solidContent: "70%"
+},
   {
     "id": "1551",
     "sku": "IL-TV 80",
@@ -17246,8 +19420,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 38
-  },
+    "minStock": 38,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1554",
     "sku": "GMB-T20-001",
@@ -17906,8 +20110,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 99
-  },
+    "minStock": 99,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1574",
     "sku": "IMS9201",
@@ -17939,8 +20185,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 88
-  },
+    "minStock": 88,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1575",
     "sku": "IMS9202",
@@ -17972,8 +20260,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 10
-  },
+    "minStock": 10,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1576",
     "sku": "IMS9203",
@@ -18005,8 +20335,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 71
-  },
+    "minStock": 71,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1577",
     "sku": "IMS9204",
@@ -18038,8 +20410,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 20
-  },
+    "minStock": 20,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1578",
     "sku": "IMS9205",
@@ -18071,8 +20485,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 78
-  },
+    "minStock": 78,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1579",
     "sku": "IMS9206",
@@ -18104,8 +20560,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 62
-  },
+    "minStock": 62,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1580",
     "sku": "IMS9207",
@@ -18137,8 +20635,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 54
-  },
+    "minStock": 54,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1581",
     "sku": "IMS9208",
@@ -18170,8 +20710,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 27
-  },
+    "minStock": 27,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1582",
     "sku": "IMS9209",
@@ -18203,8 +20785,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 49
-  },
+    "minStock": 49,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1583",
     "sku": "IMS9210",
@@ -18236,8 +20860,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 42
-  },
+    "minStock": 42,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1584",
     "sku": "IMS9211",
@@ -18269,8 +20935,50 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 47
-  },
+    "minStock": 47,
+      "unNumber": "1263",
+      "flashPoint": "44, Flash cup, ASTM D 7094-12",
+      "appearance": "Líquido coloreado",
+      "hazards": ["Líquidos inflamables, categoría 3. H226 líquidos inflamables o vapor."],
+      "chemicalComponents": [
+            {
+              "raw_line": "PGMEA                       47 ~ 52%                   108-65-6",
+              "name": "PGMEA",
+              "percentage": "47 ~ 52%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "Ciclohexanona                  48 ~ 53%                   108-94-1",
+              "name": "Ciclohexanona",
+              "percentage": "48 ~ 53%",
+              "cas": "108-94-1"
+            },
+            {
+              "raw_line": "Metil isobutil cetona             0,1 ~ 0,5%                  108-10-1",
+              "name": "Metil isobutil cetona",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "108-10-1"
+            },
+            {
+              "raw_line": "Solvente Amarillo 21             0,1 ~ 0,5%                 5601-29-6",
+              "name": "Solvente Amarillo 21",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "5601-29-6"
+            },
+            {
+              "raw_line": "Solvente Negro 27               0,1 ~ 0,5%                 12237-22-8",
+              "name": "Solvente Negro 27",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "12237-22-8"
+            },
+            {
+              "raw_line": "Solvente Rojo 122                0,1 ~ 0,5%                 1227-55-3",
+              "name": "Solvente Rojo 122",
+              "percentage": "0,1 ~ 0,5%",
+              "cas": "1227-55-3"
+            }
+          ]
+},
   {
     "id": "1585",
     "sku": "IMS9212",
@@ -18335,8 +21043,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 25
-  },
+    "minStock": 25,
+      "unNumber": "1263",
+      "flashPoint": "24 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Eye Dam. 1: H318 - Provoca lesiones oculares graves.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Irrit. 2: H315 - Provoca irritación cutánea.","Skin Sens. 1: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1587",
     "sku": "1999",
@@ -18368,8 +21087,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 92
-  },
+    "minStock": 92,
+      "unNumber": "1263",
+      "flashPoint": "24 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Eye Dam. 1: H318 - Provoca lesiones oculares graves.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Irrit. 2: H315 - Provoca irritación cutánea.","Skin Sens. 1A: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H335 - Puede irritar las vías respiratorias.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1590",
     "sku": "9135",
@@ -18401,8 +21131,18 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 41
-  },
+    "minStock": 41,
+      "flashPoint": "110 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Eye Dam. 1: H318 - Provoca lesiones oculares graves.","Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No aplicable 3.2 Mezclas: - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 01/01/2001            Revisión: 05/04/2022            Versión: 24 (sustituye a 23) Página 1/11  .9135 - ADT CRIS-TEX Ficha de datos de seguridad según 1907/2"
+            }
+          ]
+},
   {
     "id": "1591",
     "sku": "WFOT.6863BH",
@@ -29192,8 +31932,38 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 96
-  },
+    "minStock": 96,
+      "unNumber": "1263",
+      "flashPoint": "29.0 ASTM D 7094-12",
+      "appearance": "El barniz es un líquido transparente incoloro o amarillo claro,",
+      "hazards": ["Líquidos inflamables, categoría 3."],
+      "chemicalComponents": [
+            {
+              "raw_line": "Resina de poliuretano             20 ~ 60%                    33645",
+              "name": "Resina de poliuretano",
+              "percentage": "20 ~ 60%",
+              "cas": "33645"
+            },
+            {
+              "raw_line": "Metilbenceno                     3 ~ 8%                   108-88-3",
+              "name": "Metilbenceno",
+              "percentage": "3 ~ 8%",
+              "cas": "108-88-3"
+            },
+            {
+              "raw_line": "Disolvente de ésteres              25 ~ 30%                  123-86-4",
+              "name": "Disolvente de ésteres",
+              "percentage": "25 ~ 30%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Cetonas solventes                  4 ~ 6%                    78-93-3",
+              "name": "Cetonas solventes",
+              "percentage": "4 ~ 6%",
+              "cas": "78-93-3"
+            }
+          ]
+},
   {
     "id": "1930",
     "sku": "IGH880",
@@ -29225,8 +31995,56 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 64
-  },
+    "minStock": 64,
+      "unNumber": "1263",
+      "flashPoint": "17",
+      "appearance": "Es un líquido transparente incoloro o amarillo claro.",
+      "hazards": ["Líquidos inflamables, categoría 2. H225 líquidos inflamables o"],
+      "chemicalComponents": [
+            {
+              "raw_line": "Isocianato (polímero)             20-80%                     75-13-8",
+              "name": "Isocianato (polímero)",
+              "percentage": "20-80%",
+              "cas": "75-13-8"
+            },
+            {
+              "raw_line": "Acetato de butilo                 0-50%                     123-86-4",
+              "name": "Acetato de butilo",
+              "percentage": "0-50%",
+              "cas": "123-86-4"
+            },
+            {
+              "raw_line": "Acetato de etilo                  0-30%                     141-78-6",
+              "name": "Acetato de etilo",
+              "percentage": "0-30%",
+              "cas": "141-78-6"
+            },
+            {
+              "raw_line": "Acetato de sec-butilo              0-15%                     105-46-4",
+              "name": "Acetato de sec-butilo",
+              "percentage": "0-15%",
+              "cas": "105-46-4"
+            },
+            {
+              "raw_line": "Xileno                          0-30%                    1330-20-7",
+              "name": "Xileno",
+              "percentage": "0-30%",
+              "cas": "1330-20-7"
+            },
+            {
+              "raw_line": "PGMEA                        0-20%                     108-65-6",
+              "name": "PGMEA",
+              "percentage": "0-20%",
+              "cas": "108-65-6"
+            },
+            {
+              "raw_line": "DMC(Carbonato de dimetilo)       0-15%                      616-38-6",
+              "name": "DMC(Carbonato de dimetilo)",
+              "percentage": "0-15%",
+              "cas": "616-38-6"
+            }
+          ]
+},
   {
     "id": "1931",
     "sku": "2716",
@@ -29258,8 +32076,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 25
-  },
+    "minStock": 25,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1932",
     "sku": "2717",
@@ -29291,8 +32120,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 46
-  },
+    "minStock": 46,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1933",
     "sku": "2718",
@@ -29324,8 +32164,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 25
-  },
+    "minStock": 25,
+      "unNumber": "1306",
+      "flashPoint": "39 ºC",
+      "appearance": "Incoloro, Teca, Nogal, Castaño, Pino, Caoba, Roble Claro, Palisandro, Pino Oregón, Pino Tea, Ébano y Sapely.",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1934",
     "sku": "2719",
@@ -29357,8 +32209,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 84
-  },
+    "minStock": 84,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1935",
     "sku": "2786",
@@ -29390,8 +32253,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 80
-  },
+    "minStock": 80,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "appearance": "Incoloro, Teca, Nogal, Castaño, Pino, Caoba, Roble Claro, Palisandro, Pino Oregón, Pino Tea, Ébano y Sapely.",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1936",
     "sku": "2811",
@@ -29423,8 +32298,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 45
-  },
+    "minStock": 45,
+      "unNumber": "1306",
+      "flashPoint": "36 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1937",
     "sku": "2832",
@@ -29456,8 +32342,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 59
-  },
+    "minStock": 59,
+      "unNumber": "1263",
+      "flashPoint": "38 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Sens. 1A: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1938",
     "sku": "2871",
@@ -29489,8 +32386,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 89
-  },
+    "minStock": 89,
+      "unNumber": "1263",
+      "flashPoint": "38 ºC",
+      "appearance": "Incoloro",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Skin Sens. 1A: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1939",
     "sku": "2905",
@@ -29522,8 +32431,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 25
-  },
+    "minStock": 25,
+      "unNumber": "1306",
+      "flashPoint": "37 ºC",
+      "appearance": "Incoloro, Teca.",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentració"
+            }
+          ]
+},
   {
     "id": "1940",
     "sku": "2918",
@@ -29555,8 +32476,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 98
-  },
+    "minStock": 98,
+      "unNumber": "1306",
+      "flashPoint": "36 ºC",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración H"
+            }
+          ]
+},
   {
     "id": "1941",
     "sku": "2782",
@@ -29621,8 +32553,18 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 28
-  },
+    "minStock": 28,
+      "flashPoint": "70 ºC (No mantiene la combustión)",
+      "hazards": ["Aquatic Chronic 3: H412 - Nocivo para los organismos acuáticos, con efectos nocivos duraderos."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración 2"
+            }
+          ]
+},
   {
     "id": "1943",
     "sku": "2801",
@@ -29654,8 +32596,20 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 97
-  },
+    "minStock": 97,
+      "unNumber": "3082",
+      "flashPoint": "82 ºC (No mantiene la combustión)",
+      "appearance": "Incoloro, pino, castaño, nogal, teca, caoba, roble  , p alisandro , coco, nude, turquesa, indigo,  camel, y zafiro.",
+      "hazards": ["Aquatic Chronic 2: H411 - Tóxico para los organismos acuáticos, con efectos duraderos.","Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Skin Irrit. 2: H315 - Provoca irritación cutánea."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 01/01/2001            Revisión: 15/10/2025            Versión: 30 (sustituye a 29) Página 1/17  .2801 - BARPIDECOR AL AGUA INCOLORO Ficha de datos de seguridad según REGLAMENTO (UE) 2"
+            }
+          ]
+},
   {
     "id": "1944",
     "sku": "2951 GL",
@@ -29687,8 +32641,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 44
-  },
+    "minStock": 44,
+      "flashPoint": "82 ºC (No mantiene la combustión)",
+      "appearance": "Incoloro",
+      "hazards": ["Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Skin Irrit. 2: H315 - Provoca irritación cutánea."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 15/10/2007            Revisión: 15/10/2025            Versión: 20 (sustituye a 19) Página 1/14  .2951 - BARNIZ INTE"
+            }
+          ]
+},
   {
     "id": "1946",
     "sku": "DA",
@@ -29852,8 +32817,19 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 47
-  },
+    "minStock": 47,
+      "unNumber": "1263",
+      "flashPoint": "26 ºC",
+      "hazards": ["Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Repr. 2: H361d - Se sospecha que daña al feto.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES ** 3.1 Sustancia: ** Cambios respecto la versión anterior - CONTINÚA EN LA SIGUIENTE PÁGINA - Emisión: 30/11/2010            Revisión: 10/09/2020            Versión: 12 (sustituye a 11) Página 1/16  A8808 - LACAPOL VITREX BASE TR Ficha de dato"
+            }
+          ]
+},
   {
     "id": "1951",
     "sku": "D-103",
@@ -30087,8 +33063,20 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "taxRate": 19,
-    "minStock": 49
-  },
+    "minStock": 49,
+      "unNumber": "1263",
+      "flashPoint": "24 ºC",
+      "appearance": "Incoloro en película seca",
+      "hazards": ["Eye Irrit. 2: H319 - Provoca irritación ocular grave.","Flam. Liq. 3: H226 - Líquidos y vapores inflamables.","Resp. Sens. 1: H334 - Puede provocar síntomas de alergia o asma o dificultades respiratorias en caso de inhalación.","Skin Sens. 1: H317 - Puede provocar una reacción alérgica en la piel.","STOT SE 3: H336 - Puede provocar somnolencia o vértigo."],
+      "chemicalComponents": [
+            {
+              "name": "Ver ficha de seguridad",
+              "percentage": "N/A",
+              "cas": "N/A",
+              "raw_line": "SECCIÓN 3: COMPOSICIÓN/INFORMACIÓN SOBRE LOS COMPONENTES 3.1 Sustancia: No relevante 3.2 Mezclas: Descripción química: Producto/s diverso/s Componentes: De acuerdo al Anexo II del Reglamento (CE) nº1907/2006 (punto 3), el producto presenta: Identificación Nombre químico/clasificación Concentración A"
+            }
+          ]
+},
   {
     "id": "PROD-NEW-1784036456776-32",
     "sku": "A4103 X20 - Galón",
@@ -30879,8 +33867,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 36
-  },
+    "minStock": 36,
+      density: "1.20",
+      solidContent: "50%"
+},
   {
     "id": "PROD-NEW-1784036456776-334",
     "sku": "PM 800 COLOR GL",
@@ -30912,8 +33902,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 98
-  },
+    "minStock": 98,
+      density: "1.20",
+      solidContent: "50%"
+},
   {
     "id": "PROD-NEW-1784036456776-336",
     "sku": "PM 800 COLOR QT",
@@ -30945,8 +33937,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 17
-  },
+    "minStock": 17,
+      density: "1.20",
+      solidContent: "50%"
+},
   {
     "id": "PROD-NEW-1784036456776-437",
     "sku": "TO 800 COLOR - Galón",
@@ -31407,8 +34401,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 96
-  },
+    "minStock": 96,
+      density: "0.910",
+      solidContent: "70%"
+},
   {
     "id": "PROD-NEW-1784036456776-501",
     "sku": "TVS 5AA1 1/2 lt - 500 CC",
@@ -31440,8 +34436,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 61
-  },
+    "minStock": 61,
+      density: "0.910",
+      solidContent: "70%"
+},
   {
     "id": "PROD-NEW-1784036456776-502",
     "sku": "TVS 5AA1 LT",
@@ -31473,8 +34471,10 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 16
-  },
+    "minStock": 16,
+      density: "0.910",
+      solidContent: "70%"
+},
   {
     "id": "PROD-NEW-1784036456776-527",
     "sku": "TX 90 GL5",
@@ -31506,8 +34506,9 @@ export const INVENTORY_DATA: Product[] = [
         "status": "Disponible"
       }
     ],
-    "minStock": 27
-  },
+    "minStock": 27,
+      solidContent: "75%"
+},
   {
     "id": "PROD-NEW-1784036456777-551",
     "sku": "TZ 03 250CC - 250 CC",
