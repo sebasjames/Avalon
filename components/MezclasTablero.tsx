@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MezclaOrder, MezclaStatus } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
-import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare } from 'lucide-react';
+import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List } from 'lucide-react';
 
 
 const extractFormula = (colorId: string, baseType?: string): Record<string, string> => {
@@ -59,7 +59,7 @@ const MOCK_ORDERS: MezclaOrder[] = [
 
 export const MezclasTablero: React.FC = () => {
     const [orders, setOrders] = useState<MezclaOrder[]>(MOCK_ORDERS);
-    const [view, setView] = useState<'KANBAN' | 'HISTORIAL'>('KANBAN');
+    const [view, setView] = useState<'KANBAN' | 'LISTA' | 'HISTORIAL'>('KANBAN');
 
     const pending = orders.filter(o => o.status === MezclaStatus.PENDING);
     const inProgress = orders.filter(o => o.status === MezclaStatus.IN_PROGRESS);
@@ -174,6 +174,13 @@ export const MezclasTablero: React.FC = () => {
                         Tablero Activo
                     </button>
                     <button 
+                        onClick={() => setView('LISTA')}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${view === 'LISTA' ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        <List className="w-5 h-5" />
+                        Lista Activas
+                    </button>
+                    <button 
                         onClick={() => setView('HISTORIAL')}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${view === 'HISTORIAL' ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
                     >
@@ -235,6 +242,69 @@ export const MezclasTablero: React.FC = () => {
                             {ready.length === 0 && <p className="text-emerald-300 text-center mt-10 font-medium">Aún no hay listas hoy</p>}
                         </div>
                     </div>
+                </div>
+            )}
+
+            {view === 'LISTA' && (
+                <div className="bg-white rounded-[32px] border border-slate-200 shadow-2xl shadow-slate-200/50 p-8 h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
+                    <table className="w-full text-left">
+                        <thead className="bg-slate-50 sticky top-0 z-10">
+                            <tr>
+                                <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider">ID / Venta</th>
+                                <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                                <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider">Color / Fórmula</th>
+                                <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider">Estado</th>
+                                <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {[...pending, ...inProgress, ...ready].map(order => (
+                                <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="p-4">
+                                        <div className="font-bold text-slate-800">{order.id}</div>
+                                        <div className="text-xs text-indigo-600 font-bold bg-indigo-50 inline-block px-2 py-0.5 rounded mt-1">{order.saleId}</div>
+                                    </td>
+                                    <td className="p-4 font-medium text-slate-600">{order.clientName}</td>
+                                    <td className="p-4">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-bold text-slate-800">{order.colorId}</span>
+                                            <span className="text-xs text-slate-500">{order.baseName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        {order.status === MezclaStatus.PENDING && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-bold border border-amber-200"><Clock className="w-3.5 h-3.5"/> Pendiente</span>}
+                                        {order.status === MezclaStatus.IN_PROGRESS && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-200"><Beaker className="w-3.5 h-3.5 animate-pulse"/> En Proceso</span>}
+                                        {order.status === MezclaStatus.READY && <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200"><PackageCheck className="w-3.5 h-3.5"/> Lista</span>}
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        {order.status === MezclaStatus.PENDING && (
+                                            <button 
+                                                onClick={() => updateStatus(order.id, MezclaStatus.IN_PROGRESS)}
+                                                className="inline-flex items-center gap-2 bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-indigo-700 shadow-sm transition-all text-sm"
+                                            >
+                                                <Play className="w-3.5 h-3.5 fill-current" /> Iniciar
+                                            </button>
+                                        )}
+                                        {order.status === MezclaStatus.IN_PROGRESS && (
+                                            <button 
+                                                onClick={() => updateStatus(order.id, MezclaStatus.READY)}
+                                                className="inline-flex items-center gap-2 bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl hover:bg-emerald-600 shadow-sm transition-all text-sm"
+                                            >
+                                                <CheckCircle className="w-3.5 h-3.5" /> Terminar
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            {[...pending, ...inProgress, ...ready].length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="p-8 text-center text-slate-400 font-medium">
+                                        No hay órdenes activas en este momento
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             )}
 
