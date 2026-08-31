@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useMemo } from 'react';
 import { MOCK_TRANSFERS } from '../constants';
 import { Batch, Product, KardexTransaction } from '../types';
@@ -64,6 +65,10 @@ export const InventoryControlDeep: React.FC = () => {
 
     // Modal State
     const [historyModalBatch, setHistoryModalBatch] = useState<FlattenedBatch | null>(null);
+
+  // Escape key hooks
+  useEscapeKey(() => setShowMovementModal(false), showMovementModal);
+
 
     // 1. Flatten Data Structure for Table
     const rawBatches: FlattenedBatch[] = useMemo(() => {

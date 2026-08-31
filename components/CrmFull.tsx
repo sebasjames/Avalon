@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -94,6 +95,11 @@ export const CrmFull: React.FC = () => {
   const [lostModalDealId, setLostModalDealId] = useState<string | null>(null);
   const [lostReason, setLostReason] = useState('');
   const [purchaseExpectation, setPurchaseExpectation] = useState('');
+
+  // Escape key hooks
+  useEscapeKey(() => setShowNewContact(false), showNewContact);
+  useEscapeKey(() => setShowGlobalSearch(false), showGlobalSearch);
+
 
   // Derived filtered data
   const filteredDeals = deals.filter(d => filterOwner === 'all' || d.ownerId === filterOwner);

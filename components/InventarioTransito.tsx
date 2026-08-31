@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useEffect } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { PackageSearch, CheckCircle2, MapPin, Save, Lock, XCircle, AlertTriangle, Split, Zap } from 'lucide-react';
@@ -52,6 +53,11 @@ export const InventarioTransito: React.FC = () => {
     const [approvingReceiptId, setApprovingReceiptId] = useState<string | null>(null);
     const [approvalId, setApprovalId] = useState('');
     const [error, setError] = useState('');
+
+  // Escape key hooks
+  useEscapeKey(() => setShowForm(false), showForm);
+  useEscapeKey(() => setShowConfirm(null), !!showConfirm);
+
 
     const handleAssign = (receiptId: string, itemId: string, location: string) => {
         setSplitItems(prev => {

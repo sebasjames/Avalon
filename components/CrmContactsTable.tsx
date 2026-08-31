@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, ArrowRight, X, Trash2, Users, ArrowUp, ArrowDown, AlertTriangle, SlidersHorizontal, Plus, Pencil, Save, FileSpreadsheet } from 'lucide-react';
 import { CrmContact, CrmLeadSource, CustomerTier } from '../types';
@@ -137,6 +138,11 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [reassignTargetUser, setReassignTargetUser] = useState('');
   const [reassignTransferDeals, setReassignTransferDeals] = useState(true);
+
+  // Escape key hooks
+  useEscapeKey(() => setShowDeleteConfirm(null), !!showDeleteConfirm);
+  useEscapeKey(() => setShowContactModal(false), showContactModal);
+
 
   const filteredContacts = contacts.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.company.toLowerCase().includes(searchQuery.toLowerCase());

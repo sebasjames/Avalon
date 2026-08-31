@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { Pencil, Save, X, Lock, AlertCircle } from 'lucide-react';
 import tintometriaDataRaw from '../data/tintometria_raw.json';
@@ -15,6 +16,10 @@ export const TintometriaPanel: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState('');
+
+  // Escape key hooks
+  useEscapeKey(() => setShowImportModal(false), showImportModal);
+
 
   const currentData = data[activeTab] || [];
   const columns = currentData.length > 0 ? Object.keys(currentData[0]) : [];

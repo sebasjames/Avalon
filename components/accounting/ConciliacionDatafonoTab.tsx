@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -32,6 +33,11 @@ export const ConciliacionDatafonoTab: React.FC<ConciliacionDatafonoTabProps> = (
     const [reteIvaInput, setReteIvaInput] = useState('0');
     const [reteIcaInput, setReteIcaInput] = useState('0');
     const [isProcessingAI, setIsProcessingAI] = useState(false);
+
+  // Escape key hooks
+  useEscapeKey(() => setShowUploadModal(false), showUploadModal);
+  useEscapeKey(() => setSelectedMatch(null), !!selectedMatch);
+
 
     // AI suggestion logic
     const suggestedMatches = useMemo(() => {

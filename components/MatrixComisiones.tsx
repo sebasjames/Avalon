@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useMemo } from 'react';
 import { 
   Network, Plus, Save, Play, Calculator, ToggleLeft, ToggleRight, 
@@ -134,6 +135,9 @@ export const MatrixComisiones: React.FC = () => {
     hasAgingPenalty: false,
     hasDiscountPenalty: false
   });
+
+  // Escape key hooks
+  useEscapeKey(() => setShowEditModal(false), showEditModal);
 
   const handleCreateRule = () => {
     addCommissionRule({

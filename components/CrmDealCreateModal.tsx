@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { X, Target, AlertTriangle } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -22,6 +23,10 @@ export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, 
   const [isNonCommissionable, setIsNonCommissionable] = useState(false);
   const [isSplit, setIsSplit] = useState(false);
   const [splits, setSplits] = useState<{ userId: string, percentage: number }[]>([{ userId: '1', percentage: 100 }]); // Default current user 100%
+
+  // Escape key hooks
+  useEscapeKey(onClose, isOpen);
+
 
   if (!isOpen) return null;
 

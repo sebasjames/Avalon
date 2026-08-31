@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { useAuthStore } from '../stores/authStore';
@@ -135,6 +136,19 @@ export const SmartPosPanel: React.FC = () => {
     const [showCreateClientModal, setShowCreateClientModal] = useState(false);
     const [newClientPayload, setNewClientPayload] = useState<any>({});
     const [clientValidationError, setClientValidationError] = useState<string | null>(null);
+
+  // Escape key hooks
+  useEscapeKey(() => setIsQuoteModalOpen(false), isQuoteModalOpen);
+  useEscapeKey(() => setShowShortcutsModal(false), showShortcutsModal);
+  useEscapeKey(() => setShowCreateClientModal(false), showCreateClientModal);
+  useEscapeKey(() => setShowChemicalPanel(false), showChemicalPanel);
+  useEscapeKey(() => setShowSuccess(false), showSuccess);
+  useEscapeKey(() => setShowExpenseModal(false), showExpenseModal);
+  useEscapeKey(() => setShowDiscountModal(false), showDiscountModal);
+  useEscapeKey(() => setShowClientModal(false), showClientModal);
+  useEscapeKey(() => setShowRecentSales(false), showRecentSales);
+  useEscapeKey(() => setShowGhostSuggestions(false), showGhostSuggestions);
+
 
     const handleCreateClient = () => {
         const { company, name, email, phone, whatsapp, city, dataConsent, documentNumber } = newClientPayload;

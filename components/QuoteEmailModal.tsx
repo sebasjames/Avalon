@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +30,10 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
     const [showIva, setShowIva] = useState(true);
     const [showReteFuente, setShowReteFuente] = useState(retenciones.reteFuente > 0);
     const [showReteIca, setShowReteIca] = useState(retenciones.reteIca > 0);
+
+  // Escape key hooks
+  useEscapeKey(onClose, isOpen);
+
 
     if (!isOpen) return null;
 

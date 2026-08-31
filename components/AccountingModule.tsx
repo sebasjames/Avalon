@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -212,6 +213,12 @@ export const AccountingModule: React.FC = () => {
 
     // --- AUTO AUDITOR SELECTIONS ---
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+
+  // Escape key hooks
+  useEscapeKey(() => setShowFilterModal(false), showFilterModal);
+  useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
+  useEscapeKey(() => setShowExpenseModal(false), showExpenseModal);
+
     const activeReport = useMemo(() => {
         if (selectedReportId) {
             return auditReports.find(r => r.id === selectedReportId) || auditReports[0];
@@ -673,7 +680,6 @@ export const AccountingModule: React.FC = () => {
                                 setPaymentRef={setPaymentRef}
                                 setPaymentDate={setPaymentDate}
                                 setPaymentSelectedInvoice={setPaymentSelectedInvoice}
-                                    setPaymentClient={() => {}}
                                 />
                         )}
 

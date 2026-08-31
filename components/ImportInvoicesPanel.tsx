@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, CheckCircle, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, Trash2, ArrowLeft, Anchor, Receipt, Calculator, Box, Sparkles, FileText, Loader2, FileCheck, CheckSquare, XCircle, Search, AlertCircle, FileSearch } from 'lucide-react';
@@ -40,6 +41,10 @@ export const ImportInvoicesPanel: React.FC = () => {
     // Step 3 State
     const [processing, setProcessing] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
+
+  // Escape key hooks
+  useEscapeKey(() => setShowImportModal(false), showImportModal);
+
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>) => {
         let files: File[] = [];

@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -8,6 +9,10 @@ import { User, Target, BarChart2, Calendar, Phone, Mail, X, Activity, TrendingDo
 export const CrmTeam: React.FC = () => {
   const { systemUsers, deals, activities, contacts } = useEnterprise();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  // Escape key hooks
+  useEscapeKey(() => setSelectedUserId(null), !!selectedUserId);
+
 
   const selectedUser = systemUsers.find(u => u.id === selectedUserId);
   const salesReps = systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager' || u.baseRole === 'admin');

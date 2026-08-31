@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -686,6 +687,12 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
         { id: 'components', label: 'Componentes' }
     ], []);
     const [visibleCols, setVisibleCols] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
+
+  // Escape key hooks
+  useEscapeKey(onClose, isOpen);
+  useEscapeKey(() => setShowProductForm(false), showProductForm);
+  useEscapeKey(() => setShowExcelModal(false), showExcelModal);
+
 
     const availableBrands = useMemo(() => {
         const brandSet = new Set<string>();

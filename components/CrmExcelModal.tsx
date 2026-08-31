@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -123,6 +124,10 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
     const [resizingCol, setResizingCol] = useState<string | null>(null);
     const [startX, setStartX] = useState(0);
     const [startWidth, setStartWidth] = useState(0);
+
+  // Escape key hooks
+  useEscapeKey(onClose, isOpen);
+
 
     const handleMouseDown = (e: React.MouseEvent, colId: string) => {
         e.preventDefault();

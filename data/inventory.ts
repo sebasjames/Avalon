@@ -55,7 +55,6 @@ export const INVENTORY_DATA: Product[] = [
     "agingDays": 10,
     "batches": [],
     "tintometricBaseType": "SOLVENTE INTERNO",
-      density: "1.300",
       solidContent: "50%"
 },
   {
@@ -156,7 +155,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 75,
-      density: "1.500",
       solidContent: "76%"
 },
   {
@@ -191,7 +189,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 14,
-      density: "1.500",
       solidContent: "76%"
 },
   {
@@ -226,7 +223,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 53,
-      density: "1.500",
       solidContent: "76%"
 },
   {
@@ -459,7 +455,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 25,
-      density: "1.400",
       solidContent: "76%"
 },
   {
@@ -494,7 +489,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 54,
-      density: "1.400",
       solidContent: "76%"
 },
   {
@@ -529,7 +523,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 46,
-      density: "1.400",
       solidContent: "76%"
 },
   {
@@ -993,7 +986,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 27,
-      density: "1.020",
       solidContent: "60%"
 },
   {
@@ -1028,7 +1020,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 87,
-      density: "1.020",
       solidContent: "60%"
 },
   {
@@ -1063,7 +1054,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 53,
-      density: "1.020",
       solidContent: "60%"
 },
   {
@@ -1098,7 +1088,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 94,
-      density: "0.936",
       solidContent: "70%"
 },
   {
@@ -1133,7 +1122,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 32,
-      density: "0.936",
       solidContent: "70%"
 },
   {
@@ -1168,7 +1156,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 79,
-      density: "0.936",
       solidContent: "70%"
 },
   {
@@ -1698,7 +1685,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 10,
-      density: "0.906",
       solidContent: "18%"
 },
   {
@@ -1733,7 +1719,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 10,
-      density: "0.906",
       solidContent: "18%"
 },
   {
@@ -1768,7 +1753,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 28,
-      density: "0.906",
       solidContent: "18%"
 },
   {
@@ -2001,7 +1985,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 49,
-      density: "1.060",
       solidContent: "33%"
 },
   {
@@ -2036,7 +2019,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 59,
-      density: "1.060",
       solidContent: "33%"
 },
   {
@@ -2071,7 +2053,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 45,
-      density: "1.060",
       solidContent: "33%"
 },
   {
@@ -2106,7 +2087,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 81,
-      density: "1.060",
       solidContent: "33%"
 },
   {
@@ -2141,7 +2121,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 43,
-      density: "1.060",
       solidContent: "33%"
 },
   {
@@ -2176,7 +2155,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 67,
-      density: "1.060",
       solidContent: "33%"
 },
   {
@@ -2211,7 +2189,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 73,
-      density: "0.975",
       solidContent: "70%"
 },
   {
@@ -2246,7 +2223,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 91,
-      density: "0.975",
       solidContent: "70%"
 },
   {
@@ -2281,7 +2257,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 54,
-      density: "0.975",
       solidContent: "70%"
 },
   {
@@ -2316,7 +2291,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 15,
-      density: "1.180",
       solidContent: "57.5%"
 },
   {
@@ -2351,7 +2325,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 48,
-      density: "1.180",
       solidContent: "57.5%"
 },
   {
@@ -2386,7 +2359,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 84,
-      density: "1.180",
       solidContent: "57.5%"
 },
   {
@@ -2421,7 +2393,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 77,
-      density: "0.903",
       solidContent: "70%"
 },
   {
@@ -2456,7 +2427,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 42,
-      density: "0.903",
       solidContent: "70%"
 },
   {
@@ -2491,7 +2461,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 99,
-      density: "0.903",
       solidContent: "70%"
 },
   {
@@ -2625,7 +2594,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 22,
-      density: "0.977",
       solidContent: "26.2%"
 },
   {
@@ -2660,7 +2628,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 20,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -2695,7 +2662,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 73,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -2730,7 +2696,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 12,
-      density: "1.080",
       solidContent: "62.8%"
 },
   {
@@ -2765,7 +2730,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 88,
-      density: "1.080",
       solidContent: "62.8%"
 },
   {
@@ -2800,7 +2764,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 66,
-      density: "1.080",
       solidContent: "62.8%"
 },
   {
@@ -2868,7 +2831,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 56,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -2903,7 +2865,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 87,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -2938,7 +2899,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 70,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -2973,7 +2933,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 40,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -3008,7 +2967,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 74,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -3043,7 +3001,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 89,
-      density: "0.950",
       solidContent: "26.4%"
 },
   {
@@ -3078,7 +3035,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 67,
-      density: "0.950",
       solidContent: "26.4%"
 },
   {
@@ -3113,7 +3069,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 84,
-      density: "0.950",
       solidContent: "26.4%"
 },
   {
@@ -3148,7 +3103,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 14,
-      density: "0.947",
       solidContent: "25.4%"
 },
   {
@@ -3183,7 +3137,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 29,
-      density: "0.947",
       solidContent: "25.4%"
 },
   {
@@ -3218,7 +3171,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 29,
-      density: "0.947",
       solidContent: "25.4%"
 },
   {
@@ -3253,7 +3205,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 22,
-      density: "0.970",
       solidContent: "25.6%"
 },
   {
@@ -3288,7 +3239,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 82,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -3323,7 +3273,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 59,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -3358,7 +3307,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 37,
-      density: "0.985",
       solidContent: "37.7%"
 },
   {
@@ -3393,7 +3341,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 58,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -3428,7 +3375,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 28,
-      density: "2.369",
       solidContent: "75%"
 },
   {
@@ -3565,7 +3511,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 57,
-      density: "0.950",
       solidContent: "29.9%"
 },
   {
@@ -3769,7 +3714,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 92,
-      density: "0.987",
       solidContent: "70%"
 },
   {
@@ -3804,7 +3748,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 43,
-      density: "0.987",
       solidContent: "70%"
 },
   {
@@ -3839,7 +3782,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 80,
-      density: "0.987",
       solidContent: "70%"
 },
   {
@@ -3874,7 +3816,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 62,
-      density: "1.000",
       solidContent: "50%"
 },
   {
@@ -3975,7 +3916,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 74,
-      density: "1.300",
       solidContent: "50%"
 },
   {
@@ -4274,7 +4214,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 91,
-      density: "0.950",
       solidContent: "50%"
 },
   {
@@ -4309,7 +4248,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 43,
-      density: "0.950",
       solidContent: "50%"
 },
   {
@@ -4344,7 +4282,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 58,
-      density: "0.950",
       solidContent: "50%"
 },
   {
@@ -4478,7 +4415,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 99,
-      density: "1.20",
       solidContent: "50%"
 },
   {
@@ -4513,7 +4449,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 79,
-      density: "1.20",
       solidContent: "50%"
 },
   {
@@ -4548,7 +4483,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 37,
-      density: "1.20",
       solidContent: "50%"
 },
   {
@@ -4583,7 +4517,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 32,
-      density: "1.370",
       solidContent: "70%"
 },
   {
@@ -4618,7 +4551,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 63,
-      density: "1.370",
       solidContent: "70%"
 },
   {
@@ -4653,7 +4585,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 39,
-      density: "1.370",
       solidContent: "70%"
 },
   {
@@ -4688,7 +4619,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 57,
-      density: "1.000",
       solidContent: "70%"
 },
   {
@@ -4723,7 +4653,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 40,
-      density: "1.000",
       solidContent: "70%"
 },
   {
@@ -4758,7 +4687,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 10,
-      density: "1.000",
       solidContent: "70%"
 },
   {
@@ -5090,7 +5018,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 71,
-      density: "1.382",
       solidContent: "70%"
 },
   {
@@ -5125,7 +5052,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 17,
-      density: "1.382",
       solidContent: "70%"
 },
   {
@@ -5160,7 +5086,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 17,
-      density: "1.382",
       solidContent: "70%"
 },
   {
@@ -5195,7 +5120,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 21,
-      density: "1.010",
       solidContent: "10%"
 },
   {
@@ -5296,7 +5220,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 84,
-      density: "1.047",
       solidContent: "37%"
 },
   {
@@ -5397,7 +5320,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 45,
-      density: "1.020",
       solidContent: "70%"
 },
   {
@@ -5432,7 +5354,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 53,
-      density: "1.020",
       solidContent: "70%"
 },
   {
@@ -5467,7 +5388,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 65,
-      density: "1.020",
       solidContent: "70%"
 },
   {
@@ -5502,7 +5422,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 12,
-      density: "1.029",
       solidContent: "28.6%"
 },
   {
@@ -5537,7 +5456,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 81,
-      density: "1.029",
       solidContent: "28.6%"
 },
   {
@@ -5572,7 +5490,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 87,
-      density: "1.029",
       solidContent: "28.6%"
 },
   {
@@ -5607,7 +5524,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 71,
-      density: "0.970",
       solidContent: "70%"
 },
   {
@@ -5642,7 +5558,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 20,
-      density: "0.970",
       solidContent: "70%"
 },
   {
@@ -5677,7 +5592,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 29,
-      density: "0.970",
       solidContent: "70%"
 },
   {
@@ -5712,7 +5626,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 63,
-      density: "1.000",
       solidContent: "70%"
 },
   {
@@ -5912,7 +5825,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 45,
-      density: "1.020",
       solidContent: "5%"
 },
   {
@@ -5947,7 +5859,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 52,
-      density: "1.020",
       solidContent: "5%"
 },
   {
@@ -5982,7 +5893,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 84,
-      density: "1.020",
       solidContent: "5%"
 },
   {
@@ -6017,7 +5927,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 42,
-      density: "1.025",
       solidContent: "70%"
 },
   {
@@ -6382,7 +6291,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 60,
-      density: "1.035",
       solidContent: "70%"
 },
   {
@@ -6417,7 +6325,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 15,
-      density: "1.035",
       solidContent: "70%"
 },
   {
@@ -6452,7 +6359,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 80,
-      density: "1.035",
       solidContent: "70%"
 },
   {
@@ -6784,7 +6690,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 89,
-      density: "1.206",
       solidContent: "70%"
 },
   {
@@ -6984,7 +6889,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 55,
-      density: "1.050",
       solidContent: "36%"
 },
   {
@@ -8042,7 +7946,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 14,
-      density: "2.369"
 },
   {
     "id": "1256",
@@ -17055,7 +16958,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 18,
-      density: "0.936",
       solidContent: "70%"
 },
   {
@@ -17090,7 +16992,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 73,
-      density: "0.936",
       solidContent: "70%"
 },
   {
@@ -17125,7 +17026,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 87,
-      density: "0.936",
       solidContent: "70%"
 },
   {
@@ -17193,7 +17093,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 71,
-      density: "1.877",
       solidContent: "70%"
 },
   {
@@ -17823,7 +17722,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 12,
-      density: "0.940",
       solidContent: "25.3%"
 },
   {
@@ -17891,7 +17789,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 91,
-      density: "0.909",
       solidContent: "10.9%"
 },
   {
@@ -18025,7 +17922,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 82,
-      density: "0.940",
       solidContent: "34.00%"
 },
   {
@@ -18159,7 +18055,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 52,
-      density: "0.850",
       solidContent: "2%"
 },
   {
@@ -18194,7 +18089,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 96,
-      density: "0.947",
       solidContent: "28%"
 },
   {
@@ -18295,7 +18189,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 36,
-      density: "0.825",
       solidContent: "30.0%"
 },
   {
@@ -18330,7 +18223,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 26,
-      density: "0.825",
       solidContent: "30.0%"
 },
   {
@@ -18365,7 +18257,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 51,
-      density: "0.825",
       solidContent: "30.0%"
 },
   {
@@ -18400,7 +18291,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 69,
-      density: "0.825",
       solidContent: "30.0%"
 },
   {
@@ -18567,7 +18457,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 23,
-      density: "1.010",
       solidContent: "10%"
 },
   {
@@ -18866,7 +18755,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 97,
-      density: "2.100",
       solidContent: "70%"
 },
   {
@@ -19297,7 +19185,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 94,
-      density: "2.369",
       solidContent: "70%"
 },
   {
@@ -19332,7 +19219,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 91,
-      density: "0.910",
       solidContent: "70%"
 },
   {
@@ -33884,7 +33770,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 36,
-      density: "1.20",
       solidContent: "50%"
 },
   {
@@ -33919,7 +33804,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 98,
-      density: "1.20",
       solidContent: "50%"
 },
   {
@@ -33954,7 +33838,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 17,
-      density: "1.20",
       solidContent: "50%"
 },
   {
@@ -34418,7 +34301,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 96,
-      density: "0.910",
       solidContent: "70%"
 },
   {
@@ -34453,7 +34335,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 61,
-      density: "0.910",
       solidContent: "70%"
 },
   {
@@ -34488,7 +34369,6 @@ export const INVENTORY_DATA: Product[] = [
       }
     ],
     "minStock": 16,
-      density: "0.910",
       solidContent: "70%"
 },
   {

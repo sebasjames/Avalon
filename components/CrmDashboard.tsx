@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertTriangle, TrendingUp, Users, Target, Activity, CalendarDays, Snowflake, RotateCw, PhoneCall, CheckCircle, Clock, X } from 'lucide-react';
@@ -23,6 +24,10 @@ export const CrmDashboard: React.FC = () => {
   const progressPercent = Math.min((wonDeals / revenueGoal) * 100, 100);
 
   const [selectedPatternClients, setSelectedPatternClients] = useState<{id: string, label: string} | null>(null);
+
+  // Escape key hooks
+  useEscapeKey(() => setShowNewContact(false), showNewContact);
+
 
   return (
     <div className="space-y-6">

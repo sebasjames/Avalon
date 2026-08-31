@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { X, Mail, Phone, Users, Plus, Calendar, Clock, Send, Paperclip, FileText, Download, UploadCloud, Trophy, CheckCircle2, TrendingUp, BarChart2, Eye, Tags, LineChart, BarChart, ChevronDown, ChevronRight, Briefcase } from 'lucide-react';
@@ -37,6 +38,10 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
   const [isEditingCommercialRules, setIsEditingCommercialRules] = useState(false);
   const [isCommercialRulesExpanded, setIsCommercialRulesExpanded] = useState(false);
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
+
+  // Escape key hooks
+  useEscapeKey(onClose, isOpen);
+
 
   // Calculate completeness based on filled affinity fields (mock logic)
   const filledFields = [contact.birthday, contact.hobby, affinityData.children, affinityData.favoriteSport].filter(val => val && val.trim() !== '').length;

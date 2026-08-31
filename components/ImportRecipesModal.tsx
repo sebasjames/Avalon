@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, CheckCircle, AlertTriangle, X, FileSpreadsheet, ArrowRight, Save, DatabaseZap } from 'lucide-react';
@@ -37,6 +38,10 @@ export const ImportRecipesModal: React.FC<ImportRecipesModalProps> = ({ isOpen, 
     // Step 3 State
     const [processing, setProcessing] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
+
+  // Escape key hooks
+  useEscapeKey(onClose, isOpen);
+
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>) => {
         let file: File | undefined;

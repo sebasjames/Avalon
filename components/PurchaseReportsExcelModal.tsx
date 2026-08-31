@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileSpreadsheet, Download } from 'lucide-react';
@@ -11,6 +12,8 @@ interface PurchaseReportsExcelModalProps {
 }
 
 export const PurchaseReportsExcelModal: React.FC<PurchaseReportsExcelModalProps> = ({ isOpen, onClose, data }) => {
+  // Escape key hooks
+  useEscapeKey(onClose, isOpen);
     
     const columns = [
         { id: 'sku', label: 'SKU / Producto', fixed: true },

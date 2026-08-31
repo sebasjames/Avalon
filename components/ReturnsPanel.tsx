@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCcw, Search, CheckCircle, Package, ArrowRight, User } from 'lucide-react';
@@ -22,6 +23,10 @@ export const ReturnsPanel: React.FC = () => {
     const [historySearch, setHistorySearch] = useState('');
     const [showConfirmPopup, setShowConfirmPopup] = useState(false);
     const [authId, setAuthId] = useState('');
+
+  // Escape key hooks
+  useEscapeKey(() => setShowForm(false), showForm);
+
 
     const filteredContacts = contacts.filter(c => 
         c.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
