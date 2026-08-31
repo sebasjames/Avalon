@@ -54,7 +54,6 @@ export const TransactionsExcelModal: React.FC<TransactionsExcelModalProps> = ({ 
         };
     };
 
-    if (!isOpen) return null;
 
     // Resizable columns logic
     const [colWidths, setColWidths] = useState<Record<string, number>>({
@@ -79,6 +78,9 @@ export const TransactionsExcelModal: React.FC<TransactionsExcelModalProps> = ({ 
     };
 
     useEffect(() => {
+
+    if (!isOpen) return null;
+
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingCol) return;
             const diffX = e.clientX - startX;

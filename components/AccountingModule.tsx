@@ -38,9 +38,7 @@ export const AccountingModule: React.FC = () => {
     const activeValidationSale: any = null;
     // Valid tabs
     const validTabs = ['sabana', 'activos_liquidez', 'cierres', 'ventas', 'auditoria', 'exportacion', 'importaciones', 'facturas_correo', 'conciliacion_datafono', 'caja_menor'];
-    if (!tabId || !validTabs.includes(tabId)) {
-        return <Navigate to="/accounting/sabana" replace />;
-    }
+    // Removed early return to preserve hook order
 
     const activeTab = tabId as 'sabana' | 'activos_liquidez' | 'cierres' | 'ventas' | 'auditoria' | 'exportacion' | 'importaciones' | 'facturas_correo' | 'conciliacion_datafono' | 'caja_menor';
 

@@ -112,7 +112,6 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
         };
     };
 
-    if (!isOpen) return null;
 
     const [isExportingXLSX, setIsExportingXLSX] = useState(false);
 
@@ -138,6 +137,9 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
     };
 
     useEffect(() => {
+
+    if (!isOpen) return null;
+
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingCol) return;
             const diffX = e.clientX - startX;

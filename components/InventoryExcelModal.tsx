@@ -61,7 +61,6 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
         };
     };
 
-    if (!isOpen) return null;
 
     const [isExportingXLSX, setIsExportingXLSX] = useState(false);
 
@@ -86,6 +85,9 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
     };
 
     useEffect(() => {
+
+    if (!isOpen) return null;
+
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingCol) return;
             const diffX = e.clientX - startX;
