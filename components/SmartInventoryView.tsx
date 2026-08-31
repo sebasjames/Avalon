@@ -689,7 +689,6 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
     const [visibleCols, setVisibleCols] = useState<string[]>(ALL_COLUMNS.map(c => c.id));
 
   // Escape key hooks
-  useEscapeKey(onClose, isOpen);
   useEscapeKey(() => setShowExcelModal(false), showExcelModal);
 
 
