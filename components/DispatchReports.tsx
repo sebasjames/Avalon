@@ -16,15 +16,16 @@ export const DispatchReports: React.FC = () => {
 
     // Metrics calculations
     const metrics = useMemo(() => {
-        const total = dispatches.length;
-        const delivered = dispatches.filter(d => d.status === 'ENTREGADO').length;
-        const failed = dispatches.filter(d => d.status === 'ENTREGA_FALLIDA').length;
+        const list = dispatches || [];
+        const total = list.length;
+        const delivered = list.filter(d => d.status === 'ENTREGADO').length;
+        const failed = list.filter(d => d.status === 'ENTREGA_FALLIDA').length;
         const pending = total - delivered - failed;
 
         let onTime = 0;
         let delayed = 0;
 
-        dispatches.forEach(d => {
+        list.forEach(d => {
             if (d.status === 'ENTREGADO' && d.actualDeliveryDate) {
                 const promised = new Date(d.promisedDate).getTime();
                 const actual = new Date(d.actualDeliveryDate).getTime();
@@ -41,13 +42,13 @@ export const DispatchReports: React.FC = () => {
 
     // History filtering
     const filteredHistory = useMemo(() => {
-        return dispatches.filter(d => {
+        return (dispatches || []).filter(d => {
             if (statusFilter !== 'ALL' && d.status !== statusFilter) return false;
             
             if (searchTerm) {
                 const searchLower = searchTerm.toLowerCase();
-                const matchId = d.id.toLowerCase().includes(searchLower);
-                const matchDriver = d.driver?.toLowerCase().includes(searchLower) || false;
+                const matchId = (d.id || '').toLowerCase().includes(searchLower);
+                const matchDriver = (d.driver || '').toLowerCase().includes(searchLower);
                 return matchId || matchDriver;
             }
             return true;

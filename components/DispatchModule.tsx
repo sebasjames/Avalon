@@ -7,10 +7,12 @@ export const DispatchModule: React.FC = () => {
     const { dispatches, updateDispatch, contacts } = useEnterprise();
     const [searchQuery, setSearchQuery] = useState('');
 
-    const filtered = dispatches.filter(d => 
-        d.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        contacts.find(c => c.id === d.contactId)?.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filtered = (dispatches || []).filter(d => {
+        const idMatch = (d.id || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const contactName = contacts.find(c => c.id === d.contactId)?.name || '';
+        const contactMatch = contactName.toLowerCase().includes(searchQuery.toLowerCase());
+        return idMatch || contactMatch;
+    });
 
     const pending = filtered.filter(d => d.status === 'PENDIENTE' || d.status === 'ARMANDO_PEDIDO');
     const inTransit = filtered.filter(d => d.status === 'EN_TRANSITO');
