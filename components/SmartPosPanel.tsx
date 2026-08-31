@@ -401,14 +401,14 @@ export const SmartPosPanel: React.FC = () => {
     const totalCost = useMemo(() => {
         return cart.reduce((acc, item) => {
             const multiplier = 1;
-            return acc + (item.product.unitCost * item.qty * multiplier);
+        return acc + (item.product.unitCost * item.qty * multiplier);
         }, 0);
     }, [cart]);
 
     const grossMargin = (subtotal - discountAmount) - totalCost;
     const marginPercent = subtotal > 0 ? (grossMargin / (subtotal - discountAmount)) * 100 : 0;
 
-    // Chemical breakdown calculations
+    // Chemical breakdown calculations (Unified Single Breakdown - No Smart Grouping)
     const chemicalData = useMemo(() => {
         interface ComponentDetail {
             id: string;
@@ -431,44 +431,16 @@ export const SmartPosPanel: React.FC = () => {
             averageCostPerLiter: number;
         }
 
-        const mezclas: Record<string, MezclaGroup> = {};
-        
-        const getMezcla = (id: string, name: string) => {
-            if (!mezclas[id]) {
-                mezclas[id] = {
-                    id,
-                    name,
-                    totalWeightKg: 0,
-                    totalVolumeLiters: 0,
-                    totalCost: 0,
-                    components: [],
-                    averageCostPerKg: 0,
-                    averageCostPerLiter: 0
-                };
-            }
-            // Preserve the original Head's name if this is a child creating the group first
-            if (mezclas[id].name === 'Mezcla Componente' && name !== 'Mezcla Componente') {
-                mezclas[id].name = name;
-            }
-            return mezclas[id];
+        const globalGroup: MezclaGroup = {
+            id: 'global_mezcla',
+            name: 'Resumen Químico Total',
+            totalWeightKg: 0,
+            totalVolumeLiters: 0,
+            totalCost: 0,
+            components: [],
+            averageCostPerKg: 0,
+            averageCostPerLiter: 0
         };
-
-        const heads = cart.filter(item => item.product.mixingInstructions);
-        const childToHeadMap: Record<string, string> = {};
-        
-        heads.forEach(head => {
-            const instructions = head.product.mixingInstructions!.split('|');
-            const mezclaId = `mezcla_${head.product.sku}`;
-            // Initialize the Head early to set the proper name
-            getMezcla(mezclaId, `Mezcla ${head.product.family || head.product.category || 'Principal'}`);
-            
-            instructions.forEach(inst => {
-                const [childSku] = inst.split(':');
-                if (childSku) {
-                    childToHeadMap[childSku] = mezclaId;
-                }
-            });
-        });
 
         cart.forEach(item => {
             const product = item.product;
@@ -513,32 +485,14 @@ export const SmartPosPanel: React.FC = () => {
             if (itemKilos <= 0 && itemLiters <= 0) return;
 
             const itemPrice = (rawMaterialCategories || []).includes(product.category) ? product.unitCost * 1.3 : product.price;
-            
-            // Using gross cost for the breakdown. If there are cart discounts, we apply a proportional reduction.
             const discountRatio = subtotal > 0 ? ((subtotal - discountAmount) / subtotal) : 1;
             const itemTotalCost = itemPrice * units * discountRatio;
 
-            let targetMezclaId = '';
-            let targetMezclaName = '';
+            globalGroup.totalWeightKg += itemKilos;
+            globalGroup.totalVolumeLiters += itemLiters;
+            globalGroup.totalCost += itemTotalCost;
 
-            if (product.mixingInstructions) {
-                targetMezclaId = `mezcla_${product.sku}`;
-                targetMezclaName = `Mezcla ${product.family || product.category || 'Principal'}`;
-            } else if (childToHeadMap[product.sku] || childToHeadMap[product.originalSku || '']) {
-                targetMezclaId = childToHeadMap[product.sku] || childToHeadMap[product.originalSku || ''];
-                targetMezclaName = `Mezcla Componente`; 
-            } else {
-                targetMezclaId = `indep_${product.family || 'Otros'}`;
-                targetMezclaName = `Línea ${product.family || 'Otros'}`;
-            }
-
-            const mezcla = getMezcla(targetMezclaId, targetMezclaName);
-            
-            mezcla.totalWeightKg += itemKilos;
-            mezcla.totalVolumeLiters += itemLiters;
-            mezcla.totalCost += itemTotalCost;
-
-            mezcla.components.push({
+            globalGroup.components.push({
                 id: item.id,
                 name: product.name,
                 density: product.density ? `${product.density} g/cm³` : 'N/A',
@@ -549,13 +503,12 @@ export const SmartPosPanel: React.FC = () => {
             });
         });
 
-        const result = Object.values(mezclas).map(m => {
-            m.averageCostPerKg = m.totalWeightKg > 0 ? (m.totalCost / m.totalWeightKg) : 0;
-            m.averageCostPerLiter = m.totalVolumeLiters > 0 ? (m.totalCost / m.totalVolumeLiters) : 0;
-            return m;
-        });
+        if (globalGroup.components.length === 0) return [];
 
-        return result;
+        globalGroup.averageCostPerKg = globalGroup.totalWeightKg > 0 ? (globalGroup.totalCost / globalGroup.totalWeightKg) : 0;
+        globalGroup.averageCostPerLiter = globalGroup.totalVolumeLiters > 0 ? (globalGroup.totalCost / globalGroup.totalVolumeLiters) : 0;
+
+        return [globalGroup];
     }, [cart, rawMaterialCategories, subtotal, discountAmount]);
 
     const handleCheckout = async () => {
