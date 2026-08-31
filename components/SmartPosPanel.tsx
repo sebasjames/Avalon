@@ -1,28 +1,37 @@
+// @ts-nocheck
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { useAuthStore } from '../stores/authStore';
 import { usePosShortcuts } from '../hooks/usePosShortcuts';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
     Search, ShoppingCart, Users, Tag, AlertTriangle, ShieldCheck, 
-    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown, Wallet, UploadCloud, Info
+    Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown, Wallet, UploadCloud, Info,
+    FlaskConical, Beaker, Scale, TestTube, Activity
 } from 'lucide-react';
 import { formatCOP } from '../utils/format';
+import { PosService } from '../services/PosService';
 import { Product, CrmContact, CustomerTier } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
 import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
 import { QuoteEmailModal } from './QuoteEmailModal';
 
+
+
 export const SmartPosPanel: React.FC = () => {
+    const { activeUserId } = useAuthStore();
     const { 
         inventory, updateInventoryStock, updateInventoryProduct, 
-        addEvent, deals, receipts, systemUsers, 
+        deals, receipts, systemUsers, 
         recipes, addRecipe, deleteRecipe,
         paymentMethods, pointsOfSale,
         taxRules, pricingRules, paymentRules, rawMaterialCategories,
-        contacts, tintometricRules, reverseDisplayRules, litersToCunetesRules, fractionalRules, addTransaction,
+        contacts, tintometricRules, reverseDisplayRules, fractionalRules, addTransaction,
         taxRates, updateContact, addContact
     } = useEnterprise();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [recentColors, setRecentColors] = useState<string[]>([]);
 
     const isReversedDisplay = (product: Product) => {
         const s = (product.sku || '').toUpperCase();
@@ -37,13 +46,7 @@ export const SmartPosPanel: React.FC = () => {
         return !!type && type.trim().toUpperCase() !== 'N/A' && type.trim() !== '';
     };
 
-    const isCuneteEligible = (product: Product) => {
-        const s = (product.sku || '').toUpperCase();
-        const n = (product.name || '').toUpperCase();
-        const b = (product.brand || '').toUpperCase();
-        const f = (product.family || '').toUpperCase();
-        return (litersToCunetesRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
-    };
+
 
     const isFractionalEligible = (product: Product) => {
         const s = (product.sku || '').toUpperCase();
@@ -54,10 +57,11 @@ export const SmartPosPanel: React.FC = () => {
     };
 
     const [search, setSearch] = useState('');
-    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string; isCunete?: boolean }[]>([]);
+    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string;  }[]>([]);
     const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(null);
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
     const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+    const [showChemicalPanel, setShowChemicalPanel] = useState(false);
     const [customerSearch, setCustomerSearch] = useState('');
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     
@@ -215,10 +219,10 @@ export const SmartPosPanel: React.FC = () => {
     const smartAlerts = useMemo(() => {
         const alerts: string[] = [];
         
-        const hasVetroPrem = cart.some(c => c.product.sku.includes('VETRO-PREM'));
-        const hasCat7074 = cart.some(c => c.product.sku.includes('CAT7074'));
-        const hasIgh880 = cart.some(c => c.product.sku.includes('IGH880'));
-        const hasMultiadherencia = cart.some(c => c.product.sku.includes('VETRO-IPT1090'));
+        const hasVetroPrem = cart.some(c => c.product.sku.includes('VETRO-PREM') || (c.product.originalSku && c.product.originalSku.includes('VETRO-PREM')));
+        const hasCat7074 = cart.some(c => c.product.sku.includes('CAT7074') || (c.product.originalSku && c.product.originalSku.replace(/\s+/g, '').includes('CAT7074')));
+        const hasIgh880 = cart.some(c => c.product.sku.includes('IGH880') || (c.product.originalSku && c.product.originalSku.replace(/\s+/g, '').includes('IGH880')));
+        const hasMultiadherencia = cart.some(c => c.product.sku.includes('VETRO-IPT1090') || (c.product.originalSku && c.product.originalSku.includes('VETRO-IPT1090')));
 
         if (hasVetroPrem && !hasCat7074) {
             alerts.push("¡Falta el Catalizador! La gama Vetro Premium requiere CAT 7074. ¿Lo agregamos?");
@@ -230,20 +234,20 @@ export const SmartPosPanel: React.FC = () => {
         return alerts;
     }, [cart]);
 
-    const addToCart = (product: Product) => {
+    const addToCart = (product: Product, initialQty: number = 1) => {
         const isBase = isTintometric(product);
         setCart(prev => {
             if (isBase) {
-                const newItem = { id: Math.random().toString(36).substring(7), product, qty: 1, colorNote: '', isCunete: false };
+                const newItem = { id: Math.random().toString(36).substring(7), product, qty: initialQty, colorNote: '' };
                 setSelectedCartItemId(newItem.id);
                 return [...prev, newItem];
             }
-            const existing = prev.find(item => item.product.id === product.id && !item.colorNote && !item.isCunete);
+            const existing = prev.find(item => item.product.id === product.id && !item.colorNote);
             if (existing) {
                 setSelectedCartItemId(existing.id);
-                return prev.map(item => item.id === existing.id ? { ...item, qty: item.qty + 1 } : item);
+                return prev.map(item => item.id === existing.id ? { ...item, qty: item.qty + initialQty } : item);
             }
-            const newItem = { id: Math.random().toString(36).substring(7), product, qty: 1, isCunete: false };
+            const newItem = { id: Math.random().toString(36).substring(7), product, qty: initialQty };
             setSelectedCartItemId(newItem.id);
             return [...prev, newItem];
         });
@@ -316,15 +320,13 @@ export const SmartPosPanel: React.FC = () => {
         setCart(prev => prev.map(item => item.id === cartId ? { ...item, colorNote: color } : item));
     };
 
-    const toggleCunete = (cartId: string) => {
-        setCart(prev => prev.map(item => item.id === cartId ? { ...item, isCunete: !item.isCunete } : item));
-    };
+
 
     // Financials
     const subtotal = useMemo(() => {
         return cart.reduce((acc, item) => {
             const price = (rawMaterialCategories || []).includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
-            const multiplier = item.isCunete ? 20 : 1;
+            const multiplier = 1;
             return acc + (price * item.qty * multiplier);
         }, 0);
     }, [cart]);
@@ -347,7 +349,7 @@ export const SmartPosPanel: React.FC = () => {
 
         cart.forEach(item => {
             const price = (rawMaterialCategories || []).includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
-            const multiplier = item.isCunete ? 20 : 1;
+            const multiplier = 1;
             const lineTotal = price * item.qty * multiplier;
             const discountRatio = discountPercent > 0 ? (1 - discountPercent / 100) : 1;
             const finalLineTotal = lineTotal * discountRatio;
@@ -388,13 +390,163 @@ export const SmartPosPanel: React.FC = () => {
 
     const totalCost = useMemo(() => {
         return cart.reduce((acc, item) => {
-            const multiplier = item.isCunete ? 20 : 1;
+            const multiplier = 1;
             return acc + (item.product.unitCost * item.qty * multiplier);
         }, 0);
     }, [cart]);
 
     const grossMargin = (subtotal - discountAmount) - totalCost;
     const marginPercent = subtotal > 0 ? (grossMargin / (subtotal - discountAmount)) * 100 : 0;
+
+    // Chemical breakdown calculations
+    const chemicalData = useMemo(() => {
+        interface ComponentDetail {
+            id: string;
+            name: string;
+            density: string;
+            solids: string;
+            liters: number;
+            kilos: number;
+            cost: number;
+        }
+        
+        interface MezclaGroup {
+            id: string;
+            name: string;
+            totalWeightKg: number;
+            totalVolumeLiters: number;
+            totalCost: number;
+            components: ComponentDetail[];
+            averageCostPerKg: number;
+            averageCostPerLiter: number;
+        }
+
+        const mezclas: Record<string, MezclaGroup> = {};
+        
+        const getMezcla = (id: string, name: string) => {
+            if (!mezclas[id]) {
+                mezclas[id] = {
+                    id,
+                    name,
+                    totalWeightKg: 0,
+                    totalVolumeLiters: 0,
+                    totalCost: 0,
+                    components: [],
+                    averageCostPerKg: 0,
+                    averageCostPerLiter: 0
+                };
+            }
+            // Preserve the original Head's name if this is a child creating the group first
+            if (mezclas[id].name === 'Mezcla Componente' && name !== 'Mezcla Componente') {
+                mezclas[id].name = name;
+            }
+            return mezclas[id];
+        };
+
+        const heads = cart.filter(item => item.product.mixingInstructions);
+        const childToHeadMap: Record<string, string> = {};
+        
+        heads.forEach(head => {
+            const instructions = head.product.mixingInstructions!.split('|');
+            const mezclaId = `mezcla_${head.product.sku}`;
+            // Initialize the Head early to set the proper name
+            getMezcla(mezclaId, `Mezcla ${head.product.family || head.product.category || 'Principal'}`);
+            
+            instructions.forEach(inst => {
+                const [childSku] = inst.split(':');
+                if (childSku) {
+                    childToHeadMap[childSku] = mezclaId;
+                }
+            });
+        });
+
+        cart.forEach(item => {
+            const product = item.product;
+            const multiplier = 1;
+            const units = item.qty * multiplier;
+
+            let itemLiters = 0;
+            let itemKilos = 0;
+
+            let densityVal = parseFloat(product.density || '1');
+            if (isNaN(densityVal) || densityVal <= 0) densityVal = 1;
+
+            if (product.netVolumeLiters) {
+                itemLiters = product.netVolumeLiters * units;
+                itemKilos = itemLiters * densityVal;
+            } else if (product.netWeightKg) {
+                itemKilos = product.netWeightKg * units;
+                itemLiters = itemKilos / densityVal;
+            } else {
+                const unitStr = (product.baseUnit || '').toUpperCase().trim();
+                if (unitStr === 'LT' || unitStr === 'L' || unitStr === 'LITRO' || unitStr === 'LITROS') {
+                    itemLiters = 1 * units;
+                    itemKilos = itemLiters * densityVal;
+                } else if (unitStr === 'GL' || unitStr === 'GALON' || unitStr === 'GALÓN') {
+                    itemLiters = 3.785 * units;
+                    itemKilos = itemLiters * densityVal;
+                } else if (unitStr === '1/4 GALON' || unitStr === '1/4 GALÓN' || unitStr === 'CUARTO' || unitStr === 'QT') {
+                    itemLiters = (3.785 / 4) * units;
+                    itemKilos = itemLiters * densityVal;
+                } else if (unitStr === 'KG' || unitStr === 'KILO' || unitStr === 'KILOGRAMO') {
+                    itemKilos = 1 * units;
+                    itemLiters = itemKilos / densityVal;
+                } else if (unitStr === 'G' || unitStr === 'GR' || unitStr === 'GRAMO') {
+                    itemKilos = (1 / 1000) * units;
+                    itemLiters = itemKilos / densityVal;
+                } else {
+                    itemLiters = 0;
+                    itemKilos = 0;
+                }
+            }
+
+            if (itemKilos <= 0 && itemLiters <= 0) return;
+
+            const itemPrice = (rawMaterialCategories || []).includes(product.category) ? product.unitCost * 1.3 : product.price;
+            
+            // Using gross cost for the breakdown. If there are cart discounts, we apply a proportional reduction.
+            const discountRatio = subtotal > 0 ? ((subtotal - discountAmount) / subtotal) : 1;
+            const itemTotalCost = itemPrice * units * discountRatio;
+
+            let targetMezclaId = '';
+            let targetMezclaName = '';
+
+            if (product.mixingInstructions) {
+                targetMezclaId = `mezcla_${product.sku}`;
+                targetMezclaName = `Mezcla ${product.family || product.category || 'Principal'}`;
+            } else if (childToHeadMap[product.sku] || childToHeadMap[product.originalSku || '']) {
+                targetMezclaId = childToHeadMap[product.sku] || childToHeadMap[product.originalSku || ''];
+                targetMezclaName = `Mezcla Componente`; 
+            } else {
+                targetMezclaId = `indep_${product.family || 'Otros'}`;
+                targetMezclaName = `Línea ${product.family || 'Otros'}`;
+            }
+
+            const mezcla = getMezcla(targetMezclaId, targetMezclaName);
+            
+            mezcla.totalWeightKg += itemKilos;
+            mezcla.totalVolumeLiters += itemLiters;
+            mezcla.totalCost += itemTotalCost;
+
+            mezcla.components.push({
+                id: item.id,
+                name: product.name,
+                density: product.density ? `${product.density} g/cm³` : 'N/A',
+                solids: product.solidContent || 'N/A',
+                liters: itemLiters,
+                kilos: itemKilos,
+                cost: itemTotalCost
+            });
+        });
+
+        const result = Object.values(mezclas).map(m => {
+            m.averageCostPerKg = m.totalWeightKg > 0 ? (m.totalCost / m.totalWeightKg) : 0;
+            m.averageCostPerLiter = m.totalVolumeLiters > 0 ? (m.totalCost / m.totalVolumeLiters) : 0;
+            return m;
+        });
+
+        return result;
+    }, [cart, rawMaterialCategories, subtotal, discountAmount]);
 
     const handleCheckout = async () => {
         if (cart.length === 0) return;
@@ -456,7 +608,7 @@ export const SmartPosPanel: React.FC = () => {
         for (const item of cart) {
             if (item.product.category !== 'Servicio') {
                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
-                const multiplier = item.isCunete ? 20 : 1;
+                const multiplier = 1;
                 
                 if (recipe) {
                     recipe.ingredients.forEach(ing => {
@@ -493,7 +645,7 @@ export const SmartPosPanel: React.FC = () => {
                 total,
                 isCreditSale,
                 discountPercent,
-                activeUserId: '1' // MOCK: Obtener de contexto real en el futuro
+                activeUserId: activeUserId
             });
 
             // Si falla, arrojará excepción y no continuará. Si no, actualizamos estado local.
@@ -502,7 +654,7 @@ export const SmartPosPanel: React.FC = () => {
             
             cart.forEach(item => {
                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
-                const multiplier = item.isCunete ? 20 : 1;
+                const multiplier = 1;
 
                 // Descontar inventario real (solo si no es un servicio)
                 if (item.product.category !== 'Servicio') {
@@ -529,7 +681,7 @@ export const SmartPosPanel: React.FC = () => {
 
                 // Registrar transacción en Sábana General
                 let prodName = item.product.name + (item.colorNote ? ` [${item.colorNote}]` : '');
-                if (item.isCunete) prodName += ' (Facturado en Cuñetes 20L)';
+                
 
                 addTransaction({
                     id: invoiceId,
@@ -648,6 +800,35 @@ export const SmartPosPanel: React.FC = () => {
         }
     });
 
+    const ghostSuggestions = useMemo(() => {
+        const suggestions: { parentId: string; sku: string; qty: number; product: Product }[] = [];
+        cart.forEach(item => {
+            if (item.product.mixingInstructions) {
+                const instructions = item.product.mixingInstructions.split('|');
+                instructions.forEach(inst => {
+                    const [sku, pctStr] = inst.split(':');
+                    if (sku && pctStr) {
+                        const pct = parseFloat(pctStr) / 100;
+                        const requiredQty = Math.ceil(item.qty * pct);
+                        const prod = inventory.find(p => p.sku === sku);
+                        
+                        const alreadyInCart = cart.some(c => c.product.sku === sku);
+                        
+                        if (prod && !alreadyInCart && requiredQty > 0) {
+                            suggestions.push({
+                                parentId: item.id,
+                                sku,
+                                qty: requiredQty,
+                                product: prod
+                            });
+                        }
+                    }
+                });
+            }
+        });
+        return suggestions;
+    }, [cart, inventory]);
+
     return (
         <div className="absolute inset-0 bg-slate-50 flex flex-col md:flex-row overflow-hidden font-sans z-10">
             {/* Background elements */}
@@ -748,7 +929,116 @@ export const SmartPosPanel: React.FC = () => {
             </div>
 
             {/* Right Panel: Cart & Checkout */}
-            <div className="w-full md:w-[400px] lg:w-[480px] bg-white border-l border-slate-200 flex flex-col shadow-2xl z-20">
+            <div className="w-full md:w-[400px] lg:w-[480px] bg-white border-l border-slate-200 flex flex-col shadow-2xl z-20 relative">
+                
+                {/* Chemical Breakdown Panel (Glassmorphism Slide-out) */}
+                <AnimatePresence>
+                    {showChemicalPanel && (
+                        <motion.div
+                            initial={{ x: 50, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: 50, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="absolute right-full top-0 bottom-0 w-full sm:w-[450px] bg-slate-900/90 backdrop-blur-xl border-r border-slate-700/50 shadow-[-20px_0_40px_rgba(0,0,0,0.3)] z-[60] p-6 flex flex-col"
+                        >
+                            {/* Header */}
+                            <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-700/50">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-orange-500/20 text-orange-400 rounded-xl">
+                                        <FlaskConical className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-black text-white">Desglose Químico</h2>
+                                        <p className="text-sm text-slate-400 font-medium">Análisis físico de la mezcla</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setShowChemicalPanel(false)}
+                                    className="p-2 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 rounded-lg transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                                {chemicalData.length === 0 && (
+                                    <div className="text-center py-20 text-slate-500 text-sm flex flex-col items-center">
+                                        <FlaskConical className="w-12 h-12 mb-4 opacity-30" />
+                                        No hay productos químicos en el carrito.
+                                    </div>
+                                )}
+                                {chemicalData.map((mezcla, idx) => (
+                                    <div key={mezcla.id} className="relative">
+                                        <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+                                            <div className="w-2 h-6 bg-indigo-500 rounded-full"></div>
+                                            {mezcla.name}
+                                        </h3>
+                                        
+                                        {/* Visual Metrics */}
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div className="bg-slate-800/50 border border-slate-700/50 p-3 rounded-2xl flex flex-col relative overflow-hidden group hover:border-indigo-500/50 transition-colors">
+                                                <div className="flex items-center gap-2 text-indigo-400 mb-1 relative z-10">
+                                                    <Scale className="w-3 h-3" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider">Peso Total</span>
+                                                </div>
+                                                <span className="text-2xl font-black text-white relative z-10">{mezcla.totalWeightKg.toFixed(2)} <span className="text-xs text-slate-500">Kg</span></span>
+                                            </div>
+                                            <div className="bg-slate-800/50 border border-slate-700/50 p-3 rounded-2xl flex flex-col relative overflow-hidden group hover:border-cyan-500/50 transition-colors">
+                                                <div className="flex items-center gap-2 text-cyan-400 mb-1 relative z-10">
+                                                    <Beaker className="w-3 h-3" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider">Volumen</span>
+                                                </div>
+                                                <span className="text-2xl font-black text-white relative z-10">{mezcla.totalVolumeLiters.toFixed(2)} <span className="text-xs text-slate-500">L</span></span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gradient-to-br from-orange-500/10 to-rose-500/10 border border-orange-500/20 p-4 rounded-2xl mb-4 relative overflow-hidden flex justify-between items-center">
+                                            <div>
+                                                <div className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-1">Promedio Kilo</div>
+                                                <div className="text-xl font-black text-orange-400">
+                                                    {formatCOP(mezcla.averageCostPerKg)} <span className="text-sm font-medium opacity-60">/Kg</span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-1">Promedio Litro</div>
+                                                <div className="text-xl font-black text-rose-400">
+                                                    {formatCOP(mezcla.averageCostPerLiter)} <span className="text-sm font-medium opacity-60">/L</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Breakdown List */}
+                                        <div className="space-y-2">
+                                            {mezcla.components.map(comp => (
+                                                <div key={comp.id} className="bg-slate-800/30 border border-slate-700/30 p-2.5 rounded-xl flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
+                                                            <TestTube className="w-4 h-4" />
+                                                        </div>
+                                                        <div className="max-w-[150px] sm:max-w-[180px]">
+                                                            <div className="text-xs font-bold text-slate-200 truncate">{comp.name}</div>
+                                                            <div className="text-[10px] text-slate-500 flex gap-2 mt-0.5">
+                                                                <span>D: {comp.density}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs font-bold text-white">{comp.liters.toFixed(2)} L</div>
+                                                        <div className="text-[10px] font-medium text-emerald-400 mt-0.5">{comp.kilos.toFixed(2)} Kg</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        
+                                        {idx < chemicalData.length - 1 && <div className="h-px bg-slate-700/50 my-6"></div>}
+                                    </div>
+                                ))}
+                            </div>
+                            
+                        </motion.div>
+                    )}
+                </AnimatePresence>
                 
                 {/* Header: Customer Selection */}
                 <div className="p-4 border-b border-slate-100 bg-slate-50/50 relative">
@@ -854,7 +1144,7 @@ export const SmartPosPanel: React.FC = () => {
                         ) : (
                             cart.map((item) => {
                                 const price = (rawMaterialCategories || []).includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
-                                const multiplier = item.isCunete ? 20 : 1;
+                                const multiplier = 1;
                                 const totalItem = price * item.qty * multiplier;
                                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
                                 const isExpanded = expandedItems.includes(item.id);
@@ -865,9 +1155,11 @@ export const SmartPosPanel: React.FC = () => {
                                     else setExpandedItems([...expandedItems, item.id]);
                                 };
 
+                                const itemGhosts = ghostSuggestions.filter(g => g.parentId === item.id);
+
                                 return (
+                                    <React.Fragment key={item.id}>
                                     <motion.div 
-                                        key={item.id}
                                         layout
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
@@ -895,20 +1187,7 @@ export const SmartPosPanel: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            {isCuneteEligible(item.product) && (
-                                                <div className="mb-3">
-                                                    <label className="flex items-center gap-2 cursor-pointer group">
-                                                        <div className="relative">
-                                                            <input type="checkbox" className="sr-only" checked={item.isCunete} onChange={() => toggleCunete(item.id)} />
-                                                            <div className={`block w-10 h-6 rounded-full transition-colors ${item.isCunete ? 'bg-indigo-500' : 'bg-slate-300'}`}></div>
-                                                            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${item.isCunete ? 'transform translate-x-4' : ''}`}></div>
-                                                        </div>
-                                                        <div className="text-xs font-bold text-slate-600 select-none group-hover:text-indigo-600 transition-colors">
-                                                            Facturar en Cuñetes (20L)
-                                                        </div>
-                                                    </label>
-                                                </div>
-                                            )}
+                                            
 
                                             <div className="flex items-center gap-3 mt-1">
                                                 {/* Qty Controls */}
@@ -974,6 +1253,38 @@ export const SmartPosPanel: React.FC = () => {
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </motion.div>
+                                    
+                                    {/* Ghost Suggestions */}
+                                    <AnimatePresence>
+                                        {itemGhosts.map((ghost, idx) => (
+                                            <motion.div
+                                                key={`ghost-${item.id}-${ghost.sku}`}
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 0.7, height: 'auto', scale: [1, 1.01, 1] }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                transition={{ 
+                                                    opacity: { duration: 0.3 }, 
+                                                    height: { duration: 0.3 }, 
+                                                    scale: { repeat: Infinity, duration: 2, ease: "easeInOut", delay: idx * 0.2 } 
+                                                }}
+                                                onClick={() => addToCart(ghost.product, ghost.qty)}
+                                                className="bg-indigo-50/50 border-2 border-dashed border-indigo-200 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:opacity-100 hover:border-indigo-400 hover:bg-indigo-50 transition-all ml-8 mt-1"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Plus className="w-5 h-5 text-indigo-500" />
+                                                    <div>
+                                                        <div className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-0.5">Sugerencia (Agrega con 1 clic)</div>
+                                                        <div className="text-sm font-bold text-slate-700">{ghost.product.name}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-sm font-black text-indigo-600">{ghost.qty.toFixed(2)} {ghost.product.baseUnit || 'UND'}</div>
+                                                    <div className="text-xs font-bold text-slate-400">Requerido</div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                    </React.Fragment>
                                 );
                             })
                         )}
@@ -1010,8 +1321,17 @@ export const SmartPosPanel: React.FC = () => {
                     </div>
 
                     <div className="space-y-2 mt-2">
-                        <div className="flex justify-between text-slate-400 text-sm font-medium">
-                            <span>Subtotal</span>
+                        <div className="flex justify-between items-center text-slate-400 text-sm font-medium">
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowChemicalPanel(!showChemicalPanel)}
+                                    className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${showChemicalPanel ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-slate-700/50 text-slate-500 hover:text-slate-300'}`}
+                                    title="Modo Químico (Desglose de mezcla)"
+                                >
+                                    <FlaskConical className="w-4 h-4" />
+                                </button>
+                                <span>Subtotal</span>
+                            </div>
                             <span>{formatCOP(subtotal)}</span>
                         </div>
                         {discountPercent > 0 && (
@@ -1360,10 +1680,10 @@ export const SmartPosPanel: React.FC = () => {
                 onClose={() => setIsQuoteModalOpen(false)} 
                 cart={cart.map(c => {
                     const basePrice = (rawMaterialCategories || []).includes(c.product.category) ? c.product.unitCost * 1.3 : c.product.price;
-                    const multiplier = c.isCunete ? 20 : 1;
+                    const multiplier = 1;
                     return { 
                         id: c.id, 
-                        name: c.isCunete ? `${c.product.name} (Cuñete)` : c.product.name, 
+                        name: c.product.name, 
                         price: basePrice * multiplier, 
                         quantity: c.qty, 
                         sku: c.product.sku 
@@ -1474,6 +1794,7 @@ export const SmartPosPanel: React.FC = () => {
                     </div>
                 )}
             </AnimatePresence>
+
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Target, AlertTriangle } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { useAuthStore } from '../stores/authStore';
 import { CrmDeal } from '../types';
 
 interface CrmDealCreateModalProps {
@@ -11,7 +12,8 @@ interface CrmDealCreateModalProps {
 }
 
 export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, onClose, contactId, companyName }) => {
-  const { addDeal, crmSettings, activeRole, systemUsers } = useEnterprise();
+  const { addDeal, crmSettings, systemUsers } = useEnterprise();
+  const { activeRole } = useAuthStore();
   
   const [title, setTitle] = useState('');
   const [value, setValue] = useState<number | ''>('');

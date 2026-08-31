@@ -135,6 +135,8 @@ export interface Product {
       brand?: string;
   };
   tintometricBaseType?: string; // e.g. "SOLVENTE INTERNO", "ACQUA INT."
+  netWeightKg?: number; // Exact net weight in kilograms
+  netVolumeLiters?: number; // Exact net volume in liters
   
   // Ficha Técnica / Technical Data
   chemicalComponents?: { name: string; percentage: string; cas: string }[];
@@ -268,6 +270,29 @@ export interface Vendor {
     priceIndex: 'Low' | 'Medium' | 'High';
 }
 
+export interface PurchaseOrder {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  date: string;
+  status: 'Draft' | 'Sent' | 'Partial' | 'Received' | 'Cancelled';
+  items: {
+    skuId: string;
+    productName: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
+  totalAmount: number;
+}
+
+export interface WarehouseLocation {
+  id: string;
+  name: string;
+  address: string;
+  type: 'Bodega Principal' | 'Punto de Venta' | 'Planta de Producción' | 'Bodega Satélite';
+  status: 'Activa' | 'Inactiva';
+}
+
 export interface PurchaseSuggestion {
     id: string;
     skuId: string;
@@ -333,7 +358,7 @@ export interface SystemEvent {
 
 export type CrmDealStage = 'LEAD' | 'PROSPECTO' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'CLOSED_WON' | 'CLOSED_LOST';
 export type CrmPostSaleStage = 'ONBOARDING' | 'RENTABILIZACION' | 'FIDELIZACION' | 'MONITOREO';
-export type CrmLeadSource = 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'GOOGLE_ADS' | 'MANUAL' | 'STREET' | 'REFERRAL' | 'WEBSITE' | 'WHATSAPP';
+export type CrmLeadSource = 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'GOOGLE_ADS' | 'MANUAL' | 'STREET' | 'REFERRAL' | 'WEBSITE' | 'WHATSAPP' | 'POS';
 
 export type PurchasePattern = 'ESTACIONAL' | 'DICIEMBRE' | 'TRIMESTRAL' | 'RECURRENTE' | 'IRREGULAR';
 
@@ -535,7 +560,6 @@ export interface SystemSettings {
   };
   production: {
     wasteTolerancePercent: number;
-    standardLaborCostPerHour: number;
     overheadRate: number;
   };
   sales: {

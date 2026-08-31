@@ -1,5 +1,7 @@
-import { generateIdempotencyKey, simulateNetworkLatency } from './NotificationService';
 import { Product, CrmContact } from '../types';
+
+const generateIdempotencyKey = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+const simulateNetworkLatency = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
 
 export interface PosSalePayload {
     cart: { id: string; product: Product; qty: number; colorNote?: string; isCunete?: boolean }[];

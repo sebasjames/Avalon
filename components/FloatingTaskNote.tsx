@@ -1,10 +1,11 @@
-import React from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { useUIStore } from '../stores/uiStore';
 import { X, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const FloatingTaskNote: React.FC = () => {
-    const { floatingNote, setFloatingNote, resolveNotification } = useEnterprise();
+    const { resolveNotification } = useEnterprise();
+    const { floatingNote, setFloatingNote } = useUIStore();
 
     return (
         <AnimatePresence>

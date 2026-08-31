@@ -287,7 +287,9 @@ export const CrmFull: React.FC = () => {
     };
     
     addContact(nc);
-    alert(`Nuevo Lead de WhatsApp simulado.\n\nAsignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedOwnerId}${crmSettings.autoAssignLeads ? ' (Asignación Automática - Round Robin)' : ' (Asignación Manual a Usuario Actual)'}`);
+    alert(`Nuevo Lead de WhatsApp simulado.
+
+Asignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedOwnerId}${crmSettings.autoAssignLeads ? ' (Asignación Automática - Round Robin)' : ' (Asignación Manual a Usuario Actual)'}`);
   };
 
   const handleAddDecisionMaker = () => {

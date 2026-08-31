@@ -1,4 +1,4 @@
-import { Product, InventoryStatus, Category, ABCClass, XYZClass, SalesRecord, Transfer, ProductionBatch, BatchStatus, Customer, SalesOrder, CustomerTier, ForecastDataPoint, DemandAlert, ActionOpportunity, Vendor, PurchaseSuggestion, SystemEvent, SystemSettings, CrmContact, CrmDeal, CrmActivity, CrmUser, CrmSettings, TaxRule, PricingRule, PaymentRule, Supplier } from './types';
+import { Product, InventoryStatus, Category, ABCClass, XYZClass, SalesRecord, Transfer, ProductionBatch, BatchStatus, Customer, SalesOrder, CustomerTier, ForecastDataPoint, DemandAlert, ActionOpportunity, Vendor, PurchaseSuggestion, SystemEvent, SystemSettings, CrmContact, CrmDeal, CrmActivity, CrmSettings, TaxRule, PricingRule, PaymentRule, Supplier } from './types';
 
 export const RETEFUENTE_RATE = 2.5;
 export const RETEICA_BOGOTA = 1.104;
@@ -13,7 +13,6 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   },
   production: {
     wasteTolerancePercent: 5,
-    standardLaborCostPerHour: 25,
     overheadRate: 15,
   },
   sales: {
@@ -94,7 +93,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
       { id: '17', regexTags: ['KA'], std: 'KA', factorToLiter: 1 },
       { id: '18', regexTags: ['TBD'], std: 'TBD', factorToLiter: 0 }
     ],
-    globalSkuPattern: '[BRAND][ORIGINAL]',
+    globalSkuPattern: '[PQ][CATEGORY][AUTO_NUM]',
     skuSeparator: '-'
   },
   notifications: {

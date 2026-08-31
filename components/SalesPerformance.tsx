@@ -6,9 +6,10 @@ import {
 import { 
     TrendingUp, Truck, AlertCircle, Ban, DollarSign, 
     CalendarClock, CheckCircle2, XCircle, ShoppingBag, 
-    ArrowRight
+    ArrowRight, Factory, Beaker
 } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { INVENTORY_DATA } from '../data/inventory';
 
 export const SalesPerformance: React.FC = () => {
     const { transactions, deals, contacts, dispatches } = useEnterprise();
@@ -118,6 +119,65 @@ export const SalesPerformance: React.FC = () => {
             if (totalOrdered > 0) globalFillRate = (totalDelivered / totalOrdered) * 100;
         }
 
+        // -- VOLUMETRIC LOGIC --
+        let totalLiters = 0;
+        let totalKilos = 0;
+        
+        filteredSales.forEach(tx => {
+            const product = INVENTORY_DATA.find(p => p.sku === tx.sku || p.originalSku === tx.sku || p.name === tx.productName);
+            let itemLiters = 0;
+            let itemKilos = 0;
+
+            if (product) {
+                const qty = tx.qty || 1;
+                const density = typeof product.density === 'number' ? product.density : parseFloat(product.density as string) || 1;
+                
+                if (product.netVolumeLiters) itemLiters = product.netVolumeLiters * qty;
+                else if (product.baseUnit === 'GL') itemLiters = qty * 3.785;
+                else if (product.baseUnit === 'LT') itemLiters = qty;
+                else if (product.baseUnit === 'KG') itemLiters = qty / density;
+
+                if (product.netWeightKg) itemKilos = product.netWeightKg * qty;
+                else if (product.baseUnit === 'KG') itemKilos = qty;
+                else if (product.baseUnit === 'GL') itemKilos = (qty * 3.785) * density;
+                else if (product.baseUnit === 'LT') itemKilos = qty * density;
+            }
+            totalLiters += itemLiters;
+            totalKilos += itemKilos;
+        });
+
+        // Add volume to trend data for comparison
+        const dynamicTrendDataWithVol = dynamicTrendData.map(d => {
+            const monthStr = d.month; // "Ene", "Feb", etc.
+            // We need to re-find the exact month string from the date to calculate volume
+            // But we already grouped by month inside dynamicTrendData. Let's just recalculate it quickly
+            const monthIndex = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].indexOf(monthStr);
+            let monthVolLiters = 0;
+            
+            if (monthIndex !== -1) {
+                const yearPrefix = now.getFullYear(); // Approximate, we could be more precise but this is a mock
+                sales.forEach(tx => {
+                    const dObj = new Date(tx.date);
+                    if (dObj.getMonth() === monthIndex) {
+                        const product = INVENTORY_DATA.find(p => p.sku === tx.sku || p.originalSku === tx.sku || p.name === tx.productName);
+                        if (product) {
+                            const qty = tx.qty || 1;
+                            const density = typeof product.density === 'number' ? product.density : parseFloat(product.density as string) || 1;
+                            if (product.netVolumeLiters) monthVolLiters += product.netVolumeLiters * qty;
+                            else if (product.baseUnit === 'GL') monthVolLiters += qty * 3.785;
+                            else if (product.baseUnit === 'LT') monthVolLiters += qty;
+                            else if (product.baseUnit === 'KG') monthVolLiters += qty / density;
+                        }
+                    }
+                });
+            }
+            
+            return {
+                ...d,
+                volume: Math.round(monthVolLiters)
+            };
+        });
+
         return {
             availableYears: availableYearsList,
             kpiData: {
@@ -126,9 +186,12 @@ export const SalesPerformance: React.FC = () => {
                 lostSales: lostSalesValue,
                 delayedSales: delayedSalesValue,
                 totalOrders: filteredSales.length,
-                delayedOrdersCount: delayedDeals.length
+                delayedOrdersCount: delayedDeals.length,
+                liters: totalLiters,
+                kilos: totalKilos,
+                gallons: totalLiters / 3.785
             },
-            trendData: dynamicTrendData,
+            trendData: dynamicTrendDataWithVol,
             delayedOrders: dynamicDelayedOrders,
             blockedCustomers: dynamicBlockedCustomers
         };
@@ -368,6 +431,69 @@ export const SalesPerformance: React.FC = () => {
                     </div>
                 </div>
 
+            </div>
+
+            {/* VOLUMETRIC PERFORMANCE MODULE */}
+            <div className="mt-8 space-y-6 border-t border-slate-200 pt-8">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2.5 bg-fuchsia-500/20 text-fuchsia-600 rounded-xl">
+                        <Factory className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-800">Rendimiento de Planta y Volumetría</h2>
+                        <p className="text-xs text-slate-500">Crecimiento Físico vs Financiero</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="bg-gradient-to-br from-indigo-50 to-white p-5 rounded-2xl shadow-sm border border-indigo-100 flex flex-col justify-between">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Volumen Total (Litros)</span>
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                                <Beaker className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-black text-slate-800">{kpiData.liters.toLocaleString('es-CO', {maximumFractionDigits: 1})} <span className="text-lg text-slate-500 font-medium">L</span></div>
+                            <div className="text-xs text-slate-500 mt-1">Eqv. {kpiData.gallons.toLocaleString('es-CO', {maximumFractionDigits: 1})} Galones</div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-orange-50 to-white p-5 rounded-2xl shadow-sm border border-orange-100 flex flex-col justify-between">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Tonelaje Total Movido</span>
+                            <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center">
+                                <Factory className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-black text-slate-800">{(kpiData.kilos / 1000).toLocaleString('es-CO', {maximumFractionDigits: 2})} <span className="text-lg text-slate-500 font-medium">Ton.</span></div>
+                            <div className="text-xs text-slate-500 mt-1">Eqv. {kpiData.kilos.toLocaleString('es-CO', {maximumFractionDigits: 1})} Kg</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Dinero vs Volumen Chart */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-6">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                        <TrendingUp className="w-5 h-5 mr-2 text-fuchsia-600"/>
+                        Dinero Capturado ($) vs Volumen Desplazado (L)
+                    </h3>
+                    <div className="h-72 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={trendData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                                <YAxis yAxisId="left" tickFormatter={(val) => `$${val}k`} orientation="left" axisLine={false} tickLine={false} />
+                                <YAxis yAxisId="right" tickFormatter={(val) => `${val} L`} orientation="right" axisLine={false} tickLine={false} />
+                                <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                                <Legend />
+                                <Bar yAxisId="left" dataKey="sales" name="Dinero Capturado ($k)" fill="#e2e8f0" radius={[4,4,0,0]} />
+                                <Line yAxisId="right" type="monotone" dataKey="volume" name="Litros Movidos (L)" stroke="#d946ef" strokeWidth={3} dot={{r:4}} />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
             </div>
         </div>
     );

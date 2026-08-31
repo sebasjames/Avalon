@@ -27,7 +27,8 @@ import {
   Edit2,
   UserPlus,
   Truck,
-  Sparkles
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings, TaxRule, PricingRule, PaymentRule, Supplier } from '../types';
@@ -39,12 +40,15 @@ export const Configuration: React.FC = () => {
     taxRules, setTaxRules, pricingRules, setPricingRules, paymentRules, setPaymentRules,
     systemUsers, addSystemUser, updateSystemUser, deleteSystemUser,
     suppliers, addSupplier, updateSupplier, deleteSupplier,
+    locations, addLocation, updateLocation, deleteLocation,
     crmSettings, updateCrmSettings
   } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'integraciones'>('integraciones');
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'locaciones' | 'integraciones'>('integraciones');
   const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const [supplierForm, setSupplierForm] = useState<Partial<Supplier>>({});
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
+  const [locationForm, setLocationForm] = useState<Partial<any>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -198,6 +202,7 @@ export const Configuration: React.FC = () => {
     { id: 'reglas', label: 'Reglas Comerciales', icon: Tags },
     { id: 'usuarios', label: 'Usuarios y Permisos', icon: Users },
     { id: 'proveedores', label: 'Proveedores', icon: Truck },
+    { id: 'locaciones', label: 'Locaciones', icon: MapPin },
     { id: 'integraciones', label: 'IA & Integraciones', icon: Sparkles },
   ];
 
@@ -625,13 +630,7 @@ export const Configuration: React.FC = () => {
                         suffix="%"
                         onChange={(v) => updateSetting('production', 'wasteTolerancePercent', parseFloat(v))}
                       />
-                      <ConfigInput
-                        label="Costo Laboral Estándar"
-                        description="Costo por hora de mano de obra"
-                        value={settings.production.standardLaborCostPerHour}
-                        prefix="$"
-                        onChange={(v) => updateSetting('production', 'standardLaborCostPerHour', parseFloat(v))}
-                      />
+
                       <ConfigInput
                         label="Tasa de Gastos Indirectos (Overhead)"
                         description="Porcentaje sobre costo directo"
@@ -659,14 +658,14 @@ export const Configuration: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                       <div className="lg:col-span-8">
                         <div className="bg-slate-950/50 min-h-[100px] rounded-2xl border-2 border-dashed border-slate-800 p-6 flex flex-wrap items-center gap-3">
-                          {(settings.formulation.globalSkuPattern.match(/\[[A-Z]+\]/g) || []).map((token, idx) => (
+                          {(settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).map((token, idx) => (
                               <div key={idx} className="flex items-center gap-3 animate-in zoom-in-95 duration-200">
                                 <div className="relative group/chip">
                                   <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-black text-sm shadow-xl flex items-center gap-2 border border-indigo-400/50">
                                     {token.replace('[', '').replace(']', '')}
                                     <button
                                       onClick={() => {
-                                        const currentTokens = settings.formulation.globalSkuPattern.match(/\[[A-Z]+\]/g) || [];
+                                        const currentTokens = settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || [];
                                         currentTokens.splice(idx, 1);
                                         updateSetting('formulation', 'globalSkuPattern', currentTokens.join(''));
                                       }}
@@ -677,14 +676,14 @@ export const Configuration: React.FC = () => {
                                   </div>
                                 </div>
                                 {/* Separador Visual */}
-                                {idx < (settings.formulation.globalSkuPattern.match(/\[[A-Z]+\]/g) || []).length - 1 && (
+                                {idx < (settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length - 1 && (
                                   <div className="text-slate-700 font-black text-xl italic">{settings.formulation.skuSeparator}</div>
                                 )}
                               </div>
                             ))}
 
                             {/* Botón de Ayuda / Placeholder */}
-                            {(settings.formulation.globalSkuPattern.match(/\[[A-Z]+\]/g) || []).length === 0 && (
+                            {(settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length === 0 && (
                               <div className="text-slate-600 text-sm italic py-2">Agrega bloques abajo para empezar a construir...</div>
                             )}
                           </div>
@@ -694,6 +693,9 @@ export const Configuration: React.FC = () => {
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Bloques Disponibles</span>
                             <div className="flex flex-wrap gap-2">
                               {[
+                                { id: '[PQ]', label: 'Prefijo Fijo (PQ)', icon: <Factory size={14} /> },
+                                { id: '[CATEGORY]', label: 'Categoría', icon: <Package size={14} /> },
+                                { id: '[AUTO_NUM]', label: 'Consecutivo', icon: <TrendingUp size={14} /> },
                                 { id: '[BRAND]', label: 'Proveedor / Marca', icon: <Tags size={14} /> },
                                 { id: '[PREFIX]', label: 'Sector / Prefijo', icon: <Beaker size={14} /> },
                                 { id: '[ORIGINAL]', label: 'Código Original', icon: <Scale size={14} /> },
@@ -722,10 +724,10 @@ export const Configuration: React.FC = () => {
                             <div>
                               <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-4">Resultado Avalon SKU</span>
                               <div className="text-2xl font-black font-mono text-white tracking-[0.2em] break-all leading-relaxed">
-                                {(settings.formulation.globalSkuPattern.match(/\[[A-Z]+\]/g) || []).length > 0 ? (
-                                  (settings.formulation.globalSkuPattern.match(/\[[A-Z]+\]/g) || []).map((t, i) => {
-                                    const val = t === '[BRAND]' ? 'ILVA' : t === '[PREFIX]' ? 'TZ' : t === '[ORIGINAL]' ? '110' : 'SOLVENTE';
-                                    return val + (i < (settings.formulation.globalSkuPattern.match(/\[[A-Z]+\]/g) || []).length - 1 ? settings.formulation.skuSeparator : '');
+                                {(settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length > 0 ? (
+                                  (settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).map((t, i) => {
+                                    const val = t === '[BRAND]' ? 'ILVA' : t === '[PREFIX]' ? 'TZ' : t === '[ORIGINAL]' ? '110' : t === '[PQ]' ? 'PQ' : t === '[CATEGORY]' ? 'LIM' : t === '[AUTO_NUM]' ? '001' : 'SOLVENTE';
+                                    return val + (i < (settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length - 1 ? settings.formulation.skuSeparator : '');
                                   })
                                 ) : (
                                   <span className="text-slate-700">ESPERANDO BLOQUES...</span>
@@ -1632,6 +1634,217 @@ export const Configuration: React.FC = () => {
                                     <Trash2 size={16} />
                                   </button>
                                 </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              {activeTab === 'locaciones' && (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800">Bodegas y Locaciones</h3>
+                      <p className="text-sm text-slate-500">Gestione sus sucursales, puntos de venta y bodegas de inventario.</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingLocationId('NEW');
+                        setLocationForm({ status: 'Activa', type: 'Punto de Venta' });
+                      }}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2 shadow-sm"
+                    >
+                      <Plus size={16} />
+                      Nueva Locación
+                    </button>
+                  </div>
+
+                  {editingLocationId === 'NEW' && (
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                      <h4 className="font-semibold text-slate-800">Crear Nueva Locación</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <ConfigInput
+                          label="Nombre de Locación"
+                          description="Ej. Sede Sur, Bodega 2"
+                          value={locationForm.name || ''}
+                          onChange={v => setLocationForm(prev => ({ ...prev, name: v }))}
+                        />
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-slate-700">Tipo de Locación</label>
+                          <select
+                            value={locationForm.type || 'Punto de Venta'}
+                            onChange={e => setLocationForm(prev => ({ ...prev, type: e.target.value as any }))}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                          >
+                            <option value="Bodega Principal">Bodega Principal</option>
+                            <option value="Punto de Venta">Punto de Venta</option>
+                            <option value="Planta de Producción">Planta de Producción</option>
+                            <option value="Bodega Satélite">Bodega Satélite</option>
+                          </select>
+                        </div>
+                        <ConfigInput
+                          label="Dirección"
+                          description="Dirección física"
+                          value={locationForm.address || ''}
+                          onChange={v => setLocationForm(prev => ({ ...prev, address: v }))}
+                        />
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-slate-700">Estado</label>
+                          <select
+                            value={locationForm.status || 'Activa'}
+                            onChange={e => setLocationForm(prev => ({ ...prev, status: e.target.value as any }))}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                          >
+                            <option value="Activa">Activa</option>
+                            <option value="Inactiva">Inactiva</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-3 pt-4">
+                        <button
+                          onClick={() => {
+                            setEditingLocationId(null);
+                            setLocationForm({});
+                          }}
+                          className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (!locationForm.name || !locationForm.address) return alert('Nombre y Dirección son requeridos');
+                            addLocation({
+                              id: `LOC-${Date.now()}`,
+                              name: locationForm.name,
+                              address: locationForm.address,
+                              type: locationForm.type as any,
+                              status: locationForm.status as any,
+                            });
+                            setEditingLocationId(null);
+                            setLocationForm({});
+                          }}
+                          className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg"
+                        >
+                          Guardar Locación
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                          <th className="p-4 font-semibold">Nombre</th>
+                          <th className="p-4 font-semibold">Tipo</th>
+                          <th className="p-4 font-semibold">Dirección</th>
+                          <th className="p-4 font-semibold">Estado</th>
+                          <th className="p-4 font-semibold text-right">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {locations.map(loc => (
+                          <tr key={loc.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-4">
+                              {editingLocationId === loc.id ? (
+                                <input
+                                  type="text"
+                                  className="border rounded p-1 w-full text-sm"
+                                  value={locationForm.name || ''}
+                                  onChange={e => setLocationForm(prev => ({ ...prev, name: e.target.value }))}
+                                />
+                              ) : (
+                                <span className="font-medium text-slate-800">{loc.name}</span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              {editingLocationId === loc.id ? (
+                                <select
+                                  className="border rounded p-1 w-full text-sm"
+                                  value={locationForm.type || ''}
+                                  onChange={e => setLocationForm(prev => ({ ...prev, type: e.target.value as any }))}
+                                >
+                                  <option value="Bodega Principal">Bodega Principal</option>
+                                  <option value="Punto de Venta">Punto de Venta</option>
+                                  <option value="Planta de Producción">Planta de Producción</option>
+                                  <option value="Bodega Satélite">Bodega Satélite</option>
+                                </select>
+                              ) : (
+                                <span className="text-sm text-slate-600 bg-slate-100 px-2 py-1 rounded-full">{loc.type}</span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              {editingLocationId === loc.id ? (
+                                <input
+                                  type="text"
+                                  className="border rounded p-1 w-full text-sm"
+                                  value={locationForm.address || ''}
+                                  onChange={e => setLocationForm(prev => ({ ...prev, address: e.target.value }))}
+                                />
+                              ) : (
+                                <span className="text-sm text-slate-600">{loc.address}</span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              {editingLocationId === loc.id ? (
+                                <select
+                                  className="border rounded p-1 w-full text-sm"
+                                  value={locationForm.status || ''}
+                                  onChange={e => setLocationForm(prev => ({ ...prev, status: e.target.value as any }))}
+                                >
+                                  <option value="Activa">Activa</option>
+                                  <option value="Inactiva">Inactiva</option>
+                                </select>
+                              ) : (
+                                <span className={`text-sm px-2 py-1 rounded-full ${loc.status === 'Activa' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                  {loc.status}
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4 text-right space-x-2">
+                              {editingLocationId === loc.id ? (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      updateLocation(loc.id, locationForm);
+                                      setEditingLocationId(null);
+                                    }}
+                                    className="text-emerald-600 hover:text-emerald-800 text-sm font-medium"
+                                  >
+                                    Guardar
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingLocationId(null)}
+                                    className="text-slate-500 hover:text-slate-700 text-sm"
+                                  >
+                                    Cancelar
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setEditingLocationId(loc.id);
+                                      setLocationForm({ ...loc });
+                                    }}
+                                    className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm('¿Seguro que desea eliminar esta locación?')) {
+                                        deleteLocation(loc.id);
+                                      }
+                                    }}
+                                    className="text-rose-600 hover:text-rose-800 text-sm font-medium"
+                                  >
+                                    Eliminar
+                                  </button>
+                                </>
                               )}
                             </td>
                           </tr>

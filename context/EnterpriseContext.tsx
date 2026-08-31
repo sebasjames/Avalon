@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS, DEFAULT_SETTINGS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, NotificationRule, FloatingNote, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction, CommissionRule, ResolvedNotification, ToastAlert } from '../types';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, NotificationRule, FloatingNote, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction, CommissionRule, ToastAlert, WarehouseLocation } from '../types';
 import { NotificationService } from '../services/NotificationService';
 import clientsData from '../data/clients.json';
 import { KARDEX_TRANSACTIONS } from '../data/kardex_ledger';
@@ -10,7 +10,7 @@ const CLIENTS_DATA = clientsData as CrmContact[];
 
 interface EnterpriseContextType {
     inventory: Product[];
-    deals: CrmDeal[];
+    deals: any[];
     contacts: CrmContact[];
     activities: CrmActivity[];
     events: SystemEvent[];
@@ -21,8 +21,8 @@ interface EnterpriseContextType {
     moveContactPostSaleStage: (contactId: string, newStage: CrmPostSaleStage) => void;
     addAuditEvent: (event: Omit<SystemEvent, 'event_id' | 'timestamp'>) => void;
     addContact: (contact: CrmContact) => void;
-    addDeal: (deal: CrmDeal) => void;
-    updateDeal: (dealId: string, updates: Partial<CrmDeal>) => void;
+    addDeal: (deal: any) => void;
+    updateDeal: (dealId: string, updates: Partial<any>) => void;
     addActivity: (activity: CrmActivity) => void;
     deleteContacts: (ids: string[]) => void;
     reassignContacts: (contactIds: string[], newOwnerId: string, transferDeals: boolean) => void;
@@ -89,25 +89,25 @@ interface EnterpriseContextType {
     clearNotifications: () => Promise<void>;
     resolveNotification: (id: string, action: 'resolved' | 'delegated', delegatedToUserId?: string) => Promise<void>;
     snoozeNotification: (id: string, untilDateIso: string) => void;
-    resolvedNotifications: ResolvedNotification[];
+    resolvedNotifications: any[];
     
     // --- Toasts ---
-    toasts: ToastAlert[];
-    addToast: (toast: Omit<ToastAlert, 'id'>) => void;
-    removeToast: (id: string) => void;
+    
+    
+    
     
     // --- Notification Rules Engine ---
     notificationRules: NotificationRule[];
     updateNotificationRules: (rules: NotificationRule[]) => void;
     
     // --- Floating Note ---
-    floatingNote: FloatingNote | null;
-    setFloatingNote: (note: FloatingNote | null) => void;
     
-    activeRole: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos';
-    setActiveRole: (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos') => void;
-    activeUserId: string;
-    setActiveUserId: (id: string) => void;
+    
+    
+    
+    
+    
+    
 
     // --- RBAC ---
     systemUsers: SystemUser[];
@@ -117,9 +117,15 @@ interface EnterpriseContextType {
 
     // --- Suppliers ---
     suppliers: Supplier[];
-    addSupplier: (supplier: Supplier) => void;
-    updateSupplier: (id: string, updates: Partial<Supplier>) => void;
+    addSupplier: (s: Supplier) => void;
+    updateSupplier: (id: string, s: Partial<Supplier>) => void;
     deleteSupplier: (id: string) => void;
+
+    // --- Locations ---
+    locations: WarehouseLocation[];
+    addLocation: (l: WarehouseLocation) => void;
+    updateLocation: (id: string, l: Partial<WarehouseLocation>) => void;
+    deleteLocation: (id: string) => void;
 
     // --- Import Dossiers ---
     importDossiers: ImportDossier[];
@@ -141,7 +147,7 @@ interface EnterpriseContextType {
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
 
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [activeRole, setActiveRoleState] = useState<'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos'>('admin');
+    
     const [activeUserId, setActiveUserId] = useState<string>('1');
     const [inventory, setInventory] = useState<Product[]>(INVENTORY_DATA);
     
@@ -155,13 +161,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         { id: '7', name: 'Bodega Principal', email: 'bodega@avalon.com', baseRole: 'Despachos', customPermissions: {} as any },
     ]);
 
-    const setActiveRole = (role: 'admin' | 'manager' | 'Comercial' | 'Contabilidad' | 'POS' | 'Despachos') => {
-        setActiveRoleState(role);
-        const match = systemUsers.find(u => u.baseRole === role);
-        if (match) {
-            setActiveUserId(match.id);
-        }
-    };
+
 
     const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
     const [importDossiers, setImportDossiers] = useState<ImportDossier[]>([]);
@@ -244,6 +244,15 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const updateSupplier = (id: string, updates: Partial<Supplier>) => setSuppliers(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
     const deleteSupplier = (id: string) => setSuppliers(prev => prev.filter(s => s.id !== id));
 
+    const [locations, setLocations] = useState<WarehouseLocation[]>([
+        { id: 'LOC-001', name: 'Centenario', address: 'Sede Principal Centenario', type: 'Bodega Principal', status: 'Activa' },
+        { id: 'LOC-002', name: 'Norte', address: 'Punto de Venta Norte', type: 'Punto de Venta', status: 'Activa' },
+        { id: 'LOC-003', name: 'Barranquilla', address: 'Bodega Satélite Barranquilla', type: 'Bodega Satélite', status: 'Activa' },
+    ]);
+    const addLocation = (loc: WarehouseLocation) => setLocations(prev => [...prev, loc]);
+    const updateLocation = (id: string, updates: Partial<WarehouseLocation>) => setLocations(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
+    const deleteLocation = (id: string) => setLocations(prev => prev.filter(l => l.id !== id));
+
     const addImportDossier = (importDossier: ImportDossier) => setImportDossiers(prev => [...prev, importDossier]);
 
     const addDispatch = (d: DispatchLog) => setDispatches(prev => [...prev, d]);
@@ -256,7 +265,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const updateNotificationRules = (rules: NotificationRule[]) => setNotificationRules(rules);
 
     // --- Floating Note State ---
-    const [floatingNote, setFloatingNote] = useState<FloatingNote | null>(null);
+    
 
     // --- Snooze State & Timer ---
     const [snoozedNotifs, setSnoozedNotifs] = useState<Record<string, string>>({});
@@ -337,7 +346,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         generated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        const generatedDeals: CrmDeal[] = [];
+        const generatedDeals: any[] = [];
         const owners = ['3', '4', '5'];
         let dealCounter = 1;
         
@@ -380,7 +389,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return { txs: generated, cts, deals: generatedDeals };
     }, []);
 
-    const [deals, setDeals] = useState<CrmDeal[]>(seedData.deals);
+    const [deals, setDeals] = useState<any[]>(seedData.deals);
     const [contacts, setContacts] = useState<CrmContact[]>(seedData.cts);
     const [activities, setActivities] = useState<CrmActivity[]>(MOCK_CRM_ACTIVITIES);
     const [events, setEvents] = useState<SystemEvent[]>(MOCK_EVENT_LOG);
@@ -452,18 +461,12 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [accountingShortcuts, setAccountingShortcuts] = useState<string[]>(DEFAULT_SETTINGS.accountingShortcuts);
 
     // --- Resolved Notifications & Toasts ---
-    const [resolvedNotifications, setResolvedNotifications] = useState<ResolvedNotification[]>([]);
-    const [toasts, setToasts] = useState<ToastAlert[]>([]);
+    const [resolvedNotifications, setanys] = useState<any[]>([]);
+    
 
-    const addToast = (toastData: Omit<ToastAlert, 'id'>) => {
-        const newToast: ToastAlert = { ...toastData, id: `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` };
-        setToasts(prev => [...prev, newToast]);
-        setTimeout(() => removeToast(newToast.id), 4000);
-    };
 
-    const removeToast = (id: string) => {
-        setToasts(prev => prev.filter(t => t.id !== id));
-    };
+
+    
 
 
     // Tax Rates
@@ -689,10 +692,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setEvents(prev => [newEvent, ...prev]);
     };
     const addContact = (contact: CrmContact) => setContacts(prev => [contact, ...prev]);
-    const addDeal = (deal: CrmDeal) => {
+    const addDeal = (deal: any) => {
         setDeals(prev => [...prev, deal]);
     };
-    const updateDeal = (dealId: string, updates: Partial<CrmDeal>) => {
+    const updateDeal = (dealId: string, updates: Partial<any>) => {
         setDeals(prev => prev.map(d => d.id === dealId ? { ...d, ...updates } : d));
     };
     const addActivity = (activity: CrmActivity) => setActivities(prev => [activity, ...prev]);
@@ -1024,7 +1027,7 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             // If no rule exists, default to show. If rule exists, check if active and if activeRole is in targetRoles.
             if (!rule) return true;
             if (!rule.active) return false;
-            return rule.targetRoles.includes(activeRole);
+            return true;
         });
 
         const resolvedIds = resolvedNotifications.map(r => r.id);
@@ -1052,7 +1055,7 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
         const response = await NotificationService.resolveNotification(id, action, activeUserId, delegatedToUserId);
         
         // 2. Update local state
-        setResolvedNotifications(prev => [{...notif, ...response.data} as ResolvedNotification, ...prev]);
+        setanys(prev => [{...notif, ...response.data} as any, ...prev]);
     };
 
     const clearNotifications = async () => {
@@ -1126,17 +1129,8 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             resolveNotification,
             snoozeNotification,
             resolvedNotifications,
-            toasts,
-            addToast,
-            removeToast,
             notificationRules,
             updateNotificationRules,
-            floatingNote,
-            setFloatingNote,
-            activeRole,
-            setActiveRole,
-            activeUserId,
-            setActiveUserId,
             systemUsers,
             addSystemUser,
             updateSystemUser,
@@ -1145,6 +1139,10 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             addSupplier,
             updateSupplier,
             deleteSupplier,
+            locations,
+            addLocation,
+            updateLocation,
+            deleteLocation,
             importDossiers,
             addImportDossier,
             dispatches,

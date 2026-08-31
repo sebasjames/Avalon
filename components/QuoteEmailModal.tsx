@@ -110,7 +110,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                         {cart.map((item, idx) => (
                                             <tr key={idx}>
                                                 <td className="py-2 text-slate-800 font-medium">{item.name}</td>
-                                                <td className="py-2 text-right">{item.quantity}</td>
+                                                <td className="py-2 text-right">{item.quantity} {item.product?.baseUnit || ''}</td>
                                                 <td className="py-2 text-right">{formatCOP(item.price)}</td>
                                                 <td className="py-2 text-right font-bold">{formatCOP(item.quantity * item.price)}</td>
                                             </tr>

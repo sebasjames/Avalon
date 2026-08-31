@@ -41,7 +41,7 @@ export const SalesTeamProfiles: React.FC = () => {
         });
         
         // Mock recent activity based on real activities or just random for visual if empty
-        const userActivities = activities.filter(a => a.actor_id === u.id);
+        const userActivities = activities.filter(a => a.ownerId === u.id);
         const recentActivity = [
             { day: 'Lun', calls: userActivities.filter(a=>a.type==='CALL').length || Math.floor(Math.random()*20), meetings: userActivities.filter(a=>a.type==='MEETING').length || Math.floor(Math.random()*5) },
             { day: 'Mar', calls: Math.floor(Math.random()*20), meetings: Math.floor(Math.random()*5) },

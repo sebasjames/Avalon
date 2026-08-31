@@ -1,0 +1,30 @@
+{
+  "updatedCount": 5,
+  "items": [
+    {
+      "file": "TDS--IPT1062B--ACABADO ACRILICO NEGRO MATE.json",
+      "baseSku": "IPT1062B",
+      "mixingInstructions": "IGH908:50"
+    },
+    {
+      "file": "TDS--IPT1090--PU-ACRILICO ACABADO TRANSPARENTE MATE.json",
+      "baseSku": "IPT1090",
+      "mixingInstructions": "IGH880:20"
+    },
+    {
+      "file": "TDS--IRPE6108--PE CLEAR SEALER.json",
+      "baseSku": "IRPE6108",
+      "mixingInstructions": "IH102:1-2.5|IH678:1-2.5|IPT1090:35"
+    },
+    {
+      "file": "TDS--IRSL8800--ACRYLIC WHITE HIGH GLOSS (UPDATED 2020).json",
+      "baseSku": "DA",
+      "mixingInstructions": "IGH863:80|DA:80"
+    },
+    {
+      "file": "TDS--PU ACABADO TRANSPARENTE MATE--IMPY9351.json",
+      "baseSku": "IMPY9351",
+      "mixingInstructions": "IMPH930:50"
+    }
+  ]
+}

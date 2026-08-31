@@ -115,6 +115,9 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
 
     const hasHistory = transactions.some(t => t.sku === currentProduct.sku);
 
+    // Margins Simulator State
+    const [opExPercent, setOpExPercent] = useState(15);
+
     // Edit State for Master Data
     const [masterCategory, setMasterCategory] = useState<Category>(currentProduct.category);
     const [masterFamily, setMasterFamily] = useState(currentProduct.family || '');
@@ -264,23 +267,95 @@ const ProductDrawer = ({ product, onClose }: { product: any, onClose: () => void
                             ))}
                         </div>
                     )}
-                    {activeTab === 'details' && (
-                        <div className="space-y-4">
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center">
-                                <div>
-                                    <div className="text-xs text-slate-500 font-bold mb-1">Valoración Total (Valor Costo)</div>
-                                    <div className="text-xl font-black text-slate-800">{formatCOP(value)}</div>
+                    {activeTab === 'details' && (() => {
+                        const cost = currentProduct.unitCost || 0;
+                        const price = currentProduct.price || 0;
+                        const grossMarginAmount = price - cost;
+                        const grossMarginPercent = price > 0 ? (grossMarginAmount / price) * 100 : 0;
+                        
+                        const opExAmount = price * (opExPercent / 100);
+                        const netMarginAmount = grossMarginAmount - opExAmount;
+                        const netMarginPercent = price > 0 ? (netMarginAmount / price) * 100 : 0;
+
+                        const isHealthy = netMarginPercent >= 20;
+                        const isWarning = netMarginPercent > 0 && netMarginPercent < 20;
+
+                        return (
+                            <div className="space-y-4">
+                                {/* Comparativa Básica */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Costo Base</div>
+                                        <div className="text-lg font-black text-slate-800">{formatCOP(cost)}</div>
+                                    </div>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                        <div className="text-[10px] text-blue-600 font-bold uppercase mb-1">Precio Sugerido</div>
+                                        <div className="text-lg font-black text-blue-900">{formatCOP(price)}</div>
+                                    </div>
                                 </div>
-                                <Activity className="w-8 h-8 text-slate-300" />
+
+                                {/* Margen Bruto */}
+                                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex justify-between items-center">
+                                    <div>
+                                        <div className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Margen Bruto</div>
+                                        <div className="text-2xl font-black text-emerald-900">{formatCOP(grossMarginAmount)}</div>
+                                    </div>
+                                    <div className="text-xl font-black text-emerald-600">{grossMarginPercent.toFixed(1)}%</div>
+                                </div>
+
+                                {/* Simulador Margen Neto */}
+                                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase">Simulador de Gastos Operativos</div>
+                                        <div className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded">{opExPercent}%</div>
+                                    </div>
+                                    
+                                    <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="50" 
+                                        step="1"
+                                        value={opExPercent} 
+                                        onChange={(e) => setOpExPercent(Number(e.target.value))}
+                                        className="w-full accent-indigo-600 mb-4"
+                                    />
+                                    
+                                    <div className={`p-4 rounded-lg flex justify-between items-center transition-colors ${
+                                        isHealthy ? 'bg-emerald-50 border border-emerald-100' :
+                                        isWarning ? 'bg-amber-50 border border-amber-100' :
+                                        'bg-rose-50 border border-rose-100'
+                                    }`}>
+                                        <div>
+                                            <div className={`text-[10px] font-bold uppercase mb-1 ${
+                                                isHealthy ? 'text-emerald-600' : isWarning ? 'text-amber-600' : 'text-rose-600'
+                                            }`}>Margen Neto Estimado</div>
+                                            <div className={`text-xl font-black ${
+                                                isHealthy ? 'text-emerald-900' : isWarning ? 'text-amber-900' : 'text-rose-900'
+                                            }`}>{formatCOP(netMarginAmount)}</div>
+                                        </div>
+                                        <div className={`text-lg font-black ${
+                                                isHealthy ? 'text-emerald-600' : isWarning ? 'text-amber-600' : 'text-rose-600'
+                                        }`}>{netMarginPercent.toFixed(1)}%</div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center mt-4">
+                                    <div>
+                                        <div className="text-xs text-slate-500 font-bold mb-1">Valoración Total en Bodega (Costo)</div>
+                                        <div className="text-lg font-black text-slate-800">{formatCOP(value)}</div>
+                                    </div>
+                                    <Activity className="w-6 h-6 text-slate-300" />
+                                </div>
+
+                                <button 
+                                    onClick={() => { navigate('/intelligence'); }}
+                                    className="w-full py-3 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors mt-2"
+                                >
+                                    <Cpu className="w-4 h-4" /> Ejecutar Análisis de IA
+                                </button>
                             </div>
-                            <button 
-                                onClick={() => { navigate('/intelligence'); }}
-                                className="w-full py-3 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
-                            >
-                                <Cpu className="w-4 h-4" /> Ejecutar Análisis de IA
-                            </button>
-                        </div>
-                    )}
+                        );
+                    })()}
                     {activeTab === 'master' && (
                         <div className="space-y-4">
                             {hasHistory && (
@@ -556,8 +631,8 @@ const normalizeBrand = (b?: string) => {
     return trimmed;
 };
 
-export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' | 'IMPORTADA' | 'FERRETERIA' }> = ({ segmentFilter = 'ALL' }) => {
-    const { inventory, updateInventoryProduct, transactions, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch } = useEnterprise();
+export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segmentFilter = 'ALL' }) => {
+    const { inventory, updateInventoryProduct, transactions, tintometricRules, reverseDisplayRules, globalInventorySearch, setGlobalInventorySearch, locations } = useEnterprise();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number; barcode?: string; taxRate?: number; category?: Category; family?: string; brand?: string; minStock?: number; }>>({});
@@ -605,7 +680,8 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
         { id: 'flashPoint', label: 'Punto Inflam.' },
         { id: 'unNumber', label: 'ONU' },
         { id: 'appearance', label: 'Apariencia' },
-        { id: 'solidContent', label: 'Sólidos %' },
+        { id: 'solidContent', label: 'Sólidos % (Peso)' },
+        { id: 'solidVolume', label: 'Sólidos % (Volumen)' },
         { id: 'hazards', label: 'Peligros' },
         { id: 'components', label: 'Componentes' }
     ], []);
@@ -764,9 +840,14 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
             }
 
             if (segmentFilter !== 'ALL') {
-                if (segmentFilter === 'NACIONAL' && item.category !== Category.RAW_MATERIAL) return false;
-                if (segmentFilter === 'IMPORTADA' && item.category !== Category.RAW_MATERIAL_IMPORTADA) return false;
-                if (segmentFilter === 'FERRETERIA' && item.category !== Category.HARDWARE) return false;
+                const activeLocation = locations.find(l => l.id === segmentFilter);
+                if (activeLocation) {
+                    const hasStockInLoc = item.batches.some(b => 
+                        b.location.toLowerCase().includes(activeLocation.name.toLowerCase()) ||
+                        (activeLocation.name === 'Centenario' && b.location.toLowerCase().includes('bodega principal'))
+                    );
+                    if (!hasStockInLoc) return false;
+                }
             }
 
             if (selectedFamilies.length > 0) {
@@ -1037,7 +1118,8 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                             {visibleCols.includes('flashPoint') && <th className="p-4 text-center">Punto Inflam.</th>}
                                             {visibleCols.includes('unNumber') && <th className="p-4 text-center">ONU</th>}
                                             {visibleCols.includes('appearance') && <th className="p-4">Apariencia</th>}
-                                            {visibleCols.includes('solidContent') && <th className="p-4 text-center">Sólidos %</th>}
+                                            {visibleCols.includes('solidContent') && <th className="p-4 text-center">Sólidos (Peso)</th>}
+                                            {visibleCols.includes('solidVolume') && <th className="p-4 text-center">Sólidos (Vol)</th>}
                                             {visibleCols.includes('hazards') && <th className="p-4 text-center">Peligros</th>}
                                             {visibleCols.includes('components') && <th className="p-4 text-center">Componentes</th>}
                                         </tr>
@@ -1069,6 +1151,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                     {visibleCols.includes('unNumber') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
                                                     {visibleCols.includes('appearance') && <td className="p-4"><div className="w-16 h-4 bg-slate-200 rounded"></div></td>}
                                                     {visibleCols.includes('solidContent') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
+                                                    {visibleCols.includes('solidVolume') && <td className="p-4 text-center"><div className="w-10 h-4 bg-slate-200 rounded mx-auto"></div></td>}
                                                     {visibleCols.includes('hazards') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
                                                     {visibleCols.includes('components') && <td className="p-4 text-center"><div className="w-8 h-4 bg-slate-200 rounded mx-auto"></div></td>}
                                                 </tr>
@@ -1298,6 +1381,11 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: 'ALL' | 'NACIONAL' |
                                                         {visibleCols.includes('solidContent') && (
                                                             <td className="p-4 text-center text-slate-500 font-mono text-xs font-bold">
                                                                 {p.solidContent || '-'}
+                                                            </td>
+                                                        )}
+                                                        {visibleCols.includes('solidVolume') && (
+                                                            <td className="p-4 text-center text-slate-500 font-mono text-xs font-bold">
+                                                                {p.solidVolume || '-'}
                                                             </td>
                                                         )}
                                                         {visibleCols.includes('hazards') && (

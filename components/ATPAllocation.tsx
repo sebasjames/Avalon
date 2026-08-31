@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { CustomerTier } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';

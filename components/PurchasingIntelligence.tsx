@@ -8,10 +8,11 @@ import {
 } from 'lucide-react';
 
 export const PurchasingIntelligence: React.FC = () => {
-    const { inventory, kardexTransactions } = useEnterprise();
+    const { inventory, kardexTransactions, locations } = useEnterprise();
+    const activeLocations = locations.filter(l => l.status === 'Activa');
     const [suggestions, setSuggestions] = useState<PurchaseSuggestion[]>([]);
     const [selectedSuggestion, setSelectedSuggestion] = useState<string | null>(null);
-    const [segmentFilter, setSegmentFilter] = useState<'ALL' | 'NACIONAL' | 'IMPORTADA' | 'FERRETERIA'>('ALL');
+    const [segmentFilter, setSegmentFilter] = useState<string>('ALL');
     const [viewMode, setViewMode] = useState<'SUGGESTIONS' | 'APPROVALS'>('SUGGESTIONS');
 
     const handleCalculateSuggestions = () => {
@@ -28,7 +29,7 @@ export const PurchasingIntelligence: React.FC = () => {
                 ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
                 
                 const recentOuts = kardexTransactions
-                    .filter(t => t.sku === item.sku && t.type === 'OUT' && new Date(t.date) >= ninetyDaysAgo)
+                    .filter(t => (t as any).sku === item.sku && t.type === 'Salida' && new Date(t.date) >= ninetyDaysAgo)
                     .reduce((sum, t) => sum + t.quantity, 0);
                     
                 const isSilent = recentOuts === 0;
@@ -84,10 +85,14 @@ export const PurchasingIntelligence: React.FC = () => {
         if (segmentFilter !== 'ALL') {
             const inventoryItem = inventory.find(i => i.sku === s.skuId);
             if (!inventoryItem) return false;
-            
-            if (segmentFilter === 'NACIONAL' && inventoryItem.category !== Category.RAW_MATERIAL) return false;
-            if (segmentFilter === 'IMPORTADA' && inventoryItem.category !== Category.RAW_MATERIAL_IMPORTADA) return false;
-            if (segmentFilter === 'FERRETERIA' && inventoryItem.category !== Category.HARDWARE) return false;
+            const activeLocation = locations.find(l => l.id === segmentFilter);
+            if (activeLocation) {
+                const hasLocation = inventoryItem.batches.some(b => 
+                    b.location.toLowerCase().includes(activeLocation.name.toLowerCase()) ||
+                    (activeLocation.name === 'Centenario' && b.location.toLowerCase().includes('bodega principal'))
+                );
+                if (!hasLocation) return false;
+            }
         }
         
         return true;
@@ -194,30 +199,21 @@ export const PurchasingIntelligence: React.FC = () => {
                 {/* Segment Filter Tabs */}
                 <div className="flex flex-wrap gap-2 bg-white p-2 rounded-xl border border-slate-200/50 shadow-sm w-full md:w-max">
                     <button 
-                    onClick={() => setSegmentFilter('ALL')}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${segmentFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'}`}
-                >
-                    Todas las Compras
-                </button>
-                <button 
-                    onClick={() => setSegmentFilter('NACIONAL')}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'NACIONAL' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'text-slate-500 hover:bg-slate-50'}`}
-                >
-                    🇨🇴 Nacional
-                </button>
-                <button 
-                    onClick={() => setSegmentFilter('IMPORTADA')}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'IMPORTADA' ? 'bg-sky-600 text-white shadow-md shadow-sky-200' : 'text-slate-500 hover:bg-slate-50'}`}
-                >
-                    🚢 Importada
-                </button>
-                <button 
-                    onClick={() => setSegmentFilter('FERRETERIA')}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === 'FERRETERIA' ? 'bg-amber-600 text-white shadow-md shadow-amber-200' : 'text-slate-500 hover:bg-slate-50'}`}
-                >
-                    🔧 Ferretería
-                </button>
-            </div>
+                        onClick={() => setSegmentFilter('ALL')}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${segmentFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        Todas las Compras
+                    </button>
+                    {activeLocations.map(loc => (
+                        <button 
+                            key={loc.id}
+                            onClick={() => setSegmentFilter(loc.id)}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${segmentFilter === loc.id ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                        >
+                            {loc.name}
+                        </button>
+                    ))}
+                </div>
             <button 
                 onClick={handleCalculateSuggestions}
                 className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2 whitespace-nowrap"

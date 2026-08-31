@@ -1,0 +1,49 @@
+{
+  "totalFilesProcessed": 562,
+  "structures": {
+    "raw_json_extractions": {
+      "filesCount": 143,
+      "keyFrequencies": {
+        "fileName": 143,
+        "fileType": 143,
+        "extractedAt": 143,
+        "rawText": 143
+      }
+    },
+    "raw_json_extractions_barpimo": {
+      "filesCount": 145,
+      "keyFrequencies": {
+        "filename": 145,
+        "type": 145,
+        "sku": 145,
+        "name": 145,
+        "density": 75,
+        "appearance": 75,
+        "raw_text_snippet": 145,
+        "hazards": 70,
+        "chemicalComponents": 70,
+        "flashPoint": 70,
+        "unNumber": 70,
+        "raw_components_block": 70
+      }
+    },
+    "raw_json_extractions_ilva": {
+      "filesCount": 247,
+      "keyFrequencies": {
+        "productName": 247,
+        "density": 197,
+        "solidContent": 182
+      }
+    },
+    "raw_json_extractions_procoquinal": {
+      "filesCount": 27,
+      "keyFrequencies": {
+        "productName": 27,
+        "density": 9,
+        "solidContent": 5,
+        "solidVolume": 1
+      }
+    }
+  },
+  "mixDataSamples": []
+}

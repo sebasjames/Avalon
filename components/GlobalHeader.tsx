@@ -7,14 +7,15 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { useAuthStore } from '../stores/authStore';
 import { MOCK_OPPORTUNITIES } from '../constants';
 
 export const GlobalHeader: React.FC = () => {
     const {
         contacts, getActiveNotifications, setGlobalSelectedContactId,
-        globalInventorySearch, setGlobalInventorySearch, clearNotifications,
-        activeRole, setActiveRole
+        globalInventorySearch, setGlobalInventorySearch, clearNotifications
     } = useEnterprise();
+    const { activeRole, setActiveRole } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
     const pendingCount = MOCK_OPPORTUNITIES.filter(o => o.status === 'PENDING').length;
@@ -331,7 +332,7 @@ export const GlobalHeader: React.FC = () => {
 
                     {isRoleMenuOpen && (
                         <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden py-1 z-50">
-                            {['admin', 'manager', 'Comercial', 'Contabilidad', 'POS', 'Despachos'].map((role) => (
+                            {['admin', 'manager', 'Comercial', 'Contabilidad', 'POS', 'Despachos', 'Mezclas'].map((role) => (
                                 <button
                                     key={role}
                                     onClick={() => {

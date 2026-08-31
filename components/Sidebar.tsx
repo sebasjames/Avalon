@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { useAuthStore } from '../stores/authStore';
 import { 
     LayoutDashboard, PackageSearch, BrainCircuit, FlaskConical, LineChart, 
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
     PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
-    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck, Droplet, Beaker
+    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck, Droplet, Beaker, BarChart3
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -15,7 +16,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) => {
-  const { activeRole } = useEnterprise();
+  const { } = useEnterprise();
+  const { activeRole } = useAuthStore();
   const location = useLocation();
   const isPos = location.pathname === '/pos';
   const [openGroups, setOpenGroups] = useState<string[]>([]);
@@ -30,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
   const financeGroup = {
       label: "Finanzas & Inteligencia",
       children: [
+          { to: "/informes-omar", icon: FileSpreadsheet, label: "Informes Omar" },
           { to: "/informes-pedido", icon: FileSpreadsheet, label: "Informes de Pedido" },
           { to: "/forecast", icon: PieChart, label: "Proyecciones y Planeación" },
           { to: "/action-center", icon: Zap, label: "Centro de Acción / Alertas" },
@@ -48,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
   // Auto-open groups if active route is inside them
   useEffect(() => {
     const operationPaths = ['/inventory', '/inventory-control', '/production'];
-    const financePaths = ['/financial', '/informes-pedido', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center', '/accounting/auditoria'];
+    const financePaths = ['/financial', '/informes-pedido', '/informes-omar', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center', '/accounting/auditoria'];
     const salesPaths = ['/crm', '/sales-performance', '/atp', '/pos'];
     const staffPaths = ['/staff/sales-profiles', '/staff/gestion-comercial'];
     const accountingPaths = ['/accounting', '/returns'];
@@ -154,6 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         icon: Truck,
         children: [
             { to: "/dispatch", icon: Truck, label: "Tablero de Despachos" },
+            { to: "/dispatch-reports", icon: BarChart3, label: "Informe de Despachos" }
         ]
     },
   ];
@@ -182,7 +186,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         {navStructure.map(group => {
             if (activeRole === 'admin' || activeRole === 'manager') return group;
             if (activeRole === 'Contabilidad') {
-                if (group.label === 'Contabilidad') return group;
                 if (group.label === 'Operación') {
                     return {
                         ...group,
@@ -219,10 +222,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
                 if (group.label === 'Operación') {
                     return {
                         ...group,
-                        children: group.children.filter((c: any) => c.to === '/mezclas' || c.to === '/inventory-hub' || c.to === '/tintometria')
+                        children: group.children.filter((c: any) => c.to === '/mezclas' || c.to === '/inventory-hub')
                     };
                 }
-                if (group.label === 'Despachos & Logística') return group;
                 return null;
             }
             return null;
