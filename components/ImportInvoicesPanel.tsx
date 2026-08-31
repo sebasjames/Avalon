@@ -43,7 +43,6 @@ export const ImportInvoicesPanel: React.FC = () => {
     const [successMsg, setSuccessMsg] = useState('');
 
   // Escape key hooks
-  useEscapeKey(() => setShowImportModal(false), showImportModal);
 
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>) => {

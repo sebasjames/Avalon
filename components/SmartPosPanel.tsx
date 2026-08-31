@@ -144,10 +144,6 @@ export const SmartPosPanel: React.FC = () => {
   useEscapeKey(() => setShowChemicalPanel(false), showChemicalPanel);
   useEscapeKey(() => setShowSuccess(false), showSuccess);
   useEscapeKey(() => setShowExpenseModal(false), showExpenseModal);
-  useEscapeKey(() => setShowDiscountModal(false), showDiscountModal);
-  useEscapeKey(() => setShowClientModal(false), showClientModal);
-  useEscapeKey(() => setShowRecentSales(false), showRecentSales);
-  useEscapeKey(() => setShowGhostSuggestions(false), showGhostSuggestions);
 
 
     const handleCreateClient = () => {

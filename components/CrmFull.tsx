@@ -97,8 +97,6 @@ export const CrmFull: React.FC = () => {
   const [purchaseExpectation, setPurchaseExpectation] = useState('');
 
   // Escape key hooks
-  useEscapeKey(() => setShowNewContact(false), showNewContact);
-  useEscapeKey(() => setShowGlobalSearch(false), showGlobalSearch);
 
 
   // Derived filtered data

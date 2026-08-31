@@ -26,7 +26,6 @@ export const CrmDashboard: React.FC = () => {
   const [selectedPatternClients, setSelectedPatternClients] = useState<{id: string, label: string} | null>(null);
 
   // Escape key hooks
-  useEscapeKey(() => setShowNewContact(false), showNewContact);
 
 
   return (

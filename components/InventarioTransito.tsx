@@ -55,8 +55,6 @@ export const InventarioTransito: React.FC = () => {
     const [error, setError] = useState('');
 
   // Escape key hooks
-  useEscapeKey(() => setShowForm(false), showForm);
-  useEscapeKey(() => setShowConfirm(null), !!showConfirm);
 
 
     const handleAssign = (receiptId: string, itemId: string, location: string) => {

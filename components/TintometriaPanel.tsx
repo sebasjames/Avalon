@@ -18,7 +18,6 @@ export const TintometriaPanel: React.FC = () => {
   const [authError, setAuthError] = useState('');
 
   // Escape key hooks
-  useEscapeKey(() => setShowImportModal(false), showImportModal);
 
 
   const currentData = data[activeTab] || [];

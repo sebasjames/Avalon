@@ -35,8 +35,6 @@ export const ConciliacionDatafonoTab: React.FC<ConciliacionDatafonoTabProps> = (
     const [isProcessingAI, setIsProcessingAI] = useState(false);
 
   // Escape key hooks
-  useEscapeKey(() => setShowUploadModal(false), showUploadModal);
-  useEscapeKey(() => setSelectedMatch(null), !!selectedMatch);
 
 
     // AI suggestion logic

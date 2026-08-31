@@ -690,7 +690,6 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
 
   // Escape key hooks
   useEscapeKey(onClose, isOpen);
-  useEscapeKey(() => setShowProductForm(false), showProductForm);
   useEscapeKey(() => setShowExcelModal(false), showExcelModal);
 
 

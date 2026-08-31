@@ -140,8 +140,6 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   const [reassignTransferDeals, setReassignTransferDeals] = useState(true);
 
   // Escape key hooks
-  useEscapeKey(() => setShowDeleteConfirm(null), !!showDeleteConfirm);
-  useEscapeKey(() => setShowContactModal(false), showContactModal);
 
 
   const filteredContacts = contacts.filter(c => {

@@ -25,7 +25,6 @@ export const ReturnsPanel: React.FC = () => {
     const [authId, setAuthId] = useState('');
 
   // Escape key hooks
-  useEscapeKey(() => setShowForm(false), showForm);
 
 
     const filteredContacts = contacts.filter(c => 

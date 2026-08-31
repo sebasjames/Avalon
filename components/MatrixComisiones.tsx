@@ -137,7 +137,6 @@ export const MatrixComisiones: React.FC = () => {
   });
 
   // Escape key hooks
-  useEscapeKey(() => setShowEditModal(false), showEditModal);
 
   const handleCreateRule = () => {
     addCommissionRule({

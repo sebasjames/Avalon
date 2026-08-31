@@ -215,9 +215,7 @@ export const AccountingModule: React.FC = () => {
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
   // Escape key hooks
-  useEscapeKey(() => setShowFilterModal(false), showFilterModal);
   useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
-  useEscapeKey(() => setShowExpenseModal(false), showExpenseModal);
 
     const activeReport = useMemo(() => {
         if (selectedReportId) {

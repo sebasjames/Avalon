@@ -67,7 +67,6 @@ export const InventoryControlDeep: React.FC = () => {
     const [historyModalBatch, setHistoryModalBatch] = useState<FlattenedBatch | null>(null);
 
   // Escape key hooks
-  useEscapeKey(() => setShowMovementModal(false), showMovementModal);
 
 
     // 1. Flatten Data Structure for Table
