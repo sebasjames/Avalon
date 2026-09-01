@@ -1,9 +1,9 @@
 // @ts-nocheck
-import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { useAuthStore } from '../stores/authStore';
 import { usePosShortcuts } from '../hooks/usePosShortcuts';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
     Search, ShoppingCart, Users, Tag, AlertTriangle, ShieldCheck, 
@@ -16,8 +16,7 @@ import { Product, CrmContact, CustomerTier } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
 import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
 import { QuoteEmailModal } from './QuoteEmailModal';
-
-
+import { PosReceiptModal, PosReceiptData } from './PosReceiptModal';
 
 export const SmartPosPanel: React.FC = () => {
     const { activeUserId } = useAuthStore();
@@ -30,100 +29,19 @@ export const SmartPosPanel: React.FC = () => {
         contacts, tintometricRules, reverseDisplayRules, fractionalRules, addTransaction,
         taxRates, updateContact, addContact
     } = useEnterprise();
-    const [expandedItems, setExpandedItems] = useState<string[]>([]);
-    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-    const [recentColors, setRecentColors] = useState<string[]>([]);
-
-    const isReversedDisplay = (product: Product) => {
-        const s = (product.sku || '').toUpperCase();
-        const n = (product.name || '').toUpperCase();
-        const b = (product.brand || '').toUpperCase();
-        const f = (product.family || '').toUpperCase();
-        return (reverseDisplayRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
-    };
-
-    const isTintometric = (product: Product) => {
-        const type = product.tintometricBaseType;
-        return !!type && type.trim().toUpperCase() !== 'N/A' && type.trim() !== '';
-    };
-
-
-
-    const isFractionalEligible = (product: Product) => {
-        const s = (product.sku || '').toUpperCase();
-        const n = (product.name || '').toUpperCase();
-        const b = (product.brand || '').toUpperCase();
-        const f = (product.family || '').toUpperCase();
-        return (fractionalRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
-    };
 
     const [search, setSearch] = useState('');
-    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string;  }[]>([]);
+    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string; }[]>([]);
     const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(null);
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
     const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
     const [showChemicalPanel, setShowChemicalPanel] = useState(false);
     const [customerSearch, setCustomerSearch] = useState('');
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
-    
-    const customerDropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
-                setIsCustomerDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-    
-    const filteredContacts = useMemo(() => {
-        if (!customerSearch) return contacts;
-        const term = customerSearch.toLowerCase();
-        return contacts.filter(c => 
-            c.name.toLowerCase().includes(term) || 
-            c.company.toLowerCase().includes(term) || 
-            (c.documentNumber && c.documentNumber.includes(term))
-        );
-    }, [contacts, customerSearch]);
-    
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(() => {
-        const card = paymentMethods?.find(p => p.toLowerCase().includes('tarjeta'));
-        return card || (paymentMethods?.length > 0 ? paymentMethods[0] : 'Tarjeta');
-    });
-    
-    const [selectedPointOfSale, setSelectedPointOfSale] = useState<string>(() => {
-        return pointsOfSale?.length > 0 ? pointsOfSale[0] : '';
-    });
-
-    const [isMarginMode, setIsMarginMode] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const colorsByBaseType = useMemo(() => {
-        const map: Record<string, string[]> = {};
-        try {
-            Object.entries(tintometriaData).forEach(([tabName, tabData]: [string, any]) => {
-                const colorSet = new Set<string>();
-                if (Array.isArray(tabData)) {
-                    tabData.forEach(row => {
-                        if (row && typeof row === 'object' && row['Colore']) {
-                            colorSet.add(String(row['Colore']).toUpperCase());
-                        }
-                    });
-                }
-                const colors = Array.from(colorSet).sort();
-                const defaults = ['RAL 9010', 'RAL 9005', 'BLANCO NIEVE'];
-                map[tabName] = Array.from(new Set([...defaults, ...colors]));
-            });
-        } catch (e) {
-            console.error("Error parsing colors:", e);
-        }
-        return map;
-    }, []);
-
-    // --- NUEVO: ESTADO REGISTRO DE GASTOS POS (CAJA MENOR EN TIEMPO REAL) ---
+    const [completedReceiptData, setCompletedReceiptData] = useState<PosReceiptData | null>(null);
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [recentColors, setRecentColors] = useState<string[]>([]);
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [expenseConcept, setExpenseConcept] = useState('');
     const [expenseAmount, setExpenseAmount] = useState('');
@@ -597,6 +515,8 @@ export const SmartPosPanel: React.FC = () => {
         }
 
         try {
+            const idempotencyKey = `idempotency_pos_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
             // --- CONECTAR CON SERVICIO CLOUD (IDEMPOTENCIA & LATENCIA) ---
             const response = await PosService.processSale({
                 cart,
@@ -608,13 +528,29 @@ export const SmartPosPanel: React.FC = () => {
                 total,
                 isCreditSale,
                 discountPercent,
-                activeUserId: activeUserId
+                activeUserId: activeUserId,
+                idempotencyKey
             });
 
             // Si falla, arrojará excepción y no continuará. Si no, actualizamos estado local.
             const invoiceId = response.transactionId;
             const dateStr = response.timestamp.split('T')[0];
-            
+            const timeStr = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+            const cufeHash = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+            const receiptCartItems = cart.map(item => {
+                const price = (rawMaterialCategories || []).includes(item.product.category) ? item.product.unitCost * 1.3 : item.product.price;
+                const appliedPrice = activeCustomer ? price * (1 - discountPercent / 100) : price;
+                return {
+                    sku: item.product.sku,
+                    name: item.product.name,
+                    qty: item.qty,
+                    unitPrice: appliedPrice,
+                    totalPrice: appliedPrice * item.qty,
+                    colorNote: item.colorNote
+                };
+            });
+
             cart.forEach(item => {
                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
                 const multiplier = 1;
@@ -644,7 +580,6 @@ export const SmartPosPanel: React.FC = () => {
 
                 // Registrar transacción en Sábana General
                 let prodName = item.product.name + (item.colorNote ? ` [${item.colorNote}]` : '');
-                
 
                 addTransaction({
                     id: invoiceId,
@@ -675,6 +610,28 @@ export const SmartPosPanel: React.FC = () => {
                 updateContact(activeCustomer.id, { accountBalance: (activeCustomer.accountBalance || 0) - total });
             }
 
+            const receiptPayload: PosReceiptData = {
+                invoiceId,
+                idempotencyKey,
+                cufe: cufeHash,
+                date: dateStr,
+                time: timeStr,
+                clientName: activeCustomer ? activeCustomer.name : 'Consumidor Final',
+                clientDocument: activeCustomer ? `${activeCustomer.documentType || 'NIT'} ${activeCustomer.documentNumber}` : '222222222-2',
+                clientAddress: activeCustomer ? activeCustomer.address : 'Bogotá D.C.',
+                posLocation: selectedPointOfSale || 'PTV-01 Principal',
+                cashierName: systemUsers?.find(u => u.id === activeUserId)?.name || 'Cajero Principal',
+                paymentMethod: selectedPaymentMethod,
+                cart: receiptCartItems,
+                subtotal: subtotal - discountAmount,
+                discountAmount,
+                ivaAmount: taxes,
+                reteFuenteAmount: retenciones.reteFuente,
+                reteIcaAmount: retenciones.reteIca,
+                total
+            };
+
+            setCompletedReceiptData(receiptPayload);
             setShowSuccess(true);
             setTimeout(() => {
                 setShowSuccess(false);
@@ -1757,6 +1714,15 @@ export const SmartPosPanel: React.FC = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* POS Receipt Modal (80mm Starpos TP80NC Format) */}
+            {completedReceiptData && (
+                <PosReceiptModal
+                    isOpen={!!completedReceiptData}
+                    onClose={() => setCompletedReceiptData(null)}
+                    data={completedReceiptData}
+                />
+            )}
 
         </div>
     );
