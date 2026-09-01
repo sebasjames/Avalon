@@ -61,7 +61,6 @@ export const GlobalHeader: React.FC = () => {
         const path = location.pathname;
         if (path === '/') return { title: 'Torre de Control Operativo', icon: LayoutGrid };
         if (path === '/crm') return { title: 'CRM Corporativo', icon: Users };
-        if (path === '/crm/hobbies') return { title: 'Afinidades y Hobbies', icon: Heart };
         if (path === '/pos') return { title: 'Punto de Venta | B2B', icon: ShoppingCart };
         if (path.includes('/inventory-hub')) return { title: 'Centro de Inventarios', icon: Package };
         if (path === '/sales-performance') return { title: 'Desempeño de Ventas', icon: TrendingUp };
