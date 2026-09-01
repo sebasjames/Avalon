@@ -1,7 +1,8 @@
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
-import { Pencil, Save, X, Lock, AlertCircle } from 'lucide-react';
+import { Pencil, Save, X, Lock, AlertCircle, Printer } from 'lucide-react';
 import tintometriaDataRaw from '../data/tintometria_raw.json';
+import { LabelPreviewModal, MezclaLabelData } from './LabelPreviewModal';
 
 export const TintometriaPanel: React.FC = () => {
   const [data, setData] = useState<Record<string, any[]>>(tintometriaDataRaw as any);
@@ -11,14 +12,12 @@ export const TintometriaPanel: React.FC = () => {
   // Edit State
   const [editingRowIdx, setEditingRowIdx] = useState<number | null>(null);
   const [editFormData, setEditFormData] = useState<any>(null);
+  const [selectedLabelData, setSelectedLabelData] = useState<MezclaLabelData | null>(null);
   
   // Auth Modal State
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState('');
-
-  // Escape key hooks
-
 
   const currentData = data[activeTab] || [];
   const columns = currentData.length > 0 ? Object.keys(currentData[0]) : [];
@@ -40,8 +39,6 @@ export const TintometriaPanel: React.FC = () => {
   };
 
   const confirmSave = () => {
-    // In a real scenario, this would validate against the EnterpriseContext or a backend API.
-    // For now, any PIN >= 4 digits is accepted as a valid authorization.
     if (pinInput.length >= 4) {
       const newData = { ...data };
       newData[activeTab][editingRowIdx!] = editFormData;
@@ -74,7 +71,7 @@ export const TintometriaPanel: React.FC = () => {
             key={tab}
             onClick={() => {
               setActiveTab(tab);
-              handleCancelEdit(); // Cancel any ongoing edits when switching tabs
+              handleCancelEdit();
             }}
             className={`flex items-center gap-2 px-6 py-3 rounded-2xl whitespace-nowrap transition-all ${
               activeTab === tab
@@ -92,7 +89,7 @@ export const TintometriaPanel: React.FC = () => {
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-16 text-center">
+                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 w-24 text-center">
                   Acciones
                 </th>
                 {columns.map((col, idx) => (
@@ -127,13 +124,38 @@ export const TintometriaPanel: React.FC = () => {
                           </button>
                         </div>
                       ) : (
-                        <button 
-                          onClick={() => handleEditClick(rIdx, row)} 
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all mx-auto block"
-                          title="Editar Fila"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button 
+                            onClick={() => handleEditClick(rIdx, row)} 
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                            title="Editar Fila"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => {
+                              const formulaObj: Record<string, string> = {};
+                              Object.entries(row).forEach(([k, v]) => {
+                                if (k !== 'Colore' && k !== 'DATA MODIFICA' && v) {
+                                  formulaObj[k] = String(v);
+                                }
+                              });
+                              setSelectedLabelData({
+                                id: `TINTO-${rIdx + 100}`,
+                                saleId: 'CONSULTA-DIRECTA',
+                                clientName: 'Cliente Laboratorio Tintométrico',
+                                colorId: String(row['Colore'] || `Color #${rIdx + 1}`),
+                                baseSku: `BASE-${activeTab.substring(0, 10).toUpperCase()}`,
+                                baseName: `Base ${activeTab}`,
+                                formula: formulaObj
+                              });
+                            }} 
+                            className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all cursor-pointer"
+                            title="Ver Etiqueta Térmica 8.5x11 cm"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </button>
+                        </div>
                       )}
                     </td>
                     
@@ -182,28 +204,21 @@ export const TintometriaPanel: React.FC = () => {
               Ingresa tu PIN de seguridad para confirmar la modificación de esta fórmula.
             </p>
             
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
                 <input 
-                  type="password" 
-                  autoFocus
-                  maxLength={6}
-                  placeholder="••••"
-                  className={`w-full text-center text-3xl tracking-[0.5em] font-mono p-4 bg-slate-50 border-2 rounded-xl outline-none transition-all ${
-                    authError ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20'
-                  }`}
+                  type="password"
+                  placeholder="PIN de 4 dígitos"
                   value={pinInput}
-                  onChange={(e) => {
-                    setPinInput(e.target.value.replace(/[^0-9]/g, ''));
-                    setAuthError('');
-                  }}
-                  onKeyDown={(e) => e.key === 'Enter' && confirmSave()}
+                  onChange={(e) => setPinInput(e.target.value)}
+                  className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  maxLength={6}
                 />
                 {authError && (
-                  <div className="flex items-center gap-2 text-red-500 text-sm mt-3 justify-center font-medium animate-in slide-in-from-top-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className="text-red-500 text-xs font-medium text-center mt-2 flex items-center justify-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
                     {authError}
-                  </div>
+                  </p>
                 )}
               </div>
               
@@ -229,6 +244,14 @@ export const TintometriaPanel: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedLabelData && (
+        <LabelPreviewModal
+          isOpen={!!selectedLabelData}
+          onClose={() => setSelectedLabelData(null)}
+          data={selectedLabelData}
+        />
       )}
     </div>
   );

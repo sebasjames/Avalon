@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { MezclaOrder, MezclaStatus } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
-import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List } from 'lucide-react';
+import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List, Printer } from 'lucide-react';
+import { LabelPreviewModal, MezclaLabelData } from './LabelPreviewModal';
 
 
 const extractFormula = (colorId: string, baseType?: string): Record<string, string> => {
@@ -64,6 +65,7 @@ export const MezclasTablero: React.FC = () => {
     const [orders, setOrders] = useState<MezclaOrder[]>(MOCK_ORDERS);
     const [view, setView] = useState<'KANBAN' | 'LISTA' | 'HISTORIAL'>('KANBAN');
     const [lastDeductionMessage, setLastDeductionMessage] = useState<string | null>(null);
+    const [selectedLabelData, setSelectedLabelData] = useState<MezclaLabelData | null>(null);
 
     const pending = orders.filter(o => o.status === MezclaStatus.PENDING);
     const inProgress = orders.filter(o => o.status === MezclaStatus.IN_PROGRESS);
@@ -184,10 +186,18 @@ export const MezclasTablero: React.FC = () => {
                 </div>
 
                 <div className="flex justify-end gap-2 mt-auto pt-2">
+                    <button
+                        onClick={() => setSelectedLabelData(order)}
+                        title="Ver Etiqueta Térmica 8.5x11 cm & Dispensar"
+                        className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl flex items-center gap-1.5 transition-all text-xs cursor-pointer"
+                    >
+                        <Printer className="w-4 h-4 text-indigo-600" />
+                        Etiqueta Térmica (8.5x11)
+                    </button>
                     {order.status === MezclaStatus.PENDING && (
                         <button 
                             onClick={() => updateStatus(order.id, MezclaStatus.IN_PROGRESS)}
-                            className="w-full flex justify-center items-center gap-2 bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all"
+                            className="flex-1 flex justify-center items-center gap-2 bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all text-xs cursor-pointer"
                         >
                             <Play className="w-4 h-4 fill-current" />
                             Iniciar Mezcla
@@ -196,7 +206,7 @@ export const MezclasTablero: React.FC = () => {
                     {order.status === MezclaStatus.IN_PROGRESS && (
                         <button 
                             onClick={() => updateStatus(order.id, MezclaStatus.READY)}
-                            className="w-full flex justify-center items-center gap-2 bg-emerald-500 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all"
+                            className="flex-1 flex justify-center items-center gap-2 bg-emerald-500 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all text-xs cursor-pointer"
                         >
                             <CheckCircle className="w-4 h-4" />
                             Marcar como Lista
@@ -401,6 +411,17 @@ export const MezclasTablero: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
+            )}
+
+            {selectedLabelData && (
+                <LabelPreviewModal
+                    isOpen={!!selectedLabelData}
+                    onClose={() => setSelectedLabelData(null)}
+                    data={selectedLabelData}
+                    onDispenseComplete={() => {
+                        updateStatus(selectedLabelData.id, MezclaStatus.IN_PROGRESS);
+                    }}
+                />
             )}
         </div>
     );
