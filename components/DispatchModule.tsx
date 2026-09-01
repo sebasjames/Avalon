@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { useUIStore } from '../stores/uiStore';
-import { Truck, Package, PackageCheck, AlertTriangle, CheckCircle2, Search, FileText, Download, Printer } from 'lucide-react';
-import { DispatchLog } from '../types';
+import { Truck, Package, PackageCheck, AlertTriangle, CheckCircle2, Search, FileText, Download, Printer, Eye, X } from 'lucide-react';
+import { DispatchLog, CrmContact } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -10,6 +11,7 @@ export const DispatchModule: React.FC = () => {
     const { dispatches, updateDispatch, contacts } = useEnterprise();
     const { addToast } = useUIStore();
     const [searchQuery, setSearchQuery] = useState('');
+    const [previewModal, setPreviewModal] = useState<{ isOpen: boolean; blobUrl: string; title: string; dispatchLog?: DispatchLog } | null>(null);
 
     const filtered = (dispatches || []).filter(d => {
         const idMatch = (d.id || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -30,8 +32,8 @@ export const DispatchModule: React.FC = () => {
         updateDispatch(id, update);
     };
 
-    const handleDownloadDispatchPdf = (d: DispatchLog) => {
-        const contact = contacts.find(c => c.id === d.contactId);
+    const buildDispatchPdfDoc = (d: DispatchLog, contactsList: CrmContact[]) => {
+        const contact = contactsList.find(c => c.id === d.contactId);
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
         // Header banner
@@ -115,8 +117,24 @@ export const DispatchModule: React.FC = () => {
         doc.text('C.C. / Placa:', 14, signatureY + 10);
         doc.text('C.C. / Fecha y Hora:', 126, signatureY + 10);
 
+        return doc;
+    };
+
+    const handleDownloadDispatchPdf = (d: DispatchLog) => {
+        const doc = buildDispatchPdfDoc(d, contacts);
         doc.save(`Guia_Despacho_${d.id}.pdf`);
         addToast({ title: 'PDF Generado', message: `Guía de Despacho ${d.id} descargada exitosamente.`, severity: 'SUCCESS' });
+    };
+
+    const handlePreviewDispatchPdf = (d: DispatchLog) => {
+        const doc = buildDispatchPdfDoc(d, contacts);
+        const blobUrl = doc.output('bloburl').toString();
+        setPreviewModal({
+            isOpen: true,
+            title: `Previsualización: Guía de Despacho #${d.id}`,
+            blobUrl,
+            dispatchLog: d
+        });
     };
 
     const handleDownloadManifestPdf = () => {
@@ -203,7 +221,7 @@ export const DispatchModule: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-between gap-2 flex-wrap">
+                <div className="pt-3 border-t border-slate-100 flex justify-between gap-2 flex-wrap items-center">
                     {d.status === 'PENDIENTE' && (
                         <button onClick={() => handleStatusChange(d.id, 'ARMANDO_PEDIDO')} className="flex-1 text-xs py-1.5 bg-blue-50 text-blue-700 rounded-md font-medium hover:bg-blue-100">
                             Armar Pedido
@@ -230,13 +248,24 @@ export const DispatchModule: React.FC = () => {
                             {d.actualDeliveryDate || 'Sin Fecha'}
                         </div>
                     )}
-                    <button 
-                        onClick={() => handleDownloadDispatchPdf(d)}
-                        className="px-2 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold rounded-md flex items-center gap-1 transition-colors"
-                    >
-                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
-                        Guía PDF
-                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                        <button 
+                            onClick={() => handlePreviewDispatchPdf(d)}
+                            title="Previsualizar Guía en Pantalla"
+                            className="px-2 py-1.5 bg-slate-800 text-slate-200 hover:bg-slate-700 text-xs font-semibold rounded-md flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                            <Eye className="w-3.5 h-3.5 text-amber-400" />
+                        </button>
+                        <button 
+                            onClick={() => handleDownloadDispatchPdf(d)}
+                            title="Descargar PDF Nativo"
+                            className="px-2 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold rounded-md flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                            Guía PDF
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -306,7 +335,53 @@ export const DispatchModule: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* PREVIEW MODAL */}
+            {previewModal?.isOpen && (
+                <AnimatePresence>
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"
+                        >
+                            <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                                <div className="flex items-center gap-3">
+                                    <FileText className="w-5 h-5 text-amber-400" />
+                                    <h3 className="text-base font-bold text-white">{previewModal.title}</h3>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    {previewModal.dispatchLog && (
+                                        <button
+                                            onClick={() => handleDownloadDispatchPdf(previewModal.dispatchLog!)}
+                                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow flex items-center gap-1.5 transition-all"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                            Descargar PDF
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setPreviewModal(null)}
+                                        className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="p-4 flex-1 bg-slate-950/50 overflow-hidden">
+                                <iframe 
+                                    src={previewModal.blobUrl} 
+                                    className="w-full h-[70vh] border border-slate-800 rounded-xl bg-slate-900"
+                                    title="PDF Preview"
+                                />
+                            </div>
+                        </motion.div>
+                    </div>
+                </AnimatePresence>
+            )}
         </div>
     );
 };
+
 
