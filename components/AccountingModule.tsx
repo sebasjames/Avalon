@@ -37,11 +37,13 @@ export const AccountingModule: React.FC = () => {
         { id: 'siigo_sync', label: 'Sincronización SIIGO', icon: Cloud },
     ];
 
-    if (!validTabs.includes(normalizedTab)) {
-        return <Navigate to="/accounting/cierres" replace />;
-    }
+    const activeTab = (validTabs.includes(normalizedTab) ? normalizedTab : 'cierres') as 'cierres' | 'caja_menor' | 'conciliacion_datafono' | 'sabana' | 'siigo_sync';
 
-    const activeTab = normalizedTab as 'cierres' | 'caja_menor' | 'conciliacion_datafono' | 'sabana' | 'siigo_sync';
+    useEffect(() => {
+        if (!validTabs.includes(normalizedTab)) {
+            navigate('/accounting/cierres', { replace: true });
+        }
+    }, [normalizedTab, navigate]);
 
     // --- SABANA FILTER STATE ---
     const [expandedCarteraClient, setExpandedCarteraClient] = useState<string | null>(null);
