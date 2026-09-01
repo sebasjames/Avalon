@@ -30,6 +30,27 @@ export const SmartPosPanel: React.FC = () => {
         taxRates, updateContact, addContact
     } = useEnterprise();
 
+    const isReversedDisplay = (product: Product) => {
+        const s = (product.sku || '').toUpperCase();
+        const n = (product.name || '').toUpperCase();
+        const b = (product.brand || '').toUpperCase();
+        const f = (product.family || '').toUpperCase();
+        return (reverseDisplayRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+    };
+
+    const isTintometric = (product: Product) => {
+        const type = product.tintometricBaseType;
+        return !!type && type.trim().toUpperCase() !== 'N/A' && type.trim() !== '';
+    };
+
+    const isFractionalEligible = (product: Product) => {
+        const s = (product.sku || '').toUpperCase();
+        const n = (product.name || '').toUpperCase();
+        const b = (product.brand || '').toUpperCase();
+        const f = (product.family || '').toUpperCase();
+        return (fractionalRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+    };
+
     const [search, setSearch] = useState('');
     const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string; }[]>([]);
     const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(null);
