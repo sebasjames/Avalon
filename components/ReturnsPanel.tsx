@@ -113,9 +113,9 @@ export const ReturnsPanel: React.FC = () => {
                             <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                                 <CheckCircle size={40} />
                             </div>
-                            <h3 className="text-2xl font-bold text-slate-800">Nota Crédito Generada</h3>
+                            <h3 className="text-2xl font-bold text-slate-800">Nota Crédito Generada & Sincronizada</h3>
                             <p className="text-slate-600 max-w-md">
-                                El producto ha ingresado a la bodega <strong>{location}</strong> y el saldo a favor ha sido abonado a la cuenta del cliente.
+                                El producto ha ingresado a la bodega <strong>{location}</strong>, la Nota Crédito fue registrada en la cola SIIGO y la mora/saldo fue ajustada exitosamente en el CRM.
                             </p>
                         </motion.div>
                     ) : (
