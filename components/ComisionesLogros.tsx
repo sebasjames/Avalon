@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { useUIStore } from '../stores/uiStore';
 import { 
   Trophy, Flame, Target, DollarSign, Star, TrendingUp, AlertCircle, 
-  CheckCircle2, Lock, Unlock, ChevronRight, Gift, Medal, ChevronDown, Check, Users
+  CheckCircle2, Lock, Unlock, ChevronRight, Gift, Medal, ChevronDown, Check, Users,
+  ShieldAlert, KeyRound, X
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
@@ -92,19 +96,36 @@ const agentsData = [
 
 export const ComisionesLogros: React.FC = () => {
   const { transactions, contacts, activities, addTransaction } = useEnterprise();
+  const { addToast } = useUIStore();
   const [selectedAgentId, setSelectedAgentId] = useState<number>(1);
   const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
-  const [payrollStatusMessage, setPayrollStatusMessage] = useState<string | null>(null);
+  
+  // Auth Modal State
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authId, setAuthId] = useState('');
 
   const player = useMemo(() => {
       const baseAgent = agentsData.find(a => a.id === selectedAgentId) || agentsData[0];
       return baseAgent;
   }, [selectedAgentId]);
 
-  const handleApprovePayroll = () => {
-      const netCommission = Math.max(0, player.transparencyData.commissionEarned - (player.transparencyData.returnsDeducted || 0));
+  const netCommission = useMemo(() => {
+      return Math.max(0, player.transparencyData.commissionEarned - (player.transparencyData.returnsDeducted || 0));
+  }, [player]);
+
+  const handleOpenAuthModal = () => {
       if (netCommission <= 0) {
-          alert('No hay saldo positivo de comisiones para liquidar.');
+          addToast({ title: 'Saldo Insuficiente', message: 'No hay saldo positivo de comisiones para liquidar.', severity: 'WARNING' });
+          return;
+      }
+      setAuthId('');
+      setShowAuthModal(true);
+  };
+
+  const handleConfirmPayrollWithAuth = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (authId.trim().length < 3) {
+          addToast({ title: 'ID Requerido', message: 'Por favor ingrese una firma de ID / PIN válida de al menos 3 dígitos.', severity: 'WARNING' });
           return;
       }
 
@@ -113,8 +134,8 @@ export const ComisionesLogros: React.FC = () => {
           date: new Date().toISOString().split('T')[0],
           type: 'COMPRA',
           client: player.name,
-          document: `Nómina Comisiones - ${player.name}`,
-          productName: `Pago de Comisiones Comerciales (${player.rank}) - Período Activo`,
+          document: `Nómina Comisiones - ${player.name} (PIN: ${authId})`,
+          productName: `Pago de Comisiones Comerciales (${player.rank}) - Autorizado por ID: ${authId}`,
           sku: 'N/A',
           qty: 1,
           total: netCommission,
@@ -125,8 +146,13 @@ export const ComisionesLogros: React.FC = () => {
           siigoDocType: 'COMPROBANTE_EGRESO'
       });
 
-      setPayrollStatusMessage(`✅ Comisiones de ${player.name} por $${netCommission.toLocaleString('es-CO')} COP aprobadas y enviadas a Contabilidad / SIIGO.`);
-      setTimeout(() => setPayrollStatusMessage(null), 7000);
+      setShowAuthModal(false);
+      setAuthId('');
+      addToast({
+          title: 'Nómina Aprobada',
+          message: `Comisiones de ${player.name} por $${netCommission.toLocaleString('es-CO')} COP autorizadas con ID ${authId} y enviadas a Contabilidad / SIIGO.`,
+          severity: 'SUCCESS'
+      });
   };
   
   // Close dropdown on outside click
@@ -403,7 +429,7 @@ export const ComisionesLogros: React.FC = () => {
                             </div>
 
                             <button 
-                                onClick={handleApprovePayroll}
+                                onClick={handleOpenAuthModal}
                                 className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                             >
                                 <CheckCircle2 className="w-5 h-5" />
@@ -460,6 +486,83 @@ export const ComisionesLogros: React.FC = () => {
                 </div>
             </div>
         </div>
+
+        {showAuthModal && (
+            <AnimatePresence>
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden text-white"
+                    >
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center">
+                                        <KeyRound className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white">Autorización de Nómina</h3>
+                                        <p className="text-xs text-slate-400">Verificación de firma electrónica por ID</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowAuthModal(false)} className="text-slate-400 hover:text-white">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 mb-4 space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-400">Vendedor:</span>
+                                    <span className="font-bold text-white">{player.name}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-400">Rango / Categoría:</span>
+                                    <span className="font-bold text-amber-400">{player.rank}</span>
+                                </div>
+                                <div className="flex justify-between text-sm pt-2 border-t border-slate-700/50">
+                                    <span className="text-slate-400">Monto Neto a Desembolsar:</span>
+                                    <span className="font-black text-emerald-400 text-base">${netCommission.toLocaleString('es-CO')} COP</span>
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleConfirmPayrollWithAuth} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Firma de Autorización (ID / PIN Administrador)</label>
+                                    <input 
+                                        type="password" 
+                                        placeholder="Ingrese su PIN de usuario..."
+                                        value={authId}
+                                        onChange={(e) => setAuthId(e.target.value)}
+                                        autoFocus
+                                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-amber-500 font-mono text-center tracking-widest text-lg text-amber-400 placeholder:text-slate-600"
+                                    />
+                                </div>
+
+                                <div className="flex justify-end gap-3 pt-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowAuthModal(false)}
+                                        className="px-4 py-2.5 text-sm font-bold text-slate-400 hover:text-white rounded-xl transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        type="submit"
+                                        disabled={authId.trim().length < 3}
+                                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2"
+                                    >
+                                        <ShieldAlert className="w-4 h-4" />
+                                        Confirmar y Pagar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </motion.div>
+                </div>
+            </AnimatePresence>
+        )}
     </div>
   );
 };
