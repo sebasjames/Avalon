@@ -91,14 +91,43 @@ const agentsData = [
 ];
 
 export const ComisionesLogros: React.FC = () => {
-  const { transactions, contacts, activities } = useEnterprise();
+  const { transactions, contacts, activities, addTransaction } = useEnterprise();
   const [selectedAgentId, setSelectedAgentId] = useState<number>(1);
   const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
+  const [payrollStatusMessage, setPayrollStatusMessage] = useState<string | null>(null);
 
   const player = useMemo(() => {
       const baseAgent = agentsData.find(a => a.id === selectedAgentId) || agentsData[0];
       return baseAgent;
   }, [selectedAgentId]);
+
+  const handleApprovePayroll = () => {
+      const netCommission = Math.max(0, player.transparencyData.commissionEarned - (player.transparencyData.returnsDeducted || 0));
+      if (netCommission <= 0) {
+          alert('No hay saldo positivo de comisiones para liquidar.');
+          return;
+      }
+
+      addTransaction({
+          id: `NOM-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          type: 'COMPRA',
+          client: player.name,
+          document: `Nómina Comisiones - ${player.name}`,
+          productName: `Pago de Comisiones Comerciales (${player.rank}) - Período Activo`,
+          sku: 'N/A',
+          qty: 1,
+          total: netCommission,
+          iva: 0,
+          paymentMethod: 'Transferencia Bancaria',
+          posLocation: 'Nómina Central',
+          siigoExportStatus: 'PENDING_SIIGO_SYNC',
+          siigoDocType: 'COMPROBANTE_EGRESO'
+      });
+
+      setPayrollStatusMessage(`✅ Comisiones de ${player.name} por $${netCommission.toLocaleString('es-CO')} COP aprobadas y enviadas a Contabilidad / SIIGO.`);
+      setTimeout(() => setPayrollStatusMessage(null), 7000);
+  };
   
   // Close dropdown on outside click
   useEffect(() => {
@@ -169,6 +198,16 @@ export const ComisionesLogros: React.FC = () => {
                 )}
             </div>
         </div>
+
+        {payrollStatusMessage && (
+            <div className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold rounded-2xl flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+                <span className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    {payrollStatusMessage}
+                </span>
+                <button onClick={() => setPayrollStatusMessage(null)} className="text-emerald-400 hover:text-white font-black text-sm">✕</button>
+            </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
@@ -362,6 +401,14 @@ export const ComisionesLogros: React.FC = () => {
                                     </span>
                                 </div>
                             </div>
+
+                            <button 
+                                onClick={handleApprovePayroll}
+                                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                            >
+                                <CheckCircle2 className="w-5 h-5" />
+                                Aprobar y Pagar Nómina de Comisiones
+                            </button>
                         </div>
                     </div>
 
