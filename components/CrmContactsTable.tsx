@@ -59,13 +59,46 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
   const itemsPerPage = 25;
   const [sortConfig, setSortConfig] = useState<{ key: keyof CrmContact, direction: 'asc' | 'desc' } | null>(null);
   
-  // Phase 2: Saved Views
-  const [activeViewId, setActiveViewId] = useState('v4');
-  const [savedViews, setSavedViews] = useState<any[]>([
+  // Phase 2: Saved Views (Persisted in localStorage in the client)
+  const DEFAULT_SAVED_VIEWS = [
     { id: 'v4', name: 'Clientes' },
     { id: 'v2', name: 'Prospectos' },
     { id: 'v3', name: 'Clientes VIP' },
-  ]);
+  ];
+
+  const [savedViews, setSavedViews] = useState<any[]>(() => {
+    try {
+      const stored = localStorage.getItem('avalon_crm_saved_views');
+      return stored ? JSON.parse(stored) : DEFAULT_SAVED_VIEWS;
+    } catch {
+      return DEFAULT_SAVED_VIEWS;
+    }
+  });
+
+  const [activeViewId, setActiveViewId] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem('avalon_crm_active_view_id');
+      return stored || 'v4';
+    } catch {
+      return 'v4';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avalon_crm_saved_views', JSON.stringify(savedViews));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [savedViews]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('avalon_crm_active_view_id', activeViewId);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [activeViewId]);
 
   const [isNewViewModalOpen, setIsNewViewModalOpen] = useState(false);
   const [newViewName, setNewViewName] = useState('');
