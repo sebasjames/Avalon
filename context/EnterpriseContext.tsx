@@ -142,6 +142,8 @@ interface EnterpriseContextType {
     addCommissionRule: (rule: Omit<CommissionRule, 'id'>) => void;
     updateCommissionRule: (id: string, updates: Partial<CommissionRule>) => void;
     deleteCommissionRule: (id: string) => void;
+    // Kardex Management
+    addKardexTransaction: (tx: KardexTransaction) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -259,6 +261,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const updateDispatch = (id: string, updates: Partial<DispatchLog>) => setDispatches(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
 
     const [kardexTransactions, setKardexTransactions] = useState<KardexTransaction[]>(KARDEX_TRANSACTIONS);
+    const addKardexTransaction = (tx: KardexTransaction) => setKardexTransactions(prev => [tx, ...prev]);
 
     // --- Notification Rules Engine State ---
     const [notificationRules, setNotificationRules] = useState<NotificationRule[]>(DEFAULT_SETTINGS.notifications.rules);
@@ -1149,6 +1152,7 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             addDispatch,
             updateDispatch,
             kardexTransactions,
+            addKardexTransaction,
             updateBatchStatus,
             updateCrmSettings,
             commissionRules,

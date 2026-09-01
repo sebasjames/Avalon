@@ -57,15 +57,69 @@ const MOCK_ORDERS: MezclaOrder[] = [
     }
 ];
 
+import { useEnterprise } from '../context/EnterpriseContext';
+
 export const MezclasTablero: React.FC = () => {
+    const { addKardexTransaction, updateInventoryStock } = useEnterprise();
     const [orders, setOrders] = useState<MezclaOrder[]>(MOCK_ORDERS);
     const [view, setView] = useState<'KANBAN' | 'LISTA' | 'HISTORIAL'>('KANBAN');
+    const [lastDeductionMessage, setLastDeductionMessage] = useState<string | null>(null);
 
     const pending = orders.filter(o => o.status === MezclaStatus.PENDING);
     const inProgress = orders.filter(o => o.status === MezclaStatus.IN_PROGRESS);
     const ready = orders.filter(o => o.status === MezclaStatus.READY);
 
     const updateStatus = (id: string, newStatus: MezclaStatus) => {
+        const orderToUpdate = orders.find(o => o.id === id);
+        
+        // Deduct raw materials and log in Kardex when transitioning to IN_PROGRESS ("Iniciar Mezcla en Planta")
+        if (orderToUpdate && newStatus === MezclaStatus.IN_PROGRESS && orderToUpdate.status !== MezclaStatus.IN_PROGRESS) {
+            const today = new Date().toISOString().split('T')[0];
+            let itemsDeductedCount = 0;
+
+            // 1. Deduct Base
+            if (orderToUpdate.baseSku) {
+                addKardexTransaction({
+                    id: `TX-MZ-${Date.now()}-BASE`,
+                    date: today,
+                    skuId: orderToUpdate.baseSku,
+                    lotNumber: `LOT-MZ-${orderToUpdate.id}`,
+                    type: 'Salida',
+                    quantity: 1,
+                    balanceAfter: 0,
+                    documentRef: orderToUpdate.id,
+                    user: 'Operador de Planta (Mezclas)'
+                });
+                updateInventoryStock(orderToUpdate.baseSku, -1);
+                itemsDeductedCount++;
+            }
+
+            // 2. Deduct Pigments/Formula Components
+            if (orderToUpdate.formula) {
+                Object.entries(orderToUpdate.formula).forEach(([code, qtyStr], idx) => {
+                    if (code !== 'Error') {
+                        const qtyGrams = parseFloat(qtyStr) || 1;
+                        addKardexTransaction({
+                            id: `TX-MZ-${Date.now()}-PIG-${idx}`,
+                            date: today,
+                            skuId: `PIGMENT-${code}`,
+                            lotNumber: `LOT-PIG-${code}`,
+                            type: 'Salida',
+                            quantity: qtyGrams,
+                            balanceAfter: 0,
+                            documentRef: orderToUpdate.id,
+                            user: 'Operador de Planta (Mezclas)'
+                        });
+                        updateInventoryStock(`PIGMENT-${code}`, -qtyGrams);
+                        itemsDeductedCount++;
+                    }
+                });
+            }
+
+            setLastDeductionMessage(`✅ Lote ${orderToUpdate.id} iniciado en planta: Se descontaron ${itemsDeductedCount} materias primas (Base + Pigmentos) en Kardex.`);
+            setTimeout(() => setLastDeductionMessage(null), 6000);
+        }
+
         setOrders(prev => prev.map(o => {
             if (o.id === id) {
                 return {
@@ -189,6 +243,13 @@ export const MezclasTablero: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {lastDeductionMessage && (
+                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold rounded-2xl flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+                    <span>{lastDeductionMessage}</span>
+                    <button onClick={() => setLastDeductionMessage(null)} className="text-emerald-600 hover:text-emerald-900 font-black text-sm">✕</button>
+                </div>
+            )}
 
             {view === 'KANBAN' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
