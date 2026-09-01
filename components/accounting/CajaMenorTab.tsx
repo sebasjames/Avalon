@@ -118,7 +118,26 @@ export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
                                     return;
                                 }
 
-                                if (confirm(`¿Confirma el reembolso de la Caja Menor por un valor de $${montoAReembolsar.toLocaleString('es-CO')} COP desde Bancos?`)) {
+                                if (confirm(`¿Confirma solicitar el reembolso de la Caja Menor por $${montoAReembolsar.toLocaleString('es-CO')} COP desde la Cuenta Bancaria Principal?`)) {
+                                    // 1. Generar Comprobante de Egreso Bancario de Tesorería
+                                    addTransaction({
+                                        id: `CE-BANCO-${Math.floor(Math.random() * 9000) + 1000}`,
+                                        date: new Date().toISOString().split('T')[0],
+                                        type: 'COMPRA',
+                                        client: 'Tesorería - Banco Principal (Cuenta 111005)',
+                                        document: `CE-BANCO-CM-${Math.floor(Math.random() * 90000) + 10000}`,
+                                        productName: 'Egreso Bancario: Reposición de Fondos de Caja Menor (Cuenta 110505)',
+                                        sku: 'N/A',
+                                        qty: 1,
+                                        total: montoAReembolsar,
+                                        iva: 0,
+                                        paymentMethod: 'Transferencia Bancaria',
+                                        posLocation: pointsOfSale?.[0] || 'Bogotá',
+                                        siigoExportStatus: 'PENDING_SIIGO_SYNC',
+                                        siigoDocType: 'COMPROBANTE_EGRESO_BANCO'
+                                    });
+
+                                    // 2. Generar Ingreso a Fondo de Caja Menor
                                     addTransaction({
                                         id: `RC-${Math.floor(Math.random() * 9000) + 1000}`,
                                         date: new Date().toISOString().split('T')[0],
@@ -135,7 +154,8 @@ export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
                                         siigoExportStatus: 'PENDING_SIIGO_SYNC',
                                         siigoDocType: 'REEMBOLSO_BANCOS'
                                     });
-                                    alert(`Caja Menor reembolsada. Saldo disponible restablecido a $${FONDO_BASE.toLocaleString('es-CO')} COP (Encolado para SIIGO).`);
+
+                                    alert(`Comprobante de Egreso Bancario CE-BANCO-CM generado exitosamente. Saldo de Caja Menor restablecido a $${FONDO_BASE.toLocaleString('es-CO')} COP (Encolado para SIIGO).`);
                                 }
                             };
 
