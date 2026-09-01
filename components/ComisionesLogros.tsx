@@ -225,16 +225,6 @@ export const ComisionesLogros: React.FC = () => {
             </div>
         </div>
 
-        {payrollStatusMessage && (
-            <div className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold rounded-2xl flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
-                <span className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    {payrollStatusMessage}
-                </span>
-                <button onClick={() => setPayrollStatusMessage(null)} className="text-emerald-400 hover:text-white font-black text-sm">✕</button>
-            </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* LEFT COLUMN: Player Card & Torta */}
