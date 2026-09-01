@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MezclaOrder, MezclaStatus } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
-import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List, Printer, Tag } from 'lucide-react';
+import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List, Printer, Tag, Lock, AlertTriangle } from 'lucide-react';
 import { LabelPreviewModal, MezclaLabelData } from './LabelPreviewModal';
 import { PigmentContainerStickerModal } from './PigmentContainerStickerModal';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -67,6 +67,13 @@ export const MezclasTablero: React.FC = () => {
     const [lastDeductionMessage, setLastDeductionMessage] = useState<string | null>(null);
     const [selectedLabelData, setSelectedLabelData] = useState<MezclaLabelData | null>(null);
     const [selectedContainerStickerOrder, setSelectedContainerStickerOrder] = useState<MezclaOrder | null>(null);
+
+    // Sticker verification & Auth Modal State
+    const [printedStickersMap, setPrintedStickersMap] = useState<Record<string, boolean>>({});
+    const [unprintedWarningOrder, setUnprintedWarningOrder] = useState<MezclaOrder | null>(null);
+    const [authModalOrder, setAuthModalOrder] = useState<MezclaOrder | null>(null);
+    const [pinInput, setPinInput] = useState('');
+    const [authError, setAuthError] = useState('');
 
     const pending = orders.filter(o => o.status === MezclaStatus.PENDING);
     const inProgress = orders.filter(o => o.status === MezclaStatus.IN_PROGRESS);
@@ -135,6 +142,27 @@ export const MezclasTablero: React.FC = () => {
         }));
     };
 
+    const handleAttemptMarkReady = (order: MezclaOrder) => {
+        if (!printedStickersMap[order.id]) {
+            setUnprintedWarningOrder(order);
+        } else {
+            setAuthModalOrder(order);
+            setPinInput('');
+            setAuthError('');
+        }
+    };
+
+    const confirmMarkReadyAuth = () => {
+        if (pinInput.length >= 4 && authModalOrder) {
+            updateStatus(authModalOrder.id, MezclaStatus.READY);
+            setAuthModalOrder(null);
+            setPinInput('');
+            setAuthError('');
+        } else {
+            setAuthError('PIN de seguridad inválido (mínimo 4 dígitos)');
+        }
+    };
+
     const OrderCard = ({ order }: { order: MezclaOrder }) => {
         const formulaEntries = Object.entries(order.formula);
         const hasError = formulaEntries.some(([k]) => k === 'Error');
@@ -195,7 +223,7 @@ export const MezclasTablero: React.FC = () => {
                         <Printer className="w-4 h-4 text-indigo-600" />
                         Etiqueta Producto Final
                     </button>
-                    {(order.status === MezclaStatus.IN_PROGRESS || order.status === MezclaStatus.READY) && (
+                    {order.status === MezclaStatus.IN_PROGRESS && (
                         <button
                             onClick={() => setSelectedContainerStickerOrder(order)}
                             title="Imprimir Stickers con QR de Saldos Restantes en los Frascos de Pigmentos"
@@ -216,7 +244,7 @@ export const MezclasTablero: React.FC = () => {
                     )}
                     {order.status === MezclaStatus.IN_PROGRESS && (
                         <button 
-                            onClick={() => updateStatus(order.id, MezclaStatus.READY)}
+                            onClick={() => handleAttemptMarkReady(order)}
                             className="flex-1 flex justify-center items-center gap-2 bg-emerald-500 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all text-xs cursor-pointer"
                         >
                             <CheckCircle className="w-4 h-4" />
@@ -440,7 +468,120 @@ export const MezclasTablero: React.FC = () => {
                     isOpen={!!selectedContainerStickerOrder}
                     onClose={() => setSelectedContainerStickerOrder(null)}
                     order={selectedContainerStickerOrder}
+                    onStickersPrinted={() => {
+                        if (selectedContainerStickerOrder) {
+                            setPrintedStickersMap(prev => ({ ...prev, [selectedContainerStickerOrder.id]: true }));
+                        }
+                    }}
                 />
+            )}
+
+            {/* UNPRINTED STICKERS WARNING MODAL */}
+            {unprintedWarningOrder && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+                    <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 max-w-md w-full text-white space-y-5 animate-in fade-in zoom-in-95">
+                        <div className="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto border border-amber-500/30">
+                            <AlertTriangle className="w-7 h-7 text-amber-400" />
+                        </div>
+                        
+                        <div className="text-center space-y-2">
+                            <h3 className="text-xl font-bold text-white">Stickers de Saldos Pendientes</h3>
+                            <p className="text-xs text-slate-300 leading-relaxed">
+                                No se han impreso los stickers de actualización de saldos para los frascos de esta mezcla (<span className="font-bold text-amber-400 font-mono">{unprintedWarningOrder.id}</span>). Por favor imprímalos antes de continuar para garantizar la trazabilidad del laboratorio.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2 pt-2">
+                            <button
+                                onClick={() => {
+                                    const target = unprintedWarningOrder;
+                                    setUnprintedWarningOrder(null);
+                                    setSelectedContainerStickerOrder(target);
+                                }}
+                                className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-all cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                <Tag className="w-4 h-4" />
+                                Imprimir Stickers Ahora
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const target = unprintedWarningOrder;
+                                    setPrintedStickersMap(prev => ({ ...prev, [target.id]: true }));
+                                    setUnprintedWarningOrder(null);
+                                    setAuthModalOrder(target);
+                                    setPinInput('');
+                                    setAuthError('');
+                                }}
+                                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer"
+                            >
+                                Ya los Imprimí (Continuar)
+                            </button>
+                            <button
+                                onClick={() => setUnprintedWarningOrder(null)}
+                                className="w-full py-2 text-slate-400 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PIN AUTHORIZATION MODAL FOR MARCAR COMO LISTA */}
+            {authModalOrder && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+                    <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 max-w-md w-full text-white space-y-5 animate-in fade-in zoom-in-95">
+                        <div className="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto border border-indigo-500/30">
+                            <Lock className="w-7 h-7 text-indigo-400" />
+                        </div>
+
+                        <div className="text-center space-y-2">
+                            <h3 className="text-xl font-bold text-white">Autorización Requerida</h3>
+                            <p className="text-xs text-slate-300">
+                                Ingresa tu PIN de seguridad de operador para confirmar la entrega de la mezcla <span className="font-bold text-indigo-400 font-mono">{authModalOrder.id}</span> a despacho.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <input 
+                                    type="password"
+                                    placeholder="PIN de 4 dígitos"
+                                    value={pinInput}
+                                    onChange={(e) => setPinInput(e.target.value)}
+                                    className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-white"
+                                    maxLength={6}
+                                />
+                                {authError && (
+                                    <p className="text-rose-400 text-xs font-medium text-center mt-2 flex items-center justify-center gap-1">
+                                        <AlertCircle className="w-3.5 h-3.5" />
+                                        {authError}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => {
+                                        setAuthModalOrder(null);
+                                        setPinInput('');
+                                        setAuthError('');
+                                    }}
+                                    className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer"
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    onClick={confirmMarkReadyAuth}
+                                    disabled={pinInput.length < 4}
+                                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow"
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

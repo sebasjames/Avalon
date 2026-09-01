@@ -10,6 +10,7 @@ interface PigmentContainerStickerModalProps {
     isOpen: boolean;
     onClose: () => void;
     order: MezclaOrder;
+    onStickersPrinted?: () => void;
 }
 
 export interface ContainerBalanceItem {
@@ -24,7 +25,8 @@ export interface ContainerBalanceItem {
 export const PigmentContainerStickerModal: React.FC<PigmentContainerStickerModalProps> = ({
     isOpen,
     onClose,
-    order
+    order,
+    onStickersPrinted
 }) => {
     const { addToast } = useUIStore();
     const [copiedZpl, setCopiedZpl] = useState(false);
@@ -123,6 +125,7 @@ export const PigmentContainerStickerModal: React.FC<PigmentContainerStickerModal
 
         doc.save(`Sticker_Saldo_Frasco_${item.pigmentCode}_${order.id}.pdf`);
         addToast({ title: 'Sticker PDF Descargado', message: `Etiqueta de saldo para el frasco ${item.pigmentCode} descargada.`, severity: 'SUCCESS' });
+        if (onStickersPrinted) onStickersPrinted();
     };
 
     const handleDownloadAllStickersPdf = () => {
@@ -178,6 +181,7 @@ export const PigmentContainerStickerModal: React.FC<PigmentContainerStickerModal
 
         doc.save(`Stickers_Saldos_Frascos_${order.id}.pdf`);
         addToast({ title: 'Stickers de Frascos Generados', message: `Descargadas ${containerItems.length} etiquetas térmicas de saldos de envases.`, severity: 'SUCCESS' });
+        if (onStickersPrinted) onStickersPrinted();
     };
 
     const handleCopyZpl = (item: ContainerBalanceItem) => {
@@ -197,6 +201,7 @@ export const PigmentContainerStickerModal: React.FC<PigmentContainerStickerModal
         navigator.clipboard.writeText(zpl);
         setCopiedZpl(true);
         addToast({ title: 'ZPL Copiado', message: `Código ZPL para el frasco de ${item.pigmentCode} copiado al portapapeles.`, severity: 'SUCCESS' });
+        if (onStickersPrinted) onStickersPrinted();
         setTimeout(() => setCopiedZpl(false), 3000);
     };
 
