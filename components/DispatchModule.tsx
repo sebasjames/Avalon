@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useEnterprise } from '../context/EnterpriseContext';
-import { Truck, Package, PackageCheck, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
+import { useUIStore } from '../stores/uiStore';
+import { Truck, Package, PackageCheck, AlertTriangle, CheckCircle2, Search, FileText, Download, Printer } from 'lucide-react';
 import { DispatchLog } from '../types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export const DispatchModule: React.FC = () => {
     const { dispatches, updateDispatch, contacts } = useEnterprise();
+    const { addToast } = useUIStore();
     const [searchQuery, setSearchQuery] = useState('');
 
     const filtered = (dispatches || []).filter(d => {
@@ -26,13 +30,161 @@ export const DispatchModule: React.FC = () => {
         updateDispatch(id, update);
     };
 
+    const handleDownloadDispatchPdf = (d: DispatchLog) => {
+        const contact = contacts.find(c => c.id === d.contactId);
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+        // Header banner
+        doc.setFillColor(15, 23, 42); // slate-900
+        doc.rect(0, 0, 210, 32, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.text('PROCOQUINAL S.A.S.', 14, 15);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(203, 213, 225);
+        doc.text('GUÍA OFICIAL DE DESPACHO Y REMISIÓN', 14, 22);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text(`GUÍA Nº ${d.id}`, 196, 15, { align: 'right' });
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Fecha Prometida: ${d.promisedDate}`, 196, 22, { align: 'right' });
+
+        // Client & Driver Info section
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DATOS DE DESTINO Y ENTREGA', 14, 42);
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Cliente / Razón Social: ${contact?.name || 'Cliente Particular'}`, 14, 48);
+        doc.text(`NIT / Cédula: ${contact?.taxId || 'N/A'}`, 14, 53);
+        doc.text(`Dirección Entrega: ${contact?.address || 'Dirección de Registro'}`, 14, 58);
+        doc.text(`Teléfono Contacto: ${contact?.phone || 'N/A'}`, 14, 63);
+
+        doc.text(`Estado Despacho: ${d.status}`, 120, 48);
+        doc.text(`Conductor Asignado: ${d.driver || 'Por Asignar'}`, 120, 53);
+        doc.text(`Vehículo / Placa: ${d.vehicle || 'Por Asignar'}`, 120, 58);
+        doc.text(`Fecha Entrega Real: ${d.actualDeliveryDate || 'En Proceso'}`, 120, 63);
+
+        // Items table
+        const tableBody = d.items.map((item, idx) => [
+            (idx + 1).toString(),
+            item.sku || 'N/A',
+            item.productName,
+            item.orderedQty.toString(),
+            item.deliveredQty.toString(),
+            item.deliveredQty === item.orderedQty ? 'COMPLETO' : 'PARCIAL'
+        ]);
+
+        autoTable(doc, {
+            startY: 70,
+            head: [['#', 'SKU', 'DESCRIPCIÓN DEL PRODUCTO', 'CANT. PEDIDA', 'CANT. ENTREGADA', 'ESTADO']],
+            body: tableBody,
+            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            styles: { fontSize: 8.5, cellPadding: 3 },
+            columnStyles: {
+                0: { cellWidth: 10, halign: 'center' },
+                1: { cellWidth: 30 },
+                2: { cellWidth: 80 },
+                3: { cellWidth: 25, halign: 'center' },
+                4: { cellWidth: 25, halign: 'center' },
+                5: { cellWidth: 20, halign: 'center' }
+            }
+        });
+
+        const finalY = (doc as any).lastAutoTable?.finalY || 120;
+
+        // Signature boxes
+        const signatureY = Math.max(finalY + 30, 210);
+        doc.setDrawColor(148, 163, 184);
+        doc.line(14, signatureY, 84, signatureY);
+        doc.line(126, signatureY, 196, signatureY);
+
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text('FIRMA / NOMBRE TRANSPORTADOR', 14, signatureY + 5);
+        doc.text('FIRMA / SELLO RECIBIDO CONFORME', 126, signatureY + 5);
+        doc.setFont('helvetica', 'normal');
+        doc.text('C.C. / Placa:', 14, signatureY + 10);
+        doc.text('C.C. / Fecha y Hora:', 126, signatureY + 10);
+
+        doc.save(`Guia_Despacho_${d.id}.pdf`);
+        addToast({ title: 'PDF Generado', message: `Guía de Despacho ${d.id} descargada exitosamente.`, severity: 'SUCCESS' });
+    };
+
+    const handleDownloadManifestPdf = () => {
+        const activeDispatches = (dispatches || []).filter(d => d.status === 'EN_TRANSITO' || d.status === 'ARMANDO_PEDIDO' || d.status === 'PENDIENTE');
+        if (activeDispatches.length === 0) {
+            addToast({ title: 'Sin Rutas Activas', message: 'No hay despachos activos para generar el manifiesto de carga.', severity: 'WARNING' });
+            return;
+        }
+
+        const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+
+        // Header banner
+        doc.setFillColor(15, 23, 42); // slate-900
+        doc.rect(0, 0, 297, 28, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(255, 255, 255);
+        doc.text('PROCOQUINAL S.A.S. - MANIFIESTO DE CARGA Y DESPACHO DE RUTA', 14, 14);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(203, 213, 225);
+        doc.text(`FECHA EXPEDICIÓN: ${new Date().toLocaleDateString('es-CO')} | TOTAL DESPACHOS EN MANIFIESTO: ${activeDispatches.length}`, 14, 21);
+
+        const tableBody = activeDispatches.map((d, idx) => {
+            const contact = contacts.find(c => c.id === d.contactId);
+            const totalItems = d.items.reduce((acc, item) => acc + item.orderedQty, 0);
+            return [
+                (idx + 1).toString(),
+                d.id,
+                contact?.name || 'Cliente Particular',
+                contact?.address || 'Dirección de Registro',
+                d.promisedDate,
+                d.driver || 'Por Asignar',
+                d.vehicle || 'Por Asignar',
+                `${totalItems} Unid (${d.items.length} SKUs)`,
+                d.status
+            ];
+        });
+
+        autoTable(doc, {
+            startY: 34,
+            head: [['#', 'GUÍA Nº', 'CLIENTE / DESTINO', 'DIRECCIÓN DE ENTREGA', 'FECHA PROM.', 'CONDUCTOR', 'VEHÍCULO', 'CANT. BULTOS', 'ESTADO RUTA']],
+            body: tableBody,
+            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            styles: { fontSize: 8.5, cellPadding: 3 },
+        });
+
+        doc.save(`Manifiesto_Carga_Ruta_${new Date().toISOString().split('T')[0]}.pdf`);
+        addToast({ title: 'Manifiesto Descargado', message: 'Manifiesto de Carga en Ruta consolidado generado en PDF.', severity: 'SUCCESS' });
+    };
+
     const renderCard = (d: DispatchLog) => {
         const contact = contacts.find(c => c.id === d.contactId);
         return (
             <div key={d.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
                 <div className="flex justify-between items-start">
                     <div>
-                        <div className="font-bold text-slate-800">{d.id}</div>
+                        <div className="font-bold text-slate-800 flex items-center gap-2">
+                            {d.id}
+                            <button 
+                                onClick={() => handleDownloadDispatchPdf(d)}
+                                title="Descargar Guía Oficial de Entrega (PDF)"
+                                className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-indigo-600 transition-colors"
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
                         <div className="text-sm text-slate-500">{contact?.name || 'Cliente'}</div>
                     </div>
                     <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full font-medium">
@@ -51,7 +203,7 @@ export const DispatchModule: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-between gap-2">
+                <div className="pt-3 border-t border-slate-100 flex justify-between gap-2 flex-wrap">
                     {d.status === 'PENDIENTE' && (
                         <button onClick={() => handleStatusChange(d.id, 'ARMANDO_PEDIDO')} className="flex-1 text-xs py-1.5 bg-blue-50 text-blue-700 rounded-md font-medium hover:bg-blue-100">
                             Armar Pedido
@@ -78,6 +230,13 @@ export const DispatchModule: React.FC = () => {
                             {d.actualDeliveryDate || 'Sin Fecha'}
                         </div>
                     )}
+                    <button 
+                        onClick={() => handleDownloadDispatchPdf(d)}
+                        className="px-2 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold rounded-md flex items-center gap-1 transition-colors"
+                    >
+                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                        Guía PDF
+                    </button>
                 </div>
             </div>
         );
@@ -85,12 +244,21 @@ export const DispatchModule: React.FC = () => {
 
     return (
         <div className="p-6 bg-slate-50 min-h-screen">
-            <header className="mb-6">
-                <h1 className="text-2xl font-bold text-slate-900 flex items-center">
-                    <Truck className="w-6 h-6 mr-2 text-indigo-600" />
-                    Módulo de Despachos y Logística
-                </h1>
-                <p className="text-slate-500 text-sm mt-1">Control de entregas, asignación de rutas y registro de tiempos para OTIF y Fill Rate.</p>
+            <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center">
+                        <Truck className="w-6 h-6 mr-2 text-indigo-600" />
+                        Módulo de Despachos y Logística
+                    </h1>
+                    <p className="text-slate-500 text-sm mt-1">Control de entregas, asignación de rutas y registro de tiempos para OTIF y Fill Rate.</p>
+                </div>
+                <button
+                    onClick={handleDownloadManifestPdf}
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl shadow-md flex items-center gap-2 transition-all self-start md:self-auto cursor-pointer"
+                >
+                    <Printer className="w-4 h-4 text-amber-400" />
+                    Manifiesto de Carga (PDF)
+                </button>
             </header>
 
             <div className="mb-6 relative">
@@ -141,3 +309,4 @@ export const DispatchModule: React.FC = () => {
         </div>
     );
 };
+
