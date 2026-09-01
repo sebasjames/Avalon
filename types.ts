@@ -532,7 +532,7 @@ export interface ToastAlert {
   title: string;
   message: string;
   severity: 'CRITICAL' | 'WARNING' | 'INFO' | 'SUCCESS';
-  type: CrmNotification['type'];
+  type?: CrmNotification['type'];
 }
 
 export interface FloatingNote {

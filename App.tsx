@@ -39,6 +39,7 @@ import { EnterpriseProvider } from './context/EnterpriseContext';
 import { AuthGate } from './components/AuthGate';
 import { FloatingTaskNote } from './components/FloatingTaskNote';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ToastContainer } from './components/ToastContainer';
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
