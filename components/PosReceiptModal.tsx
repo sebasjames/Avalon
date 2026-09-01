@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Printer, Download, Copy, X, Check, QrCode, Maximize2, Minimize2, CheckCircle2, ShieldCheck, Receipt } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
 import { formatCOP } from '../utils/format';
