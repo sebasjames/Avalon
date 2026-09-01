@@ -47,6 +47,8 @@ export const SmartPosPanel: React.FC = () => {
     const [expenseAmount, setExpenseAmount] = useState('');
     const [expenseProvider, setExpenseProvider] = useState('');
     const [expenseFile, setExpenseFile] = useState<string | null>(null);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [isMarginMode, setIsMarginMode] = useState(false);
 
     const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
