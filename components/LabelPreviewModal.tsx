@@ -48,29 +48,28 @@ export const LabelPreviewModal: React.FC<LabelPreviewModalProps> = ({
         date: data.requestedAt || new Date().toISOString()
     });
 
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrDataPayload)}`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrDataPayload)}`;
 
     const generateZplCode = () => {
         const formulaLines = Object.entries(data.formula)
-            .map(([tinta, qty], i) => `^FO30,${340 + i * 25}^FD${tinta}: ${qty}^FS`)
+            .map(([tinta, qty], i) => `^FO40,${280 + i * 28}^FD${tinta}: ${qty}^FS`)
             .join('\n');
 
         return `^XA
-^PW680
-^LL880
-^FO30,30^GB620,820,3^FS
-^FO50,50^A0N,36,36^FDPROCOQUINAL S.A.S.^FS
-^FO50,90^A0N,24,24^FDSISTEMA TINTOMETRICO INDUSTRIAL (8.5x11 cm)^FS
-^FO50,130^GB580,2,2^FS
-^FO50,150^A0N,28,28^FDFORMULA: ${data.colorId}^FS
-^FO50,185^A0N,22,22^FDCLIENTE: ${data.clientName}^FS
-^FO50,215^A0N,22,22^FDVENTA NO: ${data.saleId} | LOTE: ${data.id}^FS
-^FO50,245^A0N,22,22^FDBASE: ${data.baseName} (${data.baseSku})^FS
-^FO50,275^GB580,2,2^FS
-^FO50,295^A0N,24,24^FDDOSIFICACION DE PIGMENTOS:^FS
+^PW880
+^LL680
+^FO20,20^GB840,640,4^FS
+^FO40,40^A0N,38,38^FDPROCOQUINAL S.A.S. - TINTOMETRIA^FS
+^FO40,85^A0N,44,44^FDCOLOR: ${data.colorId}^FS
+^FO40,140^A0N,24,24^FDCLIENTE: ${data.clientName}^FS
+^FO40,175^A0N,22,22^FDBASE: ${data.baseName} (${data.baseSku})^FS
+^FO40,205^A0N,22,22^FDLOTE: ${data.id} | VENTA: ${data.saleId}^FS
+^FO40,240^GB520,2,2^FS
+^FO40,255^A0N,22,22^FDDOSIFICACION DE PIGMENTOS:^FS
 ${formulaLines}
-^FO460,580^BQN,2,5^FDQA,${qrDataPayload}^FS
-^FO50,750^A0N,18,18^FDINFLAMABLE - USO INDUSTRIAL EXCLUSIVO^FS
+^FO580,40^BQN,2,7^FDQA,${qrDataPayload}^FS
+^FO580,310^A0N,18,18^FDESCANEAR PARA TRAZABILIDAD^FS
+^FO40,620^A0N,20,20^FDINFLAMABLE - USO INDUSTRIAL EXCLUSIVO^FS
 ^XZ`;
     };
 
@@ -78,69 +77,77 @@ ${formulaLines}
         const zpl = generateZplCode();
         navigator.clipboard.writeText(zpl);
         setCopiedZpl(true);
-        addToast({ title: 'ZPL Copiado', message: 'Comandos ZPL para impresora térmica (Zebra 8.5x11) copiados al portapapeles.', severity: 'SUCCESS' });
+        addToast({ title: 'ZPL Copiado', message: 'Comandos ZPL monocromáticos para impresora térmica (Horizontal 11x8.5 cm) copiados.', severity: 'SUCCESS' });
         setTimeout(() => setCopiedZpl(false), 3000);
     };
 
     const handleDownloadLabelPdf = () => {
-        // Page size: 8.5 x 11 cm -> 85mm x 110mm thermal sticker
-        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: [85, 110] });
+        // Horizontal landscape thermal sticker: 110mm x 85mm (11 x 8.5 cm)
+        const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: [110, 85] });
+
+        // Pure Monochrome Black & White styling for thermal clarity
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.8);
+        doc.rect(3, 3, 104, 79);
 
         // Header
-        doc.setFillColor(15, 23, 42); // slate-900
-        doc.rect(0, 0, 85, 16, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.setTextColor(255, 255, 255);
-        doc.text('PROCOQUINAL S.A.S.', 5, 7);
-        doc.setFontSize(6.5);
+        doc.setTextColor(0, 0, 0);
+        doc.text('PROCOQUINAL S.A.S.', 6, 9);
+        doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(203, 213, 225);
-        doc.text('ETIQUETA TINTOMÉTRICA (8.5 x 11 cm)', 5, 12);
+        doc.text('SISTEMA TINTOMÉTRICO (ETIQUETA TÉRMICA)', 6, 13);
+        doc.line(6, 15, 75, 15);
 
-        // Color badge
-        doc.setFillColor(254, 240, 138); // yellow-100
-        doc.roundedRect(5, 19, 75, 10, 2, 2, 'F');
+        // Color ID Big Bold
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.setTextColor(146, 64, 14);
-        doc.text(`COLOR: ${data.colorId}`, 8, 25.5);
+        doc.setFontSize(14);
+        doc.text(`FÓRMULA: ${data.colorId}`, 6, 22);
 
         // Details
         doc.setFontSize(7.5);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 41, 59);
-        doc.text(`Cliente: ${data.clientName}`, 5, 33);
+        doc.text(`Cliente: ${data.clientName}`, 6, 27);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Orden Mezcla: ${data.id}  |  Venta: ${data.saleId}`, 5, 37);
-        doc.text(`Base: ${data.baseName}`, 5, 41);
-        doc.text(`SKU Base: ${data.baseSku}`, 5, 45);
+        doc.text(`Base: ${data.baseName} (${data.baseSku})`, 6, 31);
+        doc.text(`Lote: ${data.id}  |  Venta: ${data.saleId}`, 6, 35);
 
-        // Pigments Table
+        // QR Code Image on Top-Right Corner (Large & High Contrast)
+        try {
+            doc.addImage(qrImageUrl, 'PNG', 78, 6, 25, 25);
+            doc.setFontSize(5.5);
+            doc.setFont('helvetica', 'bold');
+            doc.text('TRAZABILIDAD QR', 90.5, 33, { align: 'center' });
+        } catch (e) {
+            console.warn('Could not embed QR image in PDF', e);
+        }
+
+        // Formula Components Table
         const formulaEntries = Object.entries(data.formula).filter(([k]) => k !== 'Error');
         const tableBody = formulaEntries.map(([tinta, qty]) => [tinta, qty]);
 
         autoTable(doc, {
-            startY: 48,
-            head: [['PIGMENTO / COLORANTE', 'CANTIDAD (g/mL)']],
+            startY: 38,
+            head: [['PIGMENTO / COLORANTE', 'DOSIS (g/mL)']],
             body: tableBody,
-            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontSize: 6.5, cellPadding: 1.5 },
-            styles: { fontSize: 6.5, cellPadding: 1.5 },
-            columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 25, halign: 'right', fontStyle: 'bold' } },
-            margin: { left: 5, right: 5 }
+            headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontSize: 6.5, cellPadding: 1, fontStyle: 'bold' },
+            styles: { fontSize: 6.5, textColor: [0, 0, 0], cellPadding: 1, lineColor: [0, 0, 0], lineWidth: 0.2 },
+            columnStyles: { 0: { cellWidth: 65 }, 1: { cellWidth: 33, halign: 'right', fontStyle: 'bold' } },
+            margin: { left: 6, right: 6 }
         });
 
-        const finalY = (doc as any).lastAutoTable?.finalY || 80;
+        const finalY = (doc as any).lastAutoTable?.finalY || 70;
 
-        // Footer note & Safety
+        // Footer Safety
         doc.setFontSize(6);
-        doc.setTextColor(225, 29, 72);
-        doc.text('⚠ LIQUIDO INFLAMABLE - MANTENER ALEJADO DEL FUEGO', 5, Math.min(finalY + 6, 102));
-        doc.setTextColor(100, 116, 139);
-        doc.text(`Fecha: ${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}`, 5, Math.min(finalY + 10, 106));
+        doc.setFont('helvetica', 'bold');
+        doc.text('⚠ INFLAMABLE - USO INDUSTRIAL EXCLUSIVO', 6, Math.min(finalY + 4, 79));
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Expedición: ${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}`, 60, Math.min(finalY + 4, 79));
 
-        doc.save(`Etiqueta_Formula_${data.colorId.replace(/\s+/g, '_')}_${data.id}.pdf`);
-        addToast({ title: 'Etiqueta PDF Generada', message: `Etiqueta de formato térmico 8.5x11 cm descargada.`, severity: 'SUCCESS' });
+        doc.save(`Etiqueta_Termica_${data.colorId.replace(/\s+/g, '_')}_${data.id}.pdf`);
+        addToast({ title: 'Etiqueta PDF Descargada', message: `Formato Térmico Monocromático Horizontal (11x8.5 cm) listo.`, severity: 'SUCCESS' });
     };
 
     const handleStartDispensing = () => {
@@ -174,12 +181,12 @@ ${formulaLines}
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col text-white"
+                    className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col text-white"
                 >
                     {/* Header */}
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
@@ -188,8 +195,8 @@ ${formulaLines}
                                 <Printer className="w-5 h-5" />
                             </div>
                             <div>
-                                <h3 className="text-base font-bold text-white">Previsualización de Etiqueta Térmica</h3>
-                                <p className="text-xs text-slate-400">Formato Sticker Industrial 8.5 x 11 cm</p>
+                                <h3 className="text-base font-bold text-white">Etiqueta Térmica Monocromática (B&N)</h3>
+                                <p className="text-xs text-slate-400">Formato Horizontal 11 x 8.5 cm — QR Grande & Alto Contraste</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
@@ -199,64 +206,66 @@ ${formulaLines}
 
                     {/* Body */}
                     <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
-                        {/* Interactive Thermal Sticker Canvas Box */}
-                        <div className="bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border-4 border-slate-300 max-w-md mx-auto relative font-sans select-none">
-                            {/* Sticker Header */}
-                            <div className="bg-slate-900 text-white p-3 rounded-xl mb-4 flex justify-between items-center">
-                                <div>
-                                    <h4 className="font-extrabold text-sm tracking-wide">PROCOQUINAL S.A.S.</h4>
-                                    <p className="text-[10px] text-slate-300">SISTEMA TINTOMÉTRICO (8.5 x 11 cm)</p>
-                                </div>
-                                <span className="text-[10px] bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded">
-                                    8.5x11 cm
-                                </span>
-                            </div>
-
-                            {/* Color Header Banner */}
-                            <div className="bg-amber-100 border border-amber-300 text-amber-950 p-3 rounded-xl mb-4 flex justify-between items-center">
-                                <div>
-                                    <span className="text-[10px] uppercase font-bold text-amber-700 block">Fórmula Seleccionada</span>
-                                    <span className="text-lg font-black tracking-tight">{data.colorId}</span>
-                                </div>
-                                <img src={qrImageUrl} alt="QR Code" className="w-14 h-14 rounded border border-amber-400 bg-white p-0.5" />
-                            </div>
-
-                            {/* Info grid */}
-                            <div className="grid grid-cols-2 gap-2 text-xs mb-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                <div>
-                                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Cliente</span>
-                                    <span className="font-bold text-slate-800 truncate block">{data.clientName}</span>
-                                </div>
-                                <div>
-                                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Orden / Lote</span>
-                                    <span className="font-bold text-slate-800 font-mono">{data.id}</span>
-                                </div>
-                                <div className="col-span-2">
-                                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Base de Pintura</span>
-                                    <span className="font-bold text-slate-800">{data.baseName} ({data.baseSku})</span>
-                                </div>
-                            </div>
-
-                            {/* Pigment table */}
-                            <div className="border border-slate-200 rounded-xl overflow-hidden mb-4">
-                                <div className="bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-slate-600 uppercase flex justify-between">
-                                    <span>Pigmento / Tinta</span>
-                                    <span>Dosificación (g/mL)</span>
-                                </div>
-                                <div className="divide-y divide-slate-100 text-xs">
-                                    {Object.entries(data.formula).map(([tinta, qty]) => (
-                                        <div key={tinta} className="px-3 py-1.5 flex justify-between items-center">
-                                            <span className="font-medium text-slate-700">{tinta}</span>
-                                            <span className="font-bold font-mono text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">{qty}</span>
+                        {/* Pure Black & White Thermal Sticker Preview (Horizontal 11 x 8.5 cm) */}
+                        <div className="bg-white text-black p-5 rounded-lg shadow-2xl border-4 border-black w-full max-w-xl mx-auto relative font-mono select-none">
+                            {/* Outer Border Box like thermal label print */}
+                            <div className="border-2 border-black p-3 rounded">
+                                {/* Top Section: Title & Large QR Code */}
+                                <div className="flex justify-between items-start gap-4 mb-2 pb-2 border-b-2 border-black">
+                                    <div className="space-y-1 min-w-0 flex-1">
+                                        <h4 className="font-black text-base tracking-tight uppercase border-b border-black pb-1">
+                                            PROCOQUINAL S.A.S.
+                                        </h4>
+                                        <div className="pt-1">
+                                            <span className="text-[10px] text-slate-700 block font-sans font-bold uppercase">Fórmula Seleccionada:</span>
+                                            <span className="text-xl font-black text-black leading-tight block tracking-tight font-sans">
+                                                {data.colorId}
+                                            </span>
                                         </div>
-                                    ))}
+                                    </div>
+                                    <div className="text-center shrink-0">
+                                        <img src={qrImageUrl} alt="QR Code" className="w-24 h-24 border-2 border-black p-0.5 bg-white mx-auto" />
+                                        <span className="text-[9px] font-bold block mt-0.5 font-sans">ESCANEAME</span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Hazmat Warning */}
-                            <div className="flex items-center gap-2 text-[10px] text-rose-600 font-bold bg-rose-50 p-2 rounded-lg border border-rose-200">
-                                <ShieldAlert className="w-4 h-4 shrink-0" />
-                                <span>LÍQUIDO INFLAMABLE - USO INDUSTRIAL EXCLUSIVO</span>
+                                {/* Metadata Details */}
+                                <div className="grid grid-cols-2 gap-2 text-xs font-sans mb-3 pb-2 border-b border-black">
+                                    <div>
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">Cliente:</span>
+                                        <span className="font-extrabold text-black block truncate">{data.clientName}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">Lote / Venta:</span>
+                                        <span className="font-extrabold text-black block font-mono">{data.id} ({data.saleId})</span>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">Base de Pintura:</span>
+                                        <span className="font-extrabold text-black block">{data.baseName} — <span className="font-mono">{data.baseSku}</span></span>
+                                    </div>
+                                </div>
+
+                                {/* Formula Pigments Table */}
+                                <div className="border border-black rounded overflow-hidden mb-3">
+                                    <div className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase flex justify-between font-sans">
+                                        <span>Componente / Pigmento</span>
+                                        <span>Cantidad (g/mL)</span>
+                                    </div>
+                                    <div className="divide-y divide-black text-xs font-mono">
+                                        {Object.entries(data.formula).map(([tinta, qty]) => (
+                                            <div key={tinta} className="px-3 py-1 flex justify-between items-center font-bold">
+                                                <span>{tinta}</span>
+                                                <span className="bg-slate-200 text-black px-1.5 py-0.5 rounded font-black">{qty}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Safety Disclaimer */}
+                                <div className="text-[10px] font-bold text-black border-t border-black pt-1 flex justify-between items-center font-sans">
+                                    <span>⚠ INFLAMABLE - USO INDUSTRIAL EXCLUSIVO</span>
+                                    <span className="text-[9px] font-mono">{new Date().toLocaleDateString('es-CO')}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -294,14 +303,14 @@ ${formulaLines}
                                 className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                                 {copiedZpl ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                                ZPL (Zebra 8.5x11)
+                                ZPL (Zebra Horizontal 11x8.5)
                             </button>
                             <button
                                 onClick={handleDownloadLabelPdf}
                                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center gap-2 transition-all cursor-pointer"
                             >
                                 <Download className="w-4 h-4" />
-                                Imprimir Etiqueta PDF (8.5x11)
+                                Imprimir Etiqueta B&N (11x8.5 cm)
                             </button>
                         </div>
                     </div>
