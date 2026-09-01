@@ -193,7 +193,7 @@ export const MezclasTablero: React.FC = () => {
                         className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl flex items-center gap-1.5 transition-all text-xs cursor-pointer"
                     >
                         <Printer className="w-4 h-4 text-indigo-600" />
-                        Etiqueta Térmica (8.5x11)
+                        Etiqueta Producto Final
                     </button>
                     {(order.status === MezclaStatus.IN_PROGRESS || order.status === MezclaStatus.READY) && (
                         <button

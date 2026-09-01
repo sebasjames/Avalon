@@ -151,7 +151,7 @@ export const TintometriaPanel: React.FC = () => {
                               });
                             }} 
                             className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all cursor-pointer"
-                            title="Ver Etiqueta Térmica 8.5x11 cm"
+                            title="Ver Etiqueta Producto Final"
                           >
                             <Printer className="w-4 h-4" />
                           </button>
