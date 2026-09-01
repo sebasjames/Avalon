@@ -66,7 +66,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
+                    className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden my-auto"
                 >
                     {/* Header */}
                     <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center shrink-0">
@@ -82,7 +82,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                     </div>
 
                     {/* Email Form */}
-                    <div className="p-6 bg-slate-50 flex-1 overflow-auto space-y-4">
+                    <div className="p-6 bg-slate-50 flex-1 overflow-y-auto custom-scrollbar space-y-4">
                         
                         {/* To / Subject */}
                         <div className="space-y-3 bg-white p-4 rounded-xl border border-slate-200">
@@ -97,7 +97,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                         </div>
 
                         {/* Email Body Preview */}
-                        <div className="bg-white p-6 rounded-xl border border-slate-200 min-h-[300px] text-sm text-slate-700 font-sans leading-relaxed shadow-inner">
+                        <div className="bg-white p-6 rounded-xl border border-slate-200 max-h-[320px] overflow-y-auto custom-scrollbar text-sm text-slate-700 font-sans leading-relaxed shadow-inner">
                             <p className="mb-4">Estimado(a) <strong>{clientName || 'Cliente'}</strong>,</p>
                             <p className="mb-4">De acuerdo a nuestra conversación, adjunto la cotización solicitada con los productos requeridos:</p>
                             
