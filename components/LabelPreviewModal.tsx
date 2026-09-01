@@ -48,11 +48,11 @@ export const LabelPreviewModal: React.FC<LabelPreviewModalProps> = ({
         date: data.requestedAt || new Date().toISOString()
     });
 
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrDataPayload)}`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrDataPayload)}`;
 
     const generateZplCode = () => {
         const formulaLines = Object.entries(data.formula)
-            .map(([tinta, qty], i) => `^FO40,${280 + i * 28}^FD${tinta}: ${qty}^FS`)
+            .map(([tinta, qty], i) => `^FO30,${340 + i * 28}^FD${tinta}: ${qty}^FS`)
             .join('\n');
 
         return `^XA
@@ -64,11 +64,11 @@ export const LabelPreviewModal: React.FC<LabelPreviewModalProps> = ({
 ^FO40,140^A0N,24,24^FDCLIENTE: ${data.clientName}^FS
 ^FO40,175^A0N,22,22^FDBASE: ${data.baseName} (${data.baseSku})^FS
 ^FO40,205^A0N,22,22^FDLOTE: ${data.id} | VENTA: ${data.saleId}^FS
-^FO40,240^GB520,2,2^FS
+^FO40,240^GB500,2,2^FS
 ^FO40,255^A0N,22,22^FDDOSIFICACION DE PIGMENTOS:^FS
 ${formulaLines}
-^FO580,40^BQN,2,7^FDQA,${qrDataPayload}^FS
-^FO580,310^A0N,18,18^FDESCANEAR PARA TRAZABILIDAD^FS
+^FO550,40^BQN,2,9^FDQA,${qrDataPayload}^FS
+^FO550,380^A0N,18,18^FDESCANEAR PARA TRAZABILIDAD^FS
 ^FO40,620^A0N,20,20^FDINFLAMABLE - USO INDUSTRIAL EXCLUSIVO^FS
 ^XZ`;
     };
@@ -90,35 +90,38 @@ ${formulaLines}
         doc.setLineWidth(0.8);
         doc.rect(3, 3, 104, 79);
 
-        // Header
+        // Top Left Header
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
         doc.text('PROCOQUINAL S.A.S.', 6, 9);
-        doc.setFontSize(7);
+        doc.setFontSize(6.5);
         doc.setFont('helvetica', 'normal');
-        doc.text('SISTEMA TINTOMÉTRICO (ETIQUETA TÉRMICA)', 6, 13);
-        doc.line(6, 15, 75, 15);
+        doc.text('SISTEMA TINTOMÉTRICO INDUSTRIAL', 6, 13);
+        doc.line(6, 15, 68, 15);
 
         // Color ID Big Bold
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(14);
-        doc.text(`FÓRMULA: ${data.colorId}`, 6, 22);
+        doc.text(`FÓRMULA: ${data.colorId}`, 6, 21);
 
-        // Details
-        doc.setFontSize(7.5);
+        // Left Details Column
+        doc.setFontSize(7);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Cliente: ${data.clientName}`, 6, 27);
+        doc.text(`Cliente: ${data.clientName}`, 6, 26);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Base: ${data.baseName} (${data.baseSku})`, 6, 31);
-        doc.text(`Lote: ${data.id}  |  Venta: ${data.saleId}`, 6, 35);
+        doc.text(`Lote: ${data.id}  |  Venta: ${data.saleId}`, 6, 30);
+        doc.text(`Base: ${data.baseName} (${data.baseSku})`, 6, 34);
 
-        // QR Code Image on Top-Right Corner (Large & High Contrast)
+        // QR Code Image on Right side — 25% of Sticker Area (32mm x 32mm)
         try {
-            doc.addImage(qrImageUrl, 'PNG', 78, 6, 25, 25);
+            doc.addImage(qrImageUrl, 'PNG', 72, 6, 32, 32);
+            doc.setDrawColor(0, 0, 0);
+            doc.setLineWidth(0.4);
+            doc.rect(72, 6, 32, 32);
             doc.setFontSize(5.5);
             doc.setFont('helvetica', 'bold');
-            doc.text('TRAZABILIDAD QR', 90.5, 33, { align: 'center' });
+            doc.text('ESCÁNER TRAZABILIDAD', 88, 41, { align: 'center' });
         } catch (e) {
             console.warn('Could not embed QR image in PDF', e);
         }
@@ -128,16 +131,16 @@ ${formulaLines}
         const tableBody = formulaEntries.map(([tinta, qty]) => [tinta, qty]);
 
         autoTable(doc, {
-            startY: 38,
+            startY: 43,
             head: [['PIGMENTO / COLORANTE', 'DOSIS (g/mL)']],
             body: tableBody,
             headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontSize: 6.5, cellPadding: 1, fontStyle: 'bold' },
             styles: { fontSize: 6.5, textColor: [0, 0, 0], cellPadding: 1, lineColor: [0, 0, 0], lineWidth: 0.2 },
-            columnStyles: { 0: { cellWidth: 65 }, 1: { cellWidth: 33, halign: 'right', fontStyle: 'bold' } },
+            columnStyles: { 0: { cellWidth: 68 }, 1: { cellWidth: 30, halign: 'right', fontStyle: 'bold' } },
             margin: { left: 6, right: 6 }
         });
 
-        const finalY = (doc as any).lastAutoTable?.finalY || 70;
+        const finalY = (doc as any).lastAutoTable?.finalY || 72;
 
         // Footer Safety
         doc.setFontSize(6);
@@ -196,7 +199,7 @@ ${formulaLines}
                             </div>
                             <div>
                                 <h3 className="text-base font-bold text-white">Etiqueta Térmica Monocromática (B&N)</h3>
-                                <p className="text-xs text-slate-400">Formato Horizontal 11 x 8.5 cm — QR Grande & Alto Contraste</p>
+                                <p className="text-xs text-slate-400">Formato Horizontal 11 x 8.5 cm — QR Grande (25% Sticker) & Alto Contraste</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
@@ -210,42 +213,39 @@ ${formulaLines}
                         <div className="bg-white text-black p-5 rounded-lg shadow-2xl border-4 border-black w-full max-w-xl mx-auto relative font-mono select-none">
                             {/* Outer Border Box like thermal label print */}
                             <div className="border-2 border-black p-3 rounded">
-                                {/* Top Section: Title & Large QR Code */}
-                                <div className="flex justify-between items-start gap-4 mb-2 pb-2 border-b-2 border-black">
-                                    <div className="space-y-1 min-w-0 flex-1">
-                                        <h4 className="font-black text-base tracking-tight uppercase border-b border-black pb-1">
-                                            PROCOQUINAL S.A.S.
-                                        </h4>
-                                        <div className="pt-1">
-                                            <span className="text-[10px] text-slate-700 block font-sans font-bold uppercase">Fórmula Seleccionada:</span>
+                                {/* Top Layout: Split 70% Left Text Details / 30% Right GIANT QR CODE */}
+                                <div className="flex justify-between items-stretch gap-3 mb-3 pb-3 border-b-2 border-black">
+                                    {/* Left Text Block */}
+                                    <div className="space-y-1.5 flex-1 min-w-0">
+                                        <div className="border-b border-black pb-1">
+                                            <h4 className="font-black text-base tracking-tight uppercase">
+                                                PROCOQUINAL S.A.S.
+                                            </h4>
+                                            <span className="text-[9px] font-sans font-bold text-black uppercase block">SISTEMA TINTOMÉTRICO INDUSTRIAL</span>
+                                        </div>
+                                        
+                                        <div>
+                                            <span className="text-[9px] text-slate-700 block font-sans font-bold uppercase">Fórmula Seleccionada:</span>
                                             <span className="text-xl font-black text-black leading-tight block tracking-tight font-sans">
                                                 {data.colorId}
                                             </span>
                                         </div>
+
+                                        <div className="text-[11px] font-sans pt-1 space-y-0.5">
+                                            <p className="truncate"><span className="font-bold uppercase text-[9px]">Cliente:</span> <span className="font-extrabold">{data.clientName}</span></p>
+                                            <p><span className="font-bold uppercase text-[9px]">Lote / Venta:</span> <span className="font-extrabold font-mono">{data.id} ({data.saleId})</span></p>
+                                            <p className="truncate"><span className="font-bold uppercase text-[9px]">Base:</span> <span className="font-extrabold">{data.baseName}</span></p>
+                                        </div>
                                     </div>
-                                    <div className="text-center shrink-0">
-                                        <img src={qrImageUrl} alt="QR Code" className="w-24 h-24 border-2 border-black p-0.5 bg-white mx-auto" />
-                                        <span className="text-[9px] font-bold block mt-0.5 font-sans">ESCANEAME</span>
+
+                                    {/* Right Giant QR Code Block (25% of sticker size) */}
+                                    <div className="w-36 shrink-0 flex flex-col items-center justify-center border-2 border-black p-1 bg-white rounded">
+                                        <img src={qrImageUrl} alt="QR Code Trazabilidad" className="w-32 h-32 object-contain bg-white" />
+                                        <span className="text-[9px] font-extrabold block text-center font-sans tracking-tighter mt-1 uppercase">ESCÁNER TRAZABILIDAD</span>
                                     </div>
                                 </div>
 
-                                {/* Metadata Details */}
-                                <div className="grid grid-cols-2 gap-2 text-xs font-sans mb-3 pb-2 border-b border-black">
-                                    <div>
-                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">Cliente:</span>
-                                        <span className="font-extrabold text-black block truncate">{data.clientName}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">Lote / Venta:</span>
-                                        <span className="font-extrabold text-black block font-mono">{data.id} ({data.saleId})</span>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">Base de Pintura:</span>
-                                        <span className="font-extrabold text-black block">{data.baseName} — <span className="font-mono">{data.baseSku}</span></span>
-                                    </div>
-                                </div>
-
-                                {/* Formula Pigments Table */}
+                                {/* Formula Pigments Table - Pure B&W Crisp Text */}
                                 <div className="border border-black rounded overflow-hidden mb-3">
                                     <div className="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase flex justify-between font-sans">
                                         <span>Componente / Pigmento</span>
@@ -254,8 +254,8 @@ ${formulaLines}
                                     <div className="divide-y divide-black text-xs font-mono">
                                         {Object.entries(data.formula).map(([tinta, qty]) => (
                                             <div key={tinta} className="px-3 py-1 flex justify-between items-center font-bold">
-                                                <span>{tinta}</span>
-                                                <span className="bg-slate-200 text-black px-1.5 py-0.5 rounded font-black">{qty}</span>
+                                                <span className="text-black">{tinta}</span>
+                                                <span className="font-black text-black font-mono">{qty}</span>
                                             </div>
                                         ))}
                                     </div>
