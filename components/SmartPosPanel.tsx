@@ -56,10 +56,7 @@ export const SmartPosPanel: React.FC = () => {
     const [showCreateClientModal, setShowCreateClientModal] = useState(false);
     const [newClientPayload, setNewClientPayload] = useState<any>({});
     const [clientValidationError, setClientValidationError] = useState<string | null>(null);
-
     const customerDropdownRef = useRef<HTMLDivElement>(null);
-    const mainSearchInputRef = useRef<HTMLInputElement>(null);
-    const customerSearchInputRef = useRef<HTMLInputElement>(null);
 
   // Escape key hooks
   useEscapeKey(() => setIsQuoteModalOpen(false), isQuoteModalOpen);
