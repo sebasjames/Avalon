@@ -1,73 +1,59 @@
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, FileSpreadsheet } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { KardexTransaction } from '../types';
 
 interface TransactionsExcelModalProps {
     isOpen: boolean;
     onClose: () => void;
-    data: any[];
+    data: KardexTransaction[];
 }
 
 export const TransactionsExcelModal: React.FC<TransactionsExcelModalProps> = ({ isOpen, onClose, data }) => {
-    
     const columns = [
-        { id: 'id', label: 'ID Comprobante', fixed: true },
-        { id: 'date', label: 'Fecha' },
-        { id: 'type', label: 'Tipo' },
-        { id: 'client', label: 'Tercero / Cliente' },
-        { id: 'document', label: 'Documento Ref' },
-        { id: 'productName', label: 'Concepto / Producto' },
-        { id: 'sku', label: 'SKU' },
-        { id: 'qty', label: 'Cant' },
-        { id: 'total', label: 'Valor Total' },
-        { id: 'iva', label: 'IVA' },
-        { id: 'paymentMethod', label: 'Forma Pago' },
-        { id: 'posLocation', label: 'Punto Venta' },
-        { id: 'paymentStatus', label: 'Estado Cartera' },
-        { id: 'balance', label: 'Saldo Cartera' },
-        { id: 'validationStatus', label: 'Concil. Datáfono' },
-        { id: 'bankAmount', label: 'Neto Banco' },
-        { id: 'bankFee', label: 'Comisión Banco' }
+        { id: 'id', label: 'ID Transacción', width: 140 },
+        { id: 'date', label: 'Fecha / Hora', width: 160 },
+        { id: 'type', label: 'Tipo', width: 120 },
+        { id: 'sku', label: 'SKU Producto', width: 120 },
+        { id: 'productName', label: 'Nombre Producto', width: 220 },
+        { id: 'quantity', label: 'Cantidad', width: 100 },
+        { id: 'previousStock', label: 'Stock Previo', width: 100 },
+        { id: 'newStock', label: 'Nuevo Stock', width: 100 },
+        { id: 'reason', label: 'Motivo / Concepto', width: 250 },
+        { id: 'user', label: 'Usuario Responsable', width: 150 },
+        { id: 'warehouse', label: 'Bodega / Ubicación', width: 140 },
+        { id: 'referenceDoc', label: 'Doc. Referencia', width: 140 },
+        { id: 'unitCost', label: 'Costo Unitario ($)', width: 130 },
+        { id: 'totalCost', label: 'Costo Total ($)', width: 130 },
     ];
 
-    const getRowData = (item: any) => {
+    const getRowData = (item: KardexTransaction | any) => {
         return {
-            id: item.id,
-            date: item.date,
-            type: item.type,
-            client: item.client,
-            document: item.document,
-            productName: item.productName,
-            sku: item.sku || 'N/A',
-            qty: item.qty?.toString() || '1',
-            total: item.total ? `$${item.total.toLocaleString('es-CO')}` : '$0',
-            iva: item.iva ? `$${item.iva.toLocaleString('es-CO')}` : '$0',
-            paymentMethod: item.paymentMethod || 'N/A',
-            posLocation: item.posLocation || 'N/A',
-            paymentStatus: item.paymentStatus || 'N/A',
-            balance: item.balance ? `$${item.balance.toLocaleString('es-CO')}` : '$0',
-            validationStatus: item.validationStatus || 'N/A',
-            bankAmount: item.bankAmount ? `$${item.bankAmount.toLocaleString('es-CO')}` : '$0',
-            bankFee: item.bankFee ? `$${item.bankFee.toLocaleString('es-CO')}` : '$0'
+            id: item.id || '',
+            date: item.date ? new Date(item.date).toLocaleString('es-CO') : '',
+            type: item.type || '',
+            sku: item.productId || 'N/A',
+            productName: item.productName || 'Producto',
+            quantity: item.quantity?.toString() || '0',
+            previousStock: item.previousStock?.toString() || '0',
+            newStock: item.newStock?.toString() || '0',
+            reason: item.reason || item.notes || 'N/A',
+            user: item.userName || item.userId || 'Sistema',
+            warehouse: item.warehouse || 'Principal',
+            referenceDoc: item.referenceDocument || 'N/A',
+            unitCost: item.unitCost ? `$${item.unitCost.toLocaleString('es-CO')}` : '$0',
+            totalCost: item.totalCost ? `$${item.totalCost.toLocaleString('es-CO')}` : '$0',
         };
     };
 
-
-    // Resizable columns logic
-    const [colWidths, setColWidths] = useState<Record<string, number>>({
-        'id': 130,
-        'client': 200,
-        'productName': 300,
-    });
+    const [colWidths, setColWidths] = useState<Record<string, number>>({});
     const [resizingCol, setResizingCol] = useState<string | null>(null);
     const [startX, setStartX] = useState(0);
     const [startWidth, setStartWidth] = useState(0);
 
-  // Escape key hooks
-  useEscapeKey(onClose, isOpen);
-
+    useEscapeKey(onClose, isOpen);
 
     const handleMouseDown = (e: React.MouseEvent, colId: string) => {
         e.preventDefault();
@@ -78,9 +64,6 @@ export const TransactionsExcelModal: React.FC<TransactionsExcelModalProps> = ({ 
     };
 
     useEffect(() => {
-
-    if (!isOpen) return null;
-
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingCol) return;
             const diffX = e.clientX - startX;
@@ -104,6 +87,8 @@ export const TransactionsExcelModal: React.FC<TransactionsExcelModalProps> = ({ 
             document.removeEventListener('mouseup', handleMouseUp);
         };
     }, [resizingCol, startX, startWidth]);
+
+    if (!isOpen) return null;
 
     const modalContent = (
         <AnimatePresence>
@@ -135,73 +120,56 @@ export const TransactionsExcelModal: React.FC<TransactionsExcelModalProps> = ({ 
                         </button>
                     </div>
 
-                    {/* Sheet Grid Body */}
-                    <div className="flex-1 overflow-auto bg-slate-900 text-xs font-mono select-none custom-scrollbar">
-                        <div className="min-w-max relative">
-                            {/* Sticky Header Row */}
-                            <div className="flex bg-slate-950 border-b border-slate-800 sticky top-0 z-20 h-9 items-center">
-                                <div className="w-10 text-center text-slate-600 font-bold border-r border-slate-800 shrink-0">#</div>
-                                {columns.map((col) => {
-                                    const width = colWidths[col.id] || 120;
-                                    return (
-                                        <div 
-                                            key={col.id} 
-                                            className="h-full flex items-center px-3 font-bold text-slate-400 border-r border-slate-800 relative group select-none shrink-0"
-                                            style={{ width }}
-                                        >
-                                            <span className="truncate">{col.label}</span>
-                                            {/* Resize Handle */}
-                                            <div 
-                                                onMouseDown={(e) => handleMouseDown(e, col.id)}
-                                                className={`absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-indigo-500/50 active:bg-indigo-500 transition-colors z-30 ${resizingCol === col.id ? 'bg-indigo-500' : ''}`}
-                                            ></div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Data Rows */}
-                            <div className="divide-y divide-slate-800">
-                                {data.map((item, rowIndex) => {
+                    {/* Table grid view */}
+                    <div className="flex-1 overflow-auto bg-slate-950 relative font-mono text-xs">
+                        <table className="w-max border-collapse">
+                            <thead className="sticky top-0 z-20 bg-slate-900 shadow-md">
+                                <tr className="border-b border-slate-800">
+                                    {columns.map((col) => {
+                                        const width = colWidths[col.id] || col.width;
+                                        return (
+                                            <th 
+                                                key={col.id} 
+                                                style={{ width: `${width}px`, minWidth: `${width}px` }}
+                                                className="px-3 py-2 text-left font-bold text-slate-400 border-r border-slate-800 select-none relative group"
+                                            >
+                                                <span>{col.label}</span>
+                                                <div 
+                                                    onMouseDown={(e) => handleMouseDown(e, col.id)}
+                                                    className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-emerald-500/50 z-30"
+                                                />
+                                            </th>
+                                        );
+                                    })}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800/60">
+                                {data.map((item, idx) => {
                                     const row = getRowData(item);
                                     return (
-                                        <div 
-                                            key={rowIndex} 
-                                            className="flex h-8 items-center bg-slate-900/50 hover:bg-indigo-950/20 group border-b border-slate-800/60"
-                                        >
-                                            <div className="w-10 text-center text-slate-600 font-bold border-r border-slate-800 shrink-0 bg-slate-950/20">{rowIndex + 1}</div>
+                                        <tr key={item.id || idx} className="hover:bg-slate-800/40 transition-colors">
                                             {columns.map((col) => {
-                                                const width = colWidths[col.id] || 120;
                                                 const val = (row as any)[col.id];
-                                                
-                                                // Highlight coloring logic
-                                                let cellColor = "text-slate-300";
-                                                if (col.id === "total" || col.id === "bankAmount") cellColor = "text-emerald-400 font-bold";
-                                                if (col.id === "bankFee") cellColor = "text-rose-400 font-bold";
-                                                if (col.id === "id") cellColor = "text-indigo-300 font-bold";
-                                                if (col.id === "type") {
-                                                    cellColor = val === "VENTA" ? "text-blue-400" : val === "COMPRA" ? "text-amber-400" : "text-slate-400";
-                                                }
-
+                                                const width = colWidths[col.id] || col.width;
                                                 return (
-                                                    <div 
-                                                        key={col.id} 
-                                                        className={`h-full flex items-center px-3 border-r border-slate-800/60 truncate shrink-0 ${cellColor}`}
-                                                        style={{ width }}
+                                                    <td 
+                                                        key={col.id}
+                                                        style={{ width: `${width}px`, minWidth: `${width}px` }}
+                                                        className="px-3 py-1.5 border-r border-slate-800/50 truncate text-slate-300"
                                                         title={val}
                                                     >
                                                         {val}
-                                                    </div>
+                                                    </td>
                                                 );
                                             })}
-                                        </div>
+                                        </tr>
                                     );
                                 })}
-                            </div>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
 
-                    {/* Footer / Status Bar */}
+                    {/* Footer */}
                     <div className="px-6 py-3 bg-slate-950/60 border-t border-slate-800 flex justify-between items-center text-[10px] text-slate-500 shrink-0 select-none">
                         <div className="flex gap-4">
                             <span>TOTAL FILAS: <strong className="text-slate-300">{data.length}</strong></span>

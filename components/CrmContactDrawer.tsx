@@ -40,7 +40,7 @@ export const CrmContactDrawer: React.FC<CrmContactDrawerProps> = ({
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
 
   // Escape key hooks
-  useEscapeKey(onClose, isOpen);
+  useEscapeKey(onClose);
 
 
   // Calculate completeness based on filled affinity fields (mock logic)

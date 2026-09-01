@@ -112,7 +112,6 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
         };
     };
 
-
     const [isExportingXLSX, setIsExportingXLSX] = useState(false);
 
     const [colWidths, setColWidths] = useState<Record<string, number>>({
@@ -124,9 +123,7 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
     const [startX, setStartX] = useState(0);
     const [startWidth, setStartWidth] = useState(0);
 
-  // Escape key hooks
-  useEscapeKey(onClose, isOpen);
-
+    useEscapeKey(onClose, isOpen);
 
     const handleMouseDown = (e: React.MouseEvent, colId: string) => {
         e.preventDefault();
@@ -137,9 +134,6 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
     };
 
     useEffect(() => {
-
-    if (!isOpen) return null;
-
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingCol) return;
             const diffX = e.clientX - startX;
@@ -238,6 +232,8 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
         await downloadBlob(blob, filename, '.csv', 'text/csv', 'CSV File');
     };
 
+    if (!isOpen) return null;
+
     return createPortal(
         <AnimatePresence>
             <motion.div 
@@ -325,7 +321,7 @@ export const CrmExcelModal: React.FC<CrmExcelModalProps> = ({ isOpen, onClose, d
                                                         }`}
                                                         style={{ width, minWidth: width, maxWidth: width }}
                                                     >
-                                                        <div className="overflow-hidden text-ellipsis" title={val.toString()}>{val || <span className="text-rose-300 italic text-[11px] uppercase tracking-wider font-bold">Vacio</span>}</div>
+                                                        <div className="overflow-hidden text-ellipsis" title={val?.toString()}>{val || <span className="text-rose-300 italic text-[11px] uppercase tracking-wider font-bold">Vacio</span>}</div>
                                                     </td>
                                                 );
                                             })}

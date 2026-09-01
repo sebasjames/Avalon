@@ -35,9 +35,6 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
     ];
 
     const getRowData = (item: any) => {
-        const skuUpper = item.sku.toUpperCase();
-        const nameUpper = item.name.toUpperCase();
-
         return {
             product: `${item.sku} - ${item.name}`,
             originalSku: item.originalSku || '',
@@ -61,20 +58,16 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
         };
     };
 
-
     const [isExportingXLSX, setIsExportingXLSX] = useState(false);
 
-    // Resizable columns logic
     const [colWidths, setColWidths] = useState<Record<string, number>>({
-        'product': 400, // Make product column wider by default
+        'product': 400,
     });
     const [resizingCol, setResizingCol] = useState<string | null>(null);
     const [startX, setStartX] = useState(0);
     const [startWidth, setStartWidth] = useState(0);
 
-  // Escape key hooks
-  useEscapeKey(onClose, isOpen);
-
+    useEscapeKey(onClose, isOpen);
 
     const handleMouseDown = (e: React.MouseEvent, colId: string) => {
         e.preventDefault();
@@ -85,15 +78,12 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
     };
 
     useEffect(() => {
-
-    if (!isOpen) return null;
-
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingCol) return;
             const diffX = e.clientX - startX;
             setColWidths(prev => ({
                 ...prev,
-                [resizingCol]: Math.max(50, startWidth + diffX) // min width 50px
+                [resizingCol]: Math.max(50, startWidth + diffX)
             }));
         };
         
@@ -128,11 +118,10 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                 return;
             }
         } catch (err: any) {
-            if (err.name === 'AbortError') return; // User cancelled the dialog
+            if (err.name === 'AbortError') return;
             console.warn('showSaveFilePicker API failed, falling back to file-saver:', err);
         }
         
-        // Fallback for browsers that don't support showSaveFilePicker
         const { saveAs } = await import('file-saver');
         saveAs(blob, filename);
     };
@@ -140,11 +129,8 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
     const handleExportXLSX = async () => {
         try {
             setIsExportingXLSX(true);
-            
-            // 1. Lazy load the xlsx library
             const XLSX = await import('xlsx');
             
-            // 2. Format the data
             const wsData = data.map(item => {
                 const row = getRowData(item);
                 const rowObj: Record<string, string> = {};
@@ -154,12 +140,10 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                 return rowObj;
             });
             
-            // 3. Create workbook
             const ws = XLSX.utils.json_to_sheet(wsData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Auditoria");
             
-            // 4. Download file using native picker
             const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
             const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
             const filename = `Auditoria_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`;
@@ -180,19 +164,19 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
             const row = getRowData(item);
             return columns.map(col => {
                 let val = row[col.id as keyof typeof row] || '';
-                // Escape quotes and wrap in quotes
                 val = String(val).replace(/"/g, '""');
                 return `"${val}"`;
             }).join(',');
         });
         
-        // Add BOM for Excel UTF-8 support
         const csvContent = [header, ...rows].join('\n');
         const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
         const filename = `Auditoria_Inventario_${new Date().toISOString().split('T')[0]}.csv`;
         
         await downloadBlob(blob, filename, '.csv', 'text/csv', 'CSV File');
     };
+
+    if (!isOpen) return null;
 
     return createPortal(
         <AnimatePresence>
@@ -240,7 +224,7 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                         <table className="w-max text-left border-collapse bg-white" style={{ tableLayout: 'fixed' }}>
                             <thead className="sticky top-0 z-30 bg-slate-100 shadow-sm">
                                 <tr>
-                                    {columns.map((col, idx) => {
+                                    {columns.map((col) => {
                                         const width = colWidths[col.id] || 150;
                                         return (
                                             <th 
@@ -266,8 +250,8 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                                 {data.map((item, i) => {
                                     const row = getRowData(item);
                                     return (
-                                        <tr key={item.id} className="hover:bg-emerald-50/40 transition-colors group">
-                                            {columns.map((col, idx) => {
+                                        <tr key={item.id || i} className="hover:bg-emerald-50/40 transition-colors group">
+                                            {columns.map((col) => {
                                                 const val = row[col.id as keyof typeof row];
                                                 const width = colWidths[col.id] || 150;
                                                 return (
@@ -281,7 +265,7 @@ export const InventoryExcelModal: React.FC<InventoryExcelModalProps> = ({ isOpen
                                                         }`}
                                                         style={{ width, minWidth: width, maxWidth: width }}
                                                     >
-                                                        <div className="overflow-hidden text-ellipsis" title={val.toString()}>{val || <span className="text-rose-300 italic text-[11px] uppercase tracking-wider font-bold">Vacio</span>}</div>
+                                                        <div className="overflow-hidden text-ellipsis" title={val?.toString()}>{val || <span className="text-rose-300 italic text-[11px] uppercase tracking-wider font-bold">Vacio</span>}</div>
                                                     </td>
                                                 );
                                             })}
