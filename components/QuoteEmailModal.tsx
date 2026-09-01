@@ -2,8 +2,9 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Send, Paperclip, FileText, Check, Loader2 } from 'lucide-react';
+import { X, Mail, Send, Paperclip, FileText, Check, Loader2, Download } from 'lucide-react';
 import { PosCartItem } from '../types';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 interface QuoteEmailModalProps {
     isOpen: boolean;
@@ -21,9 +22,12 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
     isOpen, onClose, cart, clientName, 
     subtotal, discountAmount, discountPercent, taxesBreakdown, retenciones 
 }) => {
+    const { addTransaction } = useEnterprise();
     const [includeTechDocs, setIncludeTechDocs] = useState(false);
     const [isSending, setIsSending] = useState(false);
     const [sent, setSent] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [downloaded, setDownloaded] = useState(false);
     
     // Accounting toggles
     const [showDiscount, setShowDiscount] = useState(discountAmount > 0);
@@ -55,6 +59,116 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                 onClose();
             }, 1500);
         }, 1000);
+    };
+
+    const handleDownloadPdfAndSave = () => {
+        setIsDownloading(true);
+        setTimeout(() => {
+            // 1. Guardar la cotización como Pendiente en la plataforma
+            addTransaction({
+                id: `COT-${Date.now()}`,
+                date: new Date().toISOString().split('T')[0],
+                type: 'VENTA',
+                client: clientName || 'Cliente General',
+                document: 'Cotización Comercial (Pendiente)',
+                productName: `Cotización de ${cart.length} producto(s) [Pendiente]`,
+                sku: cart[0]?.sku || 'N/A',
+                qty: cart.reduce((sum, item) => sum + item.quantity, 0),
+                total: calculatedTotal,
+                iva: totalIva,
+                paymentMethod: 'Cotización / Crédito',
+                posLocation: 'B2B Comercial',
+                siigoExportStatus: 'PENDING_SIIGO_SYNC',
+                siigoDocType: 'COTIZACION_PENDIENTE'
+            });
+
+            // 2. Generar y descargar archivo de la cotización
+            const printableHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Cotización Comercial - ${clientName || 'Cliente'}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; color: #1e293b; background: #fff; }
+                        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 20px; }
+                        .title { font-size: 24px; font-weight: bold; color: #0f172a; }
+                        .badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 99px; font-weight: bold; font-size: 12px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+                        th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #cbd5e1; }
+                        td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+                        .total-row { font-weight: bold; font-size: 18px; }
+                        .footer { margin-top: 50px; font-size: 12px; color: #64748b; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <div class="title">PROCOQUINAL S.A.S.</div>
+                            <div>Cotización Comercial B2B</div>
+                        </div>
+                        <div>
+                            <span class="badge">ESTADO: PENDIENTE</span>
+                            <div style="margin-top: 8px; font-size: 12px; color: #64748b;">Fecha: ${new Date().toLocaleDateString('es-CO')}</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <strong>Cliente:</strong> ${clientName || 'Cliente General'}<br>
+                        <strong>Validez:</strong> 15 Días Calendario
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th style="text-align: right;">Cantidad</th>
+                                <th style="text-align: right;">Precio Unitario</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cart.map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td style="text-align: right;">${item.quantity}</td>
+                                    <td style="text-align: right;">$${item.price.toLocaleString('es-CO')}</td>
+                                    <td style="text-align: right;">$${(item.quantity * item.price).toLocaleString('es-CO')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 20px; text-align: right;">
+                        <div>Subtotal: $${subtotal.toLocaleString('es-CO')}</div>
+                        <div>IVA: $${totalIva.toLocaleString('es-CO')}</div>
+                        <div class="total-row" style="margin-top: 10px;">Total Cotización: $${calculatedTotal.toLocaleString('es-CO')} COP</div>
+                    </div>
+
+                    <div class="footer">
+                        Procoquinal S.A.S. - Departamento Comercial - Documento generado automáticamente
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([printableHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Cotizacion_Procoquinal_${(clientName || 'Cliente').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            setIsDownloading(false);
+            setDownloaded(true);
+            setTimeout(() => {
+                setDownloaded(false);
+                onClose();
+            }, 1500);
+        }, 800);
     };
 
     const formatCOP = (num: number) => `$${num.toLocaleString('es-CO')}`;
@@ -224,10 +338,25 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="p-4 bg-white border-t border-slate-200 flex justify-end gap-3 shrink-0">
+                    <div className="p-4 bg-white border-t border-slate-200 flex justify-end gap-3 shrink-0 flex-wrap">
                         <button onClick={onClose} className="px-5 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                             Cancelar
                         </button>
+                        
+                        <button
+                            onClick={handleDownloadPdfAndSave}
+                            disabled={isDownloading || downloaded}
+                            className={`px-5 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 border ${
+                                downloaded 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                            }`}
+                        >
+                            {isDownloading ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}><Loader2 className="w-4 h-4 text-slate-600" /></motion.div> :
+                             downloaded ? <><Check className="w-4 h-4 text-emerald-600" /> Guardado & Descargado</> :
+                             <><Download className="w-4 h-4 text-slate-600" /> Descargar PDF & Guardar</>}
+                        </button>
+
                         <button 
                             onClick={handleSend}
                             disabled={isSending || sent}
