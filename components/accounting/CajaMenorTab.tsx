@@ -97,7 +97,9 @@ export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
                                     total: valor,
                                     iva: 0,
                                     paymentMethod: 'Caja Menor',
-                                    posLocation: pointsOfSale?.[0] || 'Bogotá'
+                                    posLocation: pointsOfSale?.[0] || 'Bogotá',
+                                    siigoExportStatus: 'PENDING_SIIGO_SYNC',
+                                    siigoDocType: 'EGRESO'
                                 });
 
                                 // Limpiar formulario
@@ -106,7 +108,7 @@ export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
                                 setEgresoValor('');
                                 setEgresoSku('');
                                 setEgresoCantidad('');
-                                alert('Egreso registrado exitosamente en Caja Menor.');
+                                alert('Egreso registrado exitosamente en Caja Menor (Encolado para exportación SIIGO).');
                             };
 
                             const handleReembolsoCaja = () => {
@@ -129,9 +131,11 @@ export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
                                         total: montoAReembolsar,
                                         iva: 0,
                                         paymentMethod: 'Caja Menor',
-                                        posLocation: pointsOfSale?.[0] || 'Bogotá'
+                                        posLocation: pointsOfSale?.[0] || 'Bogotá',
+                                        siigoExportStatus: 'PENDING_SIIGO_SYNC',
+                                        siigoDocType: 'REEMBOLSO_BANCOS'
                                     });
-                                    alert(`Caja Menor reembolsada. Saldo disponible restablecido a $${FONDO_BASE.toLocaleString('es-CO')} COP.`);
+                                    alert(`Caja Menor reembolsada. Saldo disponible restablecido a $${FONDO_BASE.toLocaleString('es-CO')} COP (Encolado para SIIGO).`);
                                 }
                             };
 
