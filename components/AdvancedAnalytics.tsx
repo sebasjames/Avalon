@@ -9,7 +9,7 @@ import {
     BrainCircuit, Box, Activity, Target, Factory, DollarSign, Tag, XCircle, 
     Users, Truck, FlaskConical, TrendingUp, Network, AlertTriangle, Play, 
     Layers, Search, ArrowRight, Zap, Microscope, Sigma, TrendingDown, Percent,
-    Wallet, CreditCard, Landmark, Coins, Sparkles, GitBranch, Binary
+    Wallet, CreditCard, Landmark, Coins, Sparkles, GitBranch, Binary, Calendar, Filter
 } from 'lucide-react';
 
 // --- MOCK ANALYTICS DATA ---
@@ -212,6 +212,44 @@ export const AdvancedAnalytics: React.FC = () => {
     const [simCost, setSimCost] = useState(0); // % change
     const [simDemand, setSimDemand] = useState(0); // % change
 
+    // Date Range Filter State
+    const [datePreset, setDatePreset] = useState<string>('THIS_MONTH');
+    const [startDate, setStartDate] = useState('2026-08-01');
+    const [endDate, setEndDate] = useState('2026-08-31');
+    const [appliedFactor, setAppliedFactor] = useState(1.0);
+    const [appliedRangeLabel, setAppliedRangeLabel] = useState('Este Mes (Agosto 2026)');
+    const [isApplyingFilter, setIsApplyingFilter] = useState(false);
+
+    const handleApplyDateRange = () => {
+        setIsApplyingFilter(true);
+        setTimeout(() => {
+            let factor = 1.0;
+            let label = '';
+            if (datePreset === '30_DAYS') {
+                factor = 0.95;
+                label = 'Últimos 30 Días';
+            } else if (datePreset === 'THIS_MONTH') {
+                factor = 1.0;
+                label = 'Este Mes (Agosto 2026)';
+            } else if (datePreset === '90_DAYS') {
+                factor = 2.4;
+                label = 'Últimos 90 Días';
+            } else if (datePreset === 'THIS_YEAR') {
+                factor = 7.8;
+                label = 'Año Actual (2026)';
+            } else {
+                const d1 = new Date(startDate);
+                const d2 = new Date(endDate);
+                const diffDays = Math.max(1, Math.round(Math.abs((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24))));
+                factor = Math.max(0.1, Number((diffDays / 30).toFixed(2)));
+                label = `Personalizado (${startDate} a ${endDate})`;
+            }
+            setAppliedFactor(factor);
+            setAppliedRangeLabel(label);
+            setIsApplyingFilter(false);
+        }, 300);
+    };
+
     const SECTIONS = [
         { id: 1, title: "Análisis de Inventario Profundo", icon: Box, desc: "Rotación, Silencioso, Aging Ponderado, Churn" },
         { id: 2, title: "Análisis de Demanda Avanzado", icon: Activity, desc: "Curvas, Volatilidad, Canibalización, Deriva" },
@@ -279,6 +317,13 @@ export const AdvancedAnalytics: React.FC = () => {
                 );
 
             case 2: // Demand Advanced
+                const dynamicDemandCurves = DEMAND_CURVES.map(d => ({
+                    ...d,
+                    actual: Math.round(d.actual * appliedFactor),
+                    predicted: Math.round(d.predicted * appliedFactor),
+                    volatility: Math.round(d.volatility * appliedFactor)
+                }));
+
                 return (
                     <div className="space-y-6 animate-in fade-in duration-500">
                         <SectionHeader icon={Activity} title="Análisis de Demanda Avanzado" subtitle="Deconstrucción de patrones de consumo, volatilidad y canibalización." />
@@ -287,7 +332,7 @@ export const AdvancedAnalytics: React.FC = () => {
                                 <h3 className="font-bold text-slate-800 mb-2">Detección de Rupturas Estructurales</h3>
                                 <div className="h-64">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <ComposedChart data={DEMAND_CURVES}>
+                                        <ComposedChart data={dynamicDemandCurves}>
                                             <CartesianGrid strokeDasharray="3 3" />
                                             <XAxis dataKey="day" />
                                             <YAxis />
@@ -1778,7 +1823,73 @@ export const AdvancedAnalytics: React.FC = () => {
 
             {/* RIGHT CONTENT AREA */}
             <div className="flex-1 overflow-y-auto bg-slate-50 p-8 custom-scrollbar">
-                <div className="max-w-6xl mx-auto">
+                <div className="max-w-6xl mx-auto space-y-6">
+                    {/* TOP DATE FILTER TOOLBAR */}
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                                <Calendar className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                    Filtro de Rango Temporal
+                                    <span className="bg-emerald-50 text-emerald-700 text-[11px] font-black px-2 py-0.5 rounded-full border border-emerald-200">
+                                        Activo: {appliedRangeLabel}
+                                    </span>
+                                </h4>
+                                <p className="text-xs text-slate-500">Ajusta el período para recalcular los motores analíticos y gráficos Recharts</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                            <select 
+                                value={datePreset}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setDatePreset(val);
+                                    if (val === '30_DAYS') { setStartDate('2026-08-01'); setEndDate('2026-08-31'); }
+                                    else if (val === 'THIS_MONTH') { setStartDate('2026-08-01'); setEndDate('2026-08-31'); }
+                                    else if (val === '90_DAYS') { setStartDate('2026-06-01'); setEndDate('2026-08-31'); }
+                                    else if (val === 'THIS_YEAR') { setStartDate('2026-01-01'); setEndDate('2026-08-31'); }
+                                }}
+                                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 ring-indigo-500/20"
+                            >
+                                <option value="THIS_MONTH">Este Mes (Agosto 2026)</option>
+                                <option value="30_DAYS">Últimos 30 Días</option>
+                                <option value="90_DAYS">Últimos 90 Días</option>
+                                <option value="THIS_YEAR">Año Actual (2026)</option>
+                                <option value="CUSTOM">Rango Personalizado</option>
+                            </select>
+
+                            {datePreset === 'CUSTOM' && (
+                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl">
+                                    <input 
+                                        type="date" 
+                                        value={startDate}
+                                        onChange={e => setStartDate(e.target.value)}
+                                        className="bg-transparent text-xs font-bold text-slate-700 px-2 py-1 outline-none"
+                                    />
+                                    <span className="text-xs text-slate-400 font-bold">-</span>
+                                    <input 
+                                        type="date" 
+                                        value={endDate}
+                                        onChange={e => setEndDate(e.target.value)}
+                                        className="bg-transparent text-xs font-bold text-slate-700 px-2 py-1 outline-none"
+                                    />
+                                </div>
+                            )}
+
+                            <button 
+                                onClick={handleApplyDateRange}
+                                disabled={isApplyingFilter}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                            >
+                                <Filter className="w-3.5 h-3.5" />
+                                {isApplyingFilter ? 'Recalculando...' : 'Aplicar Rango'}
+                            </button>
+                        </div>
+                    </div>
+
                     {renderContent()}
                 </div>
             </div>
