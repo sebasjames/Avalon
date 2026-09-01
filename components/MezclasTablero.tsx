@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { MezclaOrder, MezclaStatus } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
-import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List, Printer } from 'lucide-react';
+import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List, Printer, Tag } from 'lucide-react';
 import { LabelPreviewModal, MezclaLabelData } from './LabelPreviewModal';
+import { PigmentContainerStickerModal } from './PigmentContainerStickerModal';
+import { useEnterprise } from '../context/EnterpriseContext';
 
 
 const extractFormula = (colorId: string, baseType?: string): Record<string, string> => {
@@ -58,14 +60,13 @@ const MOCK_ORDERS: MezclaOrder[] = [
     }
 ];
 
-import { useEnterprise } from '../context/EnterpriseContext';
-
 export const MezclasTablero: React.FC = () => {
     const { addKardexTransaction, updateInventoryStock } = useEnterprise();
     const [orders, setOrders] = useState<MezclaOrder[]>(MOCK_ORDERS);
     const [view, setView] = useState<'KANBAN' | 'LISTA' | 'HISTORIAL'>('KANBAN');
     const [lastDeductionMessage, setLastDeductionMessage] = useState<string | null>(null);
     const [selectedLabelData, setSelectedLabelData] = useState<MezclaLabelData | null>(null);
+    const [selectedContainerStickerOrder, setSelectedContainerStickerOrder] = useState<MezclaOrder | null>(null);
 
     const pending = orders.filter(o => o.status === MezclaStatus.PENDING);
     const inProgress = orders.filter(o => o.status === MezclaStatus.IN_PROGRESS);
@@ -185,7 +186,7 @@ export const MezclasTablero: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-2 mt-auto pt-2">
+                <div className="flex flex-wrap justify-end gap-2 mt-auto pt-2">
                     <button
                         onClick={() => setSelectedLabelData(order)}
                         title="Ver Etiqueta Térmica 8.5x11 cm & Dispensar"
@@ -194,6 +195,16 @@ export const MezclasTablero: React.FC = () => {
                         <Printer className="w-4 h-4 text-indigo-600" />
                         Etiqueta Térmica (8.5x11)
                     </button>
+                    {(order.status === MezclaStatus.IN_PROGRESS || order.status === MezclaStatus.READY) && (
+                        <button
+                            onClick={() => setSelectedContainerStickerOrder(order)}
+                            title="Imprimir Stickers con QR de Saldos Restantes en los Frascos de Pigmentos"
+                            className="px-3 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold rounded-xl flex items-center gap-1.5 transition-all text-xs cursor-pointer"
+                        >
+                            <Tag className="w-4 h-4 text-amber-600" />
+                            Stickers Saldos Frascos
+                        </button>
+                    )}
                     {order.status === MezclaStatus.PENDING && (
                         <button 
                             onClick={() => updateStatus(order.id, MezclaStatus.IN_PROGRESS)}
@@ -421,6 +432,14 @@ export const MezclasTablero: React.FC = () => {
                     onDispenseComplete={() => {
                         updateStatus(selectedLabelData.id, MezclaStatus.IN_PROGRESS);
                     }}
+                />
+            )}
+
+            {selectedContainerStickerOrder && (
+                <PigmentContainerStickerModal
+                    isOpen={!!selectedContainerStickerOrder}
+                    onClose={() => setSelectedContainerStickerOrder(null)}
+                    order={selectedContainerStickerOrder}
                 />
             )}
         </div>
