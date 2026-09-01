@@ -1,7 +1,10 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   TrendingUp, Users, Target, DollarSign, Filter, Calendar, 
-  ArrowUpRight, ArrowDownRight, Trophy, Zap, Download, ChevronDown, Check
+  ArrowUpRight, ArrowDownRight, Trophy, Zap, Download, ChevronDown, Check,
+  X, Search, Award, ShieldCheck, Medal
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -27,10 +30,14 @@ const baseChannelData = [
 ];
 
 const baseTeamPerformance = [
-  { id: 1, name: 'Ana Silva', role: 'Key Account B2B', avatar: 'AS', sales: 145000, quota: 120000, winRate: 72, trend: 'up' },
-  { id: 2, name: 'Carlos Ruiz', role: 'Director Retail', avatar: 'CR', sales: 98000, quota: 110000, winRate: 54, trend: 'down' },
-  { id: 3, name: 'Laura Gómez', role: 'E-commerce Lead', avatar: 'LG', sales: 156000, quota: 150000, winRate: 82, trend: 'up' },
-  { id: 4, name: 'Miguel Paz', role: 'Ventas Directas', avatar: 'MP', sales: 85000, quota: 90000, winRate: 60, trend: 'up' },
+  { id: 1, name: 'Ana Silva', role: 'Key Account B2B', avatar: 'AS', sales: 145000, quota: 120000, winRate: 72, trend: 'up', dealsCount: 18, avgDealSize: 8055 },
+  { id: 2, name: 'Laura Gómez', role: 'E-commerce Lead', avatar: 'LG', sales: 156000, quota: 150000, winRate: 82, trend: 'up', dealsCount: 24, avgDealSize: 6500 },
+  { id: 3, name: 'Jorge Vargas', role: 'Key Account Distribución', avatar: 'JV', sales: 130000, quota: 125000, winRate: 70, trend: 'up', dealsCount: 20, avgDealSize: 6500 },
+  { id: 4, name: 'Andrés Mendoza', role: 'Especialista Institucional', avatar: 'AM', sales: 112000, quota: 100000, winRate: 78, trend: 'up', dealsCount: 16, avgDealSize: 7000 },
+  { id: 5, name: 'Carlos Ruiz', role: 'Director Retail', avatar: 'CR', sales: 98000, quota: 110000, winRate: 54, trend: 'down', dealsCount: 12, avgDealSize: 8166 },
+  { id: 6, name: 'Miguel Paz', role: 'Ventas Directas', avatar: 'MP', sales: 85000, quota: 90000, winRate: 60, trend: 'up', dealsCount: 15, avgDealSize: 5666 },
+  { id: 7, name: 'Sofía Castro', role: 'Ejecutiva B2B Jr.', avatar: 'SC', sales: 72000, quota: 80000, winRate: 65, trend: 'up', dealsCount: 11, avgDealSize: 6545 },
+  { id: 8, name: 'Patricia Herrera', role: 'Asesora Zona Norte', avatar: 'PH', sales: 64000, quota: 75000, winRate: 48, trend: 'down', dealsCount: 9, avgDealSize: 7111 },
 ];
 
 const basePipelineStages = [
@@ -69,6 +76,12 @@ export const GestionComercial: React.FC = () => {
     
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+    // Leaderboard Modal State
+    const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
+    const [leaderboardSearch, setLeaderboardSearch] = useState('');
+
+    useEscapeKey(() => setIsLeaderboardModalOpen(false), isLeaderboardModalOpen);
 
     const dateOptions = ['Hoy', 'Esta Semana', 'Este Mes', 'Últimos 30 días', 'Últimos 90 días', 'Q3 2026', 'Año Actual'];
     const filterOptions = ['Solo B2B', 'Solo E-commerce', 'Solo Retail', 'Sin Distribuidores'];
@@ -122,6 +135,12 @@ export const GestionComercial: React.FC = () => {
         if (activeFilters.includes('Solo E-commerce')) return t.role.includes('E-commerce');
         if (activeFilters.includes('Solo Retail')) return t.role.includes('Retail');
         return true;
+    }).sort((a, b) => b.sales - a.sales);
+
+    const filteredLeaderboardModalData = teamPerformance.filter(t => {
+        if (!leaderboardSearch.trim()) return true;
+        const q = leaderboardSearch.toLowerCase();
+        return t.name.toLowerCase().includes(q) || t.role.toLowerCase().includes(q);
     });
 
     const pipelineStages = basePipelineStages.map(p => ({
@@ -357,11 +376,16 @@ export const GestionComercial: React.FC = () => {
                             <Trophy className="w-5 h-5 text-amber-500" />
                             Leaderboard de Ventas
                         </h3>
-                        <button className="text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors">Ver todos</button>
+                        <button 
+                            onClick={() => setIsLeaderboardModalOpen(true)}
+                            className="text-sm text-indigo-600 font-bold hover:text-indigo-800 transition-colors hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                            Ver todos ({teamPerformance.length})
+                        </button>
                     </div>
 
                     <div className="space-y-5">
-                        {teamPerformance.length > 0 ? teamPerformance.map((member, i) => {
+                        {teamPerformance.length > 0 ? teamPerformance.slice(0, 4).map((member, i) => {
                             const percent = Math.min(100, (member.sales / member.quota) * 100);
                             return (
                                 <div key={member.id} className="group">
@@ -439,7 +463,193 @@ export const GestionComercial: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* --- FULL LEADERBOARD MODAL --- */}
+            {isLeaderboardModalOpen && createPortal(
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto">
+                    <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+                        {/* Modal Header */}
+                        <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30">
+                                    <Trophy className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                                        Leaderboard Completo de Ventas
+                                        <span className="text-xs bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full font-bold">
+                                            {teamPerformance.length} Vendedores
+                                        </span>
+                                    </h2>
+                                    <p className="text-xs text-slate-400 font-medium mt-0.5">Ranking oficial de rendimiento comercial y cumplimiento de metas ({dateRange})</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setIsLeaderboardModalOpen(false)}
+                                className="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-white"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Top Stats Summary */}
+                        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
+                            <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                                <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                                    <DollarSign className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Venta Total Equipo</p>
+                                    <p className="text-lg font-black text-slate-900">${(teamPerformance.reduce((a, b) => a + b.sales, 0) / 1000).toFixed(1)}k COP</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                                    <Target className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Promedio Cumplimiento</p>
+                                    <p className="text-lg font-black text-slate-900">
+                                        {teamPerformance.length > 0 
+                                            ? Math.round(teamPerformance.reduce((a, b) => a + (b.sales / b.quota) * 100, 0) / teamPerformance.length)
+                                            : 0}%
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                                <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                                    <Award className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Líder del Ranking</p>
+                                    <p className="text-lg font-black text-slate-900">{teamPerformance[0]?.name || 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="p-4 border-b border-slate-100 bg-white shrink-0">
+                            <div className="relative">
+                                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                <input 
+                                    type="text"
+                                    placeholder="Buscar vendedor por nombre o cargo..."
+                                    value={leaderboardSearch}
+                                    onChange={e => setLeaderboardSearch(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 ring-indigo-500/20 focus:bg-white transition-all"
+                                />
+                                {leaderboardSearch && (
+                                    <button onClick={() => setLeaderboardSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">
+                                        Limpiar
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Table List */}
+                        <div className="flex-1 overflow-y-auto p-6 bg-slate-50 custom-scrollbar">
+                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-slate-100 border-b border-slate-200">
+                                        <tr>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500 text-center w-14">Posición</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500">Vendedor</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500 text-right">Ventas Reales</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500 text-right">Meta Asignada</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500">Cumplimiento (%)</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500 text-center">Tasa Cierre</th>
+                                            <th className="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-500 text-center">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {filteredLeaderboardModalData.length > 0 ? (
+                                            filteredLeaderboardModalData.map((member, index) => {
+                                                const rank = teamPerformance.findIndex(t => t.id === member.id) + 1;
+                                                const percent = Math.min(100, Math.round((member.sales / member.quota) * 100));
+                                                const isExceeded = member.sales >= member.quota;
+                                                
+                                                return (
+                                                    <tr key={member.id} className="hover:bg-indigo-50/30 transition-colors group">
+                                                        <td className="px-4 py-3.5 text-center">
+                                                            <div className={`w-8 h-8 rounded-xl mx-auto flex items-center justify-center font-black text-xs ${
+                                                                rank === 1 ? 'bg-amber-100 text-amber-700 border border-amber-300 shadow-sm' :
+                                                                rank === 2 ? 'bg-slate-200 text-slate-700 border border-slate-300' :
+                                                                rank === 3 ? 'bg-amber-700/10 text-amber-800 border border-amber-700/20' :
+                                                                'bg-slate-50 text-slate-500 font-bold'
+                                                            }`}>
+                                                                {rank === 1 ? <Trophy className="w-4 h-4 text-amber-500" /> : `#${rank}`}
+                                                            </div>
+                                                        </td>
+
+                                                        <td className="px-4 py-3.5">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                                                    {member.avatar}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                                                        {member.name}
+                                                                        {rank === 1 && <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">Líder</span>}
+                                                                    </div>
+                                                                    <div className="text-xs text-slate-500 font-medium">{member.role}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+
+                                                        <td className="px-4 py-3.5 text-right font-black text-slate-900 text-sm">
+                                                            ${member.sales.toLocaleString('es-CO')} COP
+                                                        </td>
+
+                                                        <td className="px-4 py-3.5 text-right text-slate-500 font-medium text-sm">
+                                                            ${member.quota.toLocaleString('es-CO')} COP
+                                                        </td>
+
+                                                        <td className="px-4 py-3.5 w-44">
+                                                            <div className="flex items-center justify-between text-xs font-bold mb-1">
+                                                                <span className={isExceeded ? 'text-emerald-600' : 'text-indigo-600'}>{percent}%</span>
+                                                                <span className="text-slate-400 font-normal">{member.dealsCount} tratos</span>
+                                                            </div>
+                                                            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                                                <div 
+                                                                    className={`h-full rounded-full transition-all duration-500 ${isExceeded ? 'bg-emerald-500' : 'bg-indigo-600'}`}
+                                                                    style={{ width: `${percent}%` }}
+                                                                ></div>
+                                                            </div>
+                                                        </td>
+
+                                                        <td className="px-4 py-3.5 text-center font-bold text-slate-700 text-sm">
+                                                            {member.winRate}%
+                                                        </td>
+
+                                                        <td className="px-4 py-3.5 text-center">
+                                                            <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                                                                isExceeded ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                                                percent >= 80 ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' :
+                                                                'bg-rose-100 text-rose-700 border border-rose-200'
+                                                            }`}>
+                                                                {isExceeded ? 'Superado' : percent >= 80 ? 'En Meta' : 'Alerta'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={7} className="px-4 py-12 text-center text-slate-400 font-medium text-sm">
+                                                    No se encontraron vendedores que coincidan con "{leaderboardSearch}".
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 };
-
