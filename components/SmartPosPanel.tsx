@@ -50,6 +50,15 @@ export const SmartPosPanel: React.FC = () => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [isMarginMode, setIsMarginMode] = useState(false);
 
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(() => {
+        const card = paymentMethods?.find(p => p.toLowerCase().includes('tarjeta'));
+        return card || (paymentMethods?.length > 0 ? paymentMethods[0] : 'Tarjeta');
+    });
+
+    const [selectedPointOfSale, setSelectedPointOfSale] = useState<string>(() => {
+        return pointsOfSale?.length > 0 ? pointsOfSale[0] : '';
+    });
+
     const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
     // --- NUEVO: CREAR CLIENTE / PROSPECTO ---
