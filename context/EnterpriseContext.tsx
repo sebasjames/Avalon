@@ -527,17 +527,43 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const processCreditNote = (t: AccountingTransaction) => {
         if (t.type !== 'NOTA_CREDITO') return;
 
-        // 1. Añadir la transacción contable
-        addTransaction(t);
+        // 1. Añadir la transacción contable para reporte SIIGO
+        addTransaction({
+            ...t,
+            siigoExportStatus: 'PENDING_SIIGO_SYNC', // Flag para cola de exportación SIIGO
+            siigoDocType: 'NC'
+        });
 
-        // 2. Sumar el stock a la bodega seleccionada (en este caso el totalStock global asume todo, pero se documenta posLocation)
-        updateInventoryStock(t.sku, t.qty); // qty debe venir positivo
+        // 2. Sumar el stock devuelto al producto
+        if (t.sku) {
+            updateInventoryStock(t.sku, t.qty);
 
-        // 3. Sumar el saldo a favor al cliente
+            // Registrar devolución en Kardex
+            addKardexTransaction({
+                id: `TX-NC-${Date.now()}`,
+                date: new Date().toISOString().split('T')[0],
+                skuId: t.sku,
+                lotNumber: `LOT-RET-${t.id}`,
+                type: 'Entrada',
+                quantity: t.qty,
+                balanceAfter: 0,
+                documentRef: t.id,
+                user: 'Sistema de Devoluciones (Nota Crédito SIIGO Queue)'
+            });
+        }
+
+        // 3. Ajustar saldo en mora del cliente y saldo a favor en CRM
         if (t.clientId) {
             setContacts(prev => prev.map(c => {
                 if (c.id === t.clientId) {
-                    return { ...c, accountBalance: (c.accountBalance || 0) + t.total };
+                    const currentUsed = c.creditLimitUsed || 0;
+                    const newUsed = Math.max(0, currentUsed - t.total);
+                    return { 
+                        ...c, 
+                        creditLimitUsed: newUsed,
+                        hasOverdueBills: newUsed > 0 ? c.hasOverdueBills : false,
+                        accountBalance: (c.accountBalance || 0) + t.total 
+                    };
                 }
                 return c;
             }));

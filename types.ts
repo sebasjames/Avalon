@@ -658,6 +658,8 @@ export interface AccountingTransaction {
   bankAmount?: number;
   bankFee?: number;
   reconciledDate?: string;
+  siigoExportStatus?: 'PENDING_SIIGO_SYNC' | 'SYNCED' | 'FAILED';
+  siigoDocType?: string;
 }
 
 export interface TaxRate {
