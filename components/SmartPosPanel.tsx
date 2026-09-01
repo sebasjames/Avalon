@@ -142,6 +142,50 @@ export const SmartPosPanel: React.FC = () => {
         return () => window.removeEventListener('open-pos-shortcuts', handleOpen);
     }, []);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
+                setIsCustomerDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const filteredContacts = useMemo(() => {
+        if (!customerSearch) return contacts;
+        const term = customerSearch.toLowerCase();
+        return contacts.filter(c => 
+            c.name.toLowerCase().includes(term) || 
+            c.company.toLowerCase().includes(term) || 
+            (c.documentNumber && c.documentNumber.includes(term))
+        );
+    }, [contacts, customerSearch]);
+
+    const colorsByBaseType = useMemo(() => {
+        const map: Record<string, string[]> = {};
+        try {
+            Object.entries(tintometriaData).forEach(([tabName, tabData]: [string, any]) => {
+                const colorSet = new Set<string>();
+                if (Array.isArray(tabData)) {
+                    tabData.forEach(row => {
+                        if (row && typeof row === 'object' && row['Colore']) {
+                            colorSet.add(String(row['Colore']).toUpperCase());
+                        }
+                    });
+                }
+                const colors = Array.from(colorSet).sort();
+                const defaults = ['RAL 9010', 'RAL 9005', 'BLANCO NIEVE'];
+                map[tabName] = Array.from(new Set([...defaults, ...colors]));
+            });
+        } catch (e) {
+            console.error("Error parsing colors:", e);
+        }
+        return map;
+    }, []);
+
     const activeCustomer = useMemo(() => {
         return contacts.find(c => c.id === selectedCustomerId) || null;
     }, [selectedCustomerId, contacts]);
