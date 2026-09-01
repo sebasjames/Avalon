@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { useUIStore } from '../stores/uiStore';
@@ -13,6 +13,34 @@ export const DispatchModule: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [previewModal, setPreviewModal] = useState<{ isOpen: boolean; blobUrl: string; title: string; dispatchLog?: DispatchLog } | null>(null);
     const [isModalFullscreen, setIsModalFullscreen] = useState(false);
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleFsChange = () => {
+            setIsModalFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFsChange);
+        return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    }, []);
+
+    const toggleNativeFullscreen = () => {
+        if (!document.fullscreenElement) {
+            const el = modalRef.current || document.documentElement;
+            if (el.requestFullscreen) {
+                el.requestFullscreen().catch(() => {});
+            } else if ((el as any).webkitRequestFullscreen) {
+                (el as any).webkitRequestFullscreen();
+            }
+            setIsModalFullscreen(true);
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            } else if ((document as any).webkitExitFullscreen) {
+                (document as any).webkitExitFullscreen();
+            }
+            setIsModalFullscreen(false);
+        }
+    };
 
     const filtered = (dispatches || []).filter(d => {
         const idMatch = (d.id || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -342,6 +370,7 @@ export const DispatchModule: React.FC = () => {
                 <AnimatePresence>
                     <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm ${isModalFullscreen ? 'p-0' : 'p-4'}`}>
                         <motion.div
+                            ref={modalRef}
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -367,14 +396,17 @@ export const DispatchModule: React.FC = () => {
                                         </button>
                                     )}
                                     <button
-                                        onClick={() => setIsModalFullscreen(!isModalFullscreen)}
-                                        title={isModalFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"}
+                                        onClick={toggleNativeFullscreen}
+                                        title={isModalFullscreen ? "Salir de Pantalla Completa (ESC)" : "Pantalla Completa Nativa (F11)"}
                                         className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
                                     >
                                         {isModalFullscreen ? <Minimize2 className="w-4 h-4 text-amber-400" /> : <Maximize2 className="w-4 h-4" />}
                                     </button>
                                     <button
                                         onClick={() => {
+                                            if (document.fullscreenElement && document.exitFullscreen) {
+                                                document.exitFullscreen().catch(() => {});
+                                            }
                                             setPreviewModal(null);
                                             setIsModalFullscreen(false);
                                         }}
