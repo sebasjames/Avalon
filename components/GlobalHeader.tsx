@@ -200,7 +200,7 @@ export const GlobalHeader: React.FC = () => {
                         <ShoppingCart className="w-5 h-5" />
                     </NavLink>
                     <NavLink
-                        to="/accounting/activos_liquidez"
+                        to="/accounting/cierres"
                         className={({ isActive }) => {
                             const isAccActive = isActive || location.pathname.startsWith('/accounting');
                             return `p-2.5 rounded-xl transition-all duration-150 flex items-center justify-center ${isAccActive

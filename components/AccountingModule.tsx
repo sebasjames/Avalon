@@ -1,46 +1,47 @@
 // @ts-nocheck
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useMemo, useState, useEffect } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
     Calculator, FileSpreadsheet, Download, AlertTriangle, 
     CheckCircle2, DollarSign, PackageOpen, TableProperties,
-    Calendar, Filter, Search, ArrowRight, UserCheck, Mail, Send, CreditCard, Banknote, Wallet, HandCoins, UploadCloud, Landmark, X, BrainCircuit
+    Calendar, Filter, Search, ArrowRight, UserCheck, Mail, Send, CreditCard, Banknote, Wallet, HandCoins, UploadCloud, Landmark, X, BrainCircuit, Cloud
 } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { AccountingTransaction } from '../types';
 import * as XLSX from 'xlsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { ImportInvoicesPanel } from './ImportInvoicesPanel';
 import { TransactionsExcelModal } from './TransactionsExcelModal';
 import { SabanaTab } from './accounting/SabanaTab';
-import { ActivosLiquidezTab } from './accounting/ActivosLiquidezTab';
 import { CierresTab } from './accounting/CierresTab';
-import { VentasTab } from './accounting/VentasTab';
-import { AuditoriaTab } from './accounting/AuditoriaTab';
-import { ExportacionTab } from './accounting/ExportacionTab';
-import { ImportacionesTab } from './accounting/ImportacionesTab';
 import { ConciliacionDatafonoTab } from './accounting/ConciliacionDatafonoTab';
-import { FacturasCorreoTab } from './accounting/FacturasCorreoTab';
 import { CajaMenorTab } from './accounting/CajaMenorTab';
+import { SiigoSyncTab } from './accounting/SiigoSyncTab';
 import { formatCOP } from '../utils/format';
 
 export const AccountingModule: React.FC = () => {
     const { inventory, contacts, paymentMethods, pointsOfSale, transactions, accountingShortcuts, reconcileDatáfonoTransaction, addTransaction, updateInventoryStock, auditReports, runAuditAction } = useEnterprise();
     const { tabId } = useParams<{ tabId: string }>();
+    const navigate = useNavigate();
 
-        const [inboxMails, setInboxMails] = useState<any[]>([]);
-    const [activeMailId, setActiveMailId] = useState<string | null>(null);
-    const handleContabilizarFactura = () => {};
-        const setBankAmountInput = (val: string) => {};
-    const setBankFeeInput = (val: string) => {};
-    const activeValidationSale: any = null;
-    // Valid tabs
-    const validTabs = ['sabana', 'activos_liquidez', 'cierres', 'ventas', 'auditoria', 'exportacion', 'importaciones', 'facturas_correo', 'conciliacion_datafono', 'caja_menor'];
-    // Removed early return to preserve hook order
+    // 5 Operational Tabs
+    const validTabs = ['cierres', 'caja_menor', 'conciliacion_datafono', 'sabana', 'siigo_sync'];
+    const normalizedTab = tabId === 'exportacion' ? 'siigo_sync' : (tabId || 'cierres');
 
-    const activeTab = tabId as 'sabana' | 'activos_liquidez' | 'cierres' | 'ventas' | 'auditoria' | 'exportacion' | 'importaciones' | 'facturas_correo' | 'conciliacion_datafono' | 'caja_menor';
+    const TABS_CONFIG = [
+        { id: 'cierres', label: 'Cierres Z (Caja)', icon: Calculator },
+        { id: 'caja_menor', label: 'Caja Menor', icon: Wallet },
+        { id: 'conciliacion_datafono', label: 'Conciliación Datáfonos', icon: CreditCard },
+        { id: 'sabana', label: 'Sábana Operativa', icon: TableProperties },
+        { id: 'siigo_sync', label: 'Sincronización SIIGO', icon: Cloud },
+    ];
+
+    if (!validTabs.includes(normalizedTab)) {
+        return <Navigate to="/accounting/cierres" replace />;
+    }
+
+    const activeTab = normalizedTab as 'cierres' | 'caja_menor' | 'conciliacion_datafono' | 'sabana' | 'siigo_sync';
 
     // --- SABANA FILTER STATE ---
     const [expandedCarteraClient, setExpandedCarteraClient] = useState<string | null>(null);
@@ -585,10 +586,38 @@ export const AccountingModule: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-slate-50">
+        <div className="h-full flex flex-col bg-slate-50 overflow-hidden">
+            {/* Top Navigation Bar - 5 Core Operational Modules */}
+            <div className="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center justify-between shadow-sm shrink-0 z-20">
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+                    {TABS_CONFIG.map((tab) => {
+                        const Icon = tab.icon;
+                        const isSelected = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => navigate(`/accounting/${tab.id}`)}
+                                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                                    isSelected
+                                        ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                                }`}
+                            >
+                                <Icon className="w-4 h-4" />
+                                <span>{tab.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <div className="hidden lg:flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>5 Módulos Operativos</span>
+                </div>
+            </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 overflow-y-auto p-8">
+            <div className="flex-1 overflow-y-auto p-6 md:p-8">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={activeTab}
@@ -598,51 +627,7 @@ export const AccountingModule: React.FC = () => {
                         transition={{ duration: 0.2 }}
                         className="h-full"
                     >
-                        
-                        {/* TAB 1: SABANA GENERAL */}
-                        {activeTab === 'sabana' && (
-                            <SabanaTab 
-                                draftFilters={draftFilters}
-                                setDraftFilters={setDraftFilters}
-                                appliedFilters={appliedFilters}
-                                setAppliedFilters={setAppliedFilters}
-                                showFilters={showFilters}
-                                setShowFilters={setShowFilters}
-                                handleExportSabana={handleExportSabana}
-                                activeShortcutFilter={activeShortcutFilter}
-                                setActiveShortcutFilter={setActiveShortcutFilter}
-                                accountingShortcuts={accountingShortcuts}
-                            />
-                        )}
-
-                        {/* TAB: ACTIVOS & LIQUIDEZ (CARTERA E INVENTARIO CONSOLIDADO) */}
-                        {activeTab === 'activos_liquidez' && (
-                            <ActivosLiquidezTab 
-                                inventory={inventory}
-                                expandedCarteraClient={expandedCarteraClient}
-                                setExpandedCarteraClient={setExpandedCarteraClient}
-                                inventarioValorizado={inventarioValorizado}
-                                carteraData={carteraData}
-                                cxPData={cxPData}
-                                leftPanelMode={leftPanelMode}
-                                setLeftPanelMode={setLeftPanelMode}
-                                setPaymentClient={setPaymentClient}
-                                setPaymentAmount={setPaymentAmount}
-                                setPaymentRef={setPaymentRef}
-                                setPaymentSelectedInvoice={setPaymentSelectedInvoice}
-                                setShowPaymentModal={setShowPaymentModal}
-                                transactions={transactions}
-                                setSelectedCxPInvoice={setSelectedCxPInvoice}
-                                setCxPPaymentAmount={setCxPPaymentAmount}
-                                setShowCxPPaymentModal={setShowCxPPaymentModal}
-                                inventorySortBy={inventorySortBy}
-                                setInventorySortBy={setInventorySortBy}
-                                inventorySearchQuery={inventorySearchQuery}
-                                setInventorySearchQuery={setInventorySearchQuery}
-                            />
-                        )}
-
-                        {/* TAB 2: CIERRES DE CAJA (Z-REPORT) */}
+                        {/* 1. CIERRES DE CAJA (Z-REPORT) */}
                         {activeTab === 'cierres' && (
                             <CierresTab 
                                 cierreTimeRange={cierreTimeRange}
@@ -658,48 +643,14 @@ export const AccountingModule: React.FC = () => {
                             />
                         )}
 
-                        {/* TAB 3: VENTAS */}
-                        {activeTab === 'ventas' && (
-                            <VentasTab 
-                                salesMethodFilter={salesMethodFilter}
-                                setSalesMethodFilter={setSalesMethodFilter}
-                                salesDateFrom={salesDateFrom}
-                                setSalesDateFrom={setSalesDateFrom}
-                                salesDateTo={salesDateTo}
-                                setSalesDateTo={setSalesDateTo}
-                                uniqueSalesPaymentMethods={uniqueSalesPaymentMethods}
-                                filteredSales={filteredSales}
-                                setShowPaymentModal={setShowPaymentModal}
-                                setPaymentClient={setPaymentClient}
-                                setPaymentAmount={setPaymentAmount}
-                                setPaymentBank={setPaymentBank}
-                                setPaymentRef={setPaymentRef}
-                                setPaymentDate={setPaymentDate}
-                                setPaymentSelectedInvoice={setPaymentSelectedInvoice}
-                                />
-                        )}
-
-                        {/* TAB 4: AUDITORIA DE TERCEROS (AUTO-AUDITOR) */}
-                        {activeTab === 'auditoria' && (
-                            <AuditoriaTab 
-                                activeReport={auditReports[0]} 
-                                runAuditAction={runAuditAction}
-                                auditReports={auditReports}
-                                setSelectedReportId={() => {}}
+                        {/* 2. CAJA MENOR */}
+                        {activeTab === 'caja_menor' && (
+                            <CajaMenorTab 
+                                transactions={transactions}
                             />
                         )}
 
-                        {/* TAB 6: EXPORTACIÓN SIIGO */}
-                        {activeTab === 'exportacion' && (
-                            <ExportacionTab handleExportSIIGO={handleExportSIIGO} />
-                        )}
-
-                        {/* TAB 7: IMPORTACIONES EDI */}
-                        {activeTab === 'importaciones' && (
-                            <ImportacionesTab />
-                        )}
-
-                        {/* TAB 8: CONCILIACIÓN DATÁFONOS Y BANCOS */}
+                        {/* 3. CONCILIACIÓN DATÁFONOS Y BANCOS */}
                         {activeTab === 'conciliacion_datafono' && (
                             <ConciliacionDatafonoTab 
                                 transactions={transactions}
@@ -707,25 +658,30 @@ export const AccountingModule: React.FC = () => {
                             />
                         )}
 
-                        {/* TAB: FACTURAS POR CORREO */}
-                        {activeTab === 'facturas_correo' && (
-                            <FacturasCorreoTab 
-                                inboxMails={inboxMails}
-                                activeMailId={activeMailId}
-                                setActiveMailId={setActiveMailId}
-                                handleContabilizarFactura={handleContabilizarFactura}
+                        {/* 4. SÁBANA OPERATIVA */}
+                        {activeTab === 'sabana' && (
+                            <SabanaTab 
+                                draftFilters={draftFilters}
+                                setDraftFilters={setDraftFilters}
+                                appliedFilters={appliedFilters}
+                                setAppliedFilters={setAppliedFilters}
+                                showFilters={showFilters}
+                                setShowFilters={setShowFilters}
+                                handleExportSabana={handleExportSabana}
+                                activeShortcutFilter={activeShortcutFilter}
+                                setActiveShortcutFilter={setActiveShortcutFilter}
+                                accountingShortcuts={accountingShortcuts}
                             />
                         )}
 
-                        {/* TAB 10: CAJA MENOR */}
-                        {activeTab === 'caja_menor' && (
-                            <CajaMenorTab 
+                        {/* 5. SINCRONIZACIÓN SIIGO & DIAN (MONITOR ASÍNCRONO) */}
+                        {activeTab === 'siigo_sync' && (
+                            <SiigoSyncTab 
                                 transactions={transactions}
+                                contacts={contacts}
+                                handleExportSIIGO={handleExportSIIGO}
                             />
                         )}
-
-
-
                     </motion.div>
                 </AnimatePresence>
             </div>

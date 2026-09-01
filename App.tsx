@@ -148,6 +148,7 @@ const App: React.FC = () => {
             <Route path="/staff/comisiones" element={<ProtectedRoute allowedRoles={['admin']}><ComisionesLogros /></ProtectedRoute>} />
             <Route path="/staff/matrix" element={<ProtectedRoute allowedRoles={['admin']}><MatrixComisiones /></ProtectedRoute>} />
             <Route path="/config" element={<ProtectedRoute allowedRoles={['admin']}><Configuration /></ProtectedRoute>} />
+            <Route path="/accounting" element={<Navigate to="/accounting/cierres" replace />} />
             <Route path="/accounting/:tabId" element={<ProtectedRoute allowedRoles={['admin']}><AccountingModule /></ProtectedRoute>} />
             <Route path="/returns" element={<ProtectedRoute allowedRoles={['admin']}><ReturnsPanel /></ProtectedRoute>} />
             <Route path="/dispensador" element={<DispatchModule />} />

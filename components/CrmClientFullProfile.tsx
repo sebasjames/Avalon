@@ -111,13 +111,13 @@ export const CrmClientFullProfile: React.FC<CrmClientFullProfileProps> = ({ cont
                   </p>
                   <div className="mt-4 flex gap-3">
                     <button 
-                      onClick={() => window.location.hash = '#/accounting/activos_liquidez'}
+                      onClick={() => window.location.hash = '#/accounting/sabana'}
                       className="bg-rose-600 text-white px-4 py-1.5 rounded font-bold text-sm hover:bg-rose-700 transition-colors shadow-sm"
                     >
                       Registrar Pago
                     </button>
                     <button 
-                      onClick={() => window.location.hash = '#/accounting/activos_liquidez'}
+                      onClick={() => window.location.hash = '#/accounting/sabana'}
                       className="bg-white text-rose-700 border border-rose-200 px-4 py-1.5 rounded font-bold text-sm hover:bg-rose-50 transition-colors shadow-sm"
                     >
                       Revisar Cartera

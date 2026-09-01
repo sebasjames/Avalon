@@ -7,7 +7,7 @@ import {
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
     PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
-    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck, Droplet, Beaker, BarChart3
+    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck, Droplet, Beaker, BarChart3, Cloud
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -40,7 +40,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
           { to: "/intelligence", icon: BrainCircuit, label: "Inteligencia Artificial" },
           { to: "/analytics", icon: LineChart, label: "Analítica Avanzada" },
           { to: "/governance", icon: ShieldCheck, label: "Gobierno de Datos" },
-          { to: "/accounting/auditoria", icon: UserCheck, label: "Auditoría Terceros" },
           { to: "/event-log", icon: GitCommit, label: "Bitácora de Eventos" },
       ]
   };
@@ -51,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
   // Auto-open groups if active route is inside them
   useEffect(() => {
     const operationPaths = ['/inventory', '/inventory-control', '/production'];
-    const financePaths = ['/financial', '/informes-pedido', '/informes-omar', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center', '/accounting/auditoria'];
+    const financePaths = ['/financial', '/informes-pedido', '/informes-omar', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center'];
     const salesPaths = ['/crm', '/sales-performance', '/atp', '/pos'];
     const staffPaths = ['/staff/sales-profiles', '/staff/gestion-comercial'];
     const accountingPaths = ['/accounting', '/returns'];
@@ -121,19 +120,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
     // Group: Accounting & Interfaces
     {
         type: 'group',
-        label: "Contabilidad",
-        icon: FileSpreadsheet,
+        label: "Contabilidad & Caja",
+        icon: Calculator,
         children: [
-            { to: "/accounting/sabana", icon: TableProperties, label: "Sábana General" },
-            { to: "/accounting/activos_liquidez", icon: Landmark, label: "Activos & Liquidez" },
-            { to: "/accounting/cierres", icon: Calculator, label: "Cierres de Caja" },
-            { to: "/accounting/ventas", icon: DollarSign, label: "Facturación (Ventas)" },
-            { to: "/returns", icon: RefreshCcw, label: "Devoluciones" },
-            { to: "/accounting/exportacion", icon: FileSpreadsheet, label: "Exportación SIIGO" },
-            { to: "/accounting/importaciones", icon: FileSpreadsheet, label: "Carga de Facturas (EDI)" },
-            { to: "/accounting/facturas_correo", icon: Mail, label: "Facturas por Correo" },
-            { to: "/accounting/conciliacion_datafono", icon: CreditCard, label: "Conciliación Datáfonos" },
+            { to: "/accounting/cierres", icon: Calculator, label: "Cierres Z (Caja)" },
             { to: "/accounting/caja_menor", icon: Wallet, label: "Caja Menor" },
+            { to: "/accounting/conciliacion_datafono", icon: CreditCard, label: "Conciliación Datáfonos" },
+            { to: "/accounting/sabana", icon: TableProperties, label: "Sábana Operativa" },
+            { to: "/accounting/siigo_sync", icon: Cloud, label: "Sincronización SIIGO" },
+            { to: "/returns", icon: RefreshCcw, label: "Devoluciones" },
         ]
     },
 
