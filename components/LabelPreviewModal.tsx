@@ -113,15 +113,12 @@ ${formulaLines}
         doc.text(`Lote: ${data.id}  |  Venta: ${data.saleId}`, 6, 30);
         doc.text(`Base: ${data.baseName} (${data.baseSku})`, 6, 34);
 
-        // QR Code Image on Right side — 25% of Sticker Area (32mm x 32mm)
+        // QR Code Image on Right side — Maximum Size Fill (36mm x 36mm)
         try {
-            doc.addImage(qrImageUrl, 'PNG', 72, 6, 32, 32);
+            doc.addImage(qrImageUrl, 'PNG', 70, 5, 36, 36);
             doc.setDrawColor(0, 0, 0);
             doc.setLineWidth(0.4);
-            doc.rect(72, 6, 32, 32);
-            doc.setFontSize(5.5);
-            doc.setFont('helvetica', 'bold');
-            doc.text('ESCÁNER TRAZABILIDAD', 88, 41, { align: 'center' });
+            doc.rect(70, 5, 36, 36);
         } catch (e) {
             console.warn('Could not embed QR image in PDF', e);
         }
@@ -238,10 +235,9 @@ ${formulaLines}
                                         </div>
                                     </div>
 
-                                    {/* Right Giant QR Code Block (25% of sticker size) */}
-                                    <div className="w-36 shrink-0 flex flex-col items-center justify-center border-2 border-black p-1 bg-white rounded">
-                                        <img src={qrImageUrl} alt="QR Code Trazabilidad" className="w-32 h-32 object-contain bg-white" />
-                                        <span className="text-[9px] font-extrabold block text-center font-sans tracking-tighter mt-1 uppercase">ESCÁNER TRAZABILIDAD</span>
+                                    {/* Right Giant QR Code Block (Maximizing available vertical/horizontal height) */}
+                                    <div className="w-40 h-40 shrink-0 flex items-center justify-center border-2 border-black p-1 bg-white rounded self-center">
+                                        <img src={qrImageUrl} alt="QR Code Trazabilidad" className="w-full h-full object-contain bg-white" />
                                     </div>
                                 </div>
 
