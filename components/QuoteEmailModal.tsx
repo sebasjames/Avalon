@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Send, Paperclip, FileText, Check, Loader2, Download } from 'lucide-react';
 import { PosCartItem } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface QuoteEmailModalProps {
     isOpen: boolean;
@@ -82,85 +84,73 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                 siigoDocType: 'COTIZACION_PENDIENTE'
             });
 
-            // 2. Generar y descargar archivo de la cotización
-            const printableHtml = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title>Cotización Comercial - ${clientName || 'Cliente'}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 40px; color: #1e293b; background: #fff; }
-                        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 20px; }
-                        .title { font-size: 24px; font-weight: bold; color: #0f172a; }
-                        .badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 99px; font-weight: bold; font-size: 12px; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-                        th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #cbd5e1; }
-                        td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
-                        .total-row { font-weight: bold; font-size: 18px; }
-                        .footer { margin-top: 50px; font-size: 12px; color: #64748b; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <div>
-                            <div class="title">PROCOQUINAL S.A.S.</div>
-                            <div>Cotización Comercial B2B</div>
-                        </div>
-                        <div>
-                            <span class="badge">ESTADO: PENDIENTE</span>
-                            <div style="margin-top: 8px; font-size: 12px; color: #64748b;">Fecha: ${new Date().toLocaleDateString('es-CO')}</div>
-                        </div>
-                    </div>
+            // 2. Generar documento PDF nativo con jsPDF
+            const doc = new jsPDF();
 
-                    <div style="margin-top: 20px;">
-                        <strong>Cliente:</strong> ${clientName || 'Cliente General'}<br>
-                        <strong>Validez:</strong> 15 Días Calendario
-                    </div>
+            // Header Banner
+            doc.setFillColor(15, 23, 42); // slate-900
+            doc.rect(0, 0, 210, 35, 'F');
 
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th style="text-align: right;">Cantidad</th>
-                                <th style="text-align: right;">Precio Unitario</th>
-                                <th style="text-align: right;">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cart.map(item => `
-                                <tr>
-                                    <td>${item.name}</td>
-                                    <td style="text-align: right;">${item.quantity}</td>
-                                    <td style="text-align: right;">$${item.price.toLocaleString('es-CO')}</td>
-                                    <td style="text-align: right;">$${(item.quantity * item.price).toLocaleString('es-CO')}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(20);
+            doc.setTextColor(255, 255, 255);
+            doc.text('PROCOQUINAL S.A.S.', 14, 20);
 
-                    <div style="margin-top: 20px; text-align: right;">
-                        <div>Subtotal: $${subtotal.toLocaleString('es-CO')}</div>
-                        <div>IVA: $${totalIva.toLocaleString('es-CO')}</div>
-                        <div class="total-row" style="margin-top: 10px;">Total Cotización: $${calculatedTotal.toLocaleString('es-CO')} COP</div>
-                    </div>
+            doc.setFontSize(10);
+            doc.setTextColor(148, 163, 184); // slate-400
+            doc.text('COTIZACIÓN COMERCIAL B2B', 14, 27);
 
-                    <div class="footer">
-                        Procoquinal S.A.S. - Departamento Comercial - Documento generado automáticamente
-                    </div>
-                </body>
-                </html>
-            `;
+            doc.setFillColor(254, 243, 199); // amber-100
+            doc.rect(145, 12, 50, 12, 'F');
+            doc.setFontSize(9);
+            doc.setTextColor(180, 83, 9); // amber-700
+            doc.text('ESTADO: PENDIENTE', 149, 19);
 
-            const blob = new Blob([printableHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Cotizacion_Procoquinal_${(clientName || 'Cliente').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Client & Info metadata
+            doc.setTextColor(30, 41, 59); // slate-800
+            doc.setFontSize(11);
+            doc.text(`Cliente: ${clientName || 'Cliente General'}`, 14, 46);
+            doc.text(`Fecha: ${new Date().toLocaleDateString('es-CO')}`, 14, 53);
+            doc.text(`Validez Comercial: 15 Días Calendario`, 14, 60);
+
+            // Table
+            const tableData = cart.map(item => [
+                item.name,
+                `${item.quantity}`,
+                `$${item.price.toLocaleString('es-CO')}`,
+                `$${(item.quantity * item.price).toLocaleString('es-CO')}`
+            ]);
+
+            autoTable(doc, {
+                startY: 68,
+                head: [['Producto', 'Cant.', 'Precio Unitario', 'Total']],
+                body: tableData,
+                headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+                margin: { left: 14, right: 14 }
+            });
+
+            const finalY = (doc as any).lastAutoTable.finalY + 12;
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Subtotal: $${subtotal.toLocaleString('es-CO')}`, 130, finalY);
+            if (showIva) {
+                doc.text(`IVA (Impuesto): $${totalIva.toLocaleString('es-CO')}`, 130, finalY + 6);
+            }
+            
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(15, 23, 42);
+            doc.text(`TOTAL COTIZACIÓN: $${calculatedTotal.toLocaleString('es-CO')} COP`, 105, finalY + 16);
+
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(100, 116, 139);
+            doc.text('Procoquinal S.A.S. - Departamento Comercial - Documento generado automáticamente', 14, finalY + 30);
+
+            // Save PDF
+            doc.save(`Cotizacion_Procoquinal_${(clientName || 'Cliente').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
 
             setIsDownloading(false);
             setDownloaded(true);
