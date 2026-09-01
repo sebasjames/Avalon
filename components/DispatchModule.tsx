@@ -63,8 +63,8 @@ export const DispatchModule: React.FC = () => {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.text(`Cliente / Razón Social: ${contact?.name || 'Cliente Particular'}`, 14, 48);
-        doc.text(`NIT / Cédula: ${contact?.taxId || 'N/A'}`, 14, 53);
-        doc.text(`Dirección Entrega: ${contact?.address || 'Dirección de Registro'}`, 14, 58);
+        doc.text(`NIT / Cédula: ${(contact as any)?.taxId || (contact as any)?.nit || 'N/A'}`, 14, 53);
+        doc.text(`Dirección Entrega: ${(contact as any)?.address || contact?.company || 'Dirección de Registro'}`, 14, 58);
         doc.text(`Teléfono Contacto: ${contact?.phone || 'N/A'}`, 14, 63);
 
         doc.text(`Estado Despacho: ${d.status}`, 120, 48);
@@ -147,7 +147,7 @@ export const DispatchModule: React.FC = () => {
                 (idx + 1).toString(),
                 d.id,
                 contact?.name || 'Cliente Particular',
-                contact?.address || 'Dirección de Registro',
+                (contact as any)?.address || contact?.company || 'Dirección de Registro',
                 d.promisedDate,
                 d.driver || 'Por Asignar',
                 d.vehicle || 'Por Asignar',
