@@ -163,7 +163,7 @@ export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
                                 <div className="space-y-6">
                                     {/* Caja Menor Metrics Card */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        \n    return (\n<div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+                                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
                                             <div>
                                                 <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Fondo Total Base</div>
                                                 <div className="text-3xl font-black text-slate-900 mt-2">${FONDO_BASE.toLocaleString('es-CO')} <span className="text-xs font-bold text-slate-400">COP</span></div>

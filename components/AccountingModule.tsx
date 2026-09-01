@@ -503,6 +503,8 @@ export const AccountingModule: React.FC = () => {
         XLSX.writeFile(wb, `Reporte_Contable_Master_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
+    const handleExportSabana = handleExportExcel;
+
     const handleExportZReport = () => {
         alert('📧 Reporte Z enviado exitosamente a contabilidad@empresa.com');
         const ws = XLSX.utils.json_to_sheet([{
@@ -669,10 +671,14 @@ export const AccountingModule: React.FC = () => {
                                 setAppliedFilters={setAppliedFilters}
                                 showFilters={showFilters}
                                 setShowFilters={setShowFilters}
+                                setShowExcelModal={setShowExcelModal}
+                                handleExportExcel={handleExportExcel}
                                 handleExportSabana={handleExportSabana}
                                 activeShortcutFilter={activeShortcutFilter}
                                 setActiveShortcutFilter={setActiveShortcutFilter}
                                 accountingShortcuts={accountingShortcuts}
+                                initialFilterState={initialFilterState}
+                                filteredSabana={filteredSabana}
                             />
                         )}
 
