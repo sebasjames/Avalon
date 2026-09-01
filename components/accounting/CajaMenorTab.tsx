@@ -4,6 +4,8 @@ import { formatCOP } from '../../utils/format';
 import { AccountingTransaction } from '../../types';
 import { useEnterprise } from '../../context/EnterpriseContext';
 
+import { useUIStore } from '../../stores/uiStore';
+
 export interface CajaMenorTabProps {
     transactions: AccountingTransaction[];
 }
@@ -11,14 +13,13 @@ export interface CajaMenorTabProps {
 export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
     transactions
 }) => {
+    const { addToast } = useUIStore();
     // Local State
     const FONDO_BASE = 1500000; // COP 1,500,000 as base
     const [cajaMenorSearch, setCajaMenorSearch] = useState('');
     const [cajaMenorFilter, setCajaMenorFilter] = useState('ALL');
 
-
-
-                                const { inventory, updateInventoryStock, addTransaction, pointsOfSale } = useEnterprise();
+    const { inventory, updateInventoryStock, addTransaction, pointsOfSale } = useEnterprise();
     const [cmHistoryDateFrom, setCmHistoryDateFrom] = useState('');
     const [cmHistoryDateTo, setCmHistoryDateTo] = useState('');
     const [cmHistorySku, setCmHistorySku] = useState('');
@@ -32,84 +33,83 @@ export const CajaMenorTab: React.FC<CajaMenorTabProps> = ({
     const [egresoCantidad, setEgresoCantidad] = useState('');
     const [egresoFecha, setEgresoFecha] = useState(new Date().toISOString().split('T')[0]);
 
-                            
-                            // Egresos realizados
-                            const egresos = transactions.filter(t => t.paymentMethod === 'Caja Menor' && t.type === 'COMPRA');
-                            const totalEgresos = egresos.reduce((sum, e) => sum + e.total, 0);
-                            
-                            // Reposiciones / Reembolsos
-                            const reposiciones = transactions.filter(t => t.paymentMethod === 'Caja Menor' && t.type === 'PAGO_RECIBIDO');
-                            const totalReposiciones = reposiciones.reduce((sum, r) => sum + r.total, 0);
-                            
-                            const saldoDisponible = FONDO_BASE - totalEgresos + totalReposiciones;
+    // Egresos realizados
+    const egresos = transactions.filter(t => t.paymentMethod === 'Caja Menor' && t.type === 'COMPRA');
+    const totalEgresos = egresos.reduce((sum, e) => sum + e.total, 0);
+    
+    // Reposiciones / Reembolsos
+    const reposiciones = transactions.filter(t => t.paymentMethod === 'Caja Menor' && t.type === 'PAGO_RECIBIDO');
+    const totalReposiciones = reposiciones.reduce((sum, r) => sum + r.total, 0);
+    
+    const saldoDisponible = FONDO_BASE - totalEgresos + totalReposiciones;
 
-                            const filteredCmHistory = [...egresos, ...reposiciones].filter(mov => {
-                                if (cmHistoryDateFrom && mov.date < cmHistoryDateFrom) return false;
-                                if (cmHistoryDateTo && mov.date > cmHistoryDateTo) return false;
-                                if (cmHistorySku && (!mov.sku || !mov.sku.toLowerCase().includes(cmHistorySku.toLowerCase()))) return false;
-                                if (cmHistoryMinPrice && mov.total < Number(cmHistoryMinPrice)) return false;
-                                if (cmHistoryMaxPrice && mov.total > Number(cmHistoryMaxPrice)) return false;
-                                return true;
-                            }).sort((a, b) => b.date.localeCompare(a.date));
+    const filteredCmHistory = [...egresos, ...reposiciones].filter(mov => {
+        if (cmHistoryDateFrom && mov.date < cmHistoryDateFrom) return false;
+        if (cmHistoryDateTo && mov.date > cmHistoryDateTo) return false;
+        if (cmHistorySku && (!mov.sku || !mov.sku.toLowerCase().includes(cmHistorySku.toLowerCase()))) return false;
+        if (cmHistoryMinPrice && mov.total < Number(cmHistoryMinPrice)) return false;
+        if (cmHistoryMaxPrice && mov.total > Number(cmHistoryMaxPrice)) return false;
+        return true;
+    }).sort((a, b) => b.date.localeCompare(a.date));
 
-                            const handleRegistrarEgreso = (e: React.FormEvent) => {
-                                e.preventDefault();
-                                if (!egresoTercero || !egresoConcepto || !egresoValor || Number(egresoValor) <= 0) {
-                                    alert('Por favor complete Tercero, Concepto y un Valor mayor a cero.');
-                                    return;
-                                }
+    const handleRegistrarEgreso = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!egresoTercero || !egresoConcepto || !egresoValor || Number(egresoValor) <= 0) {
+            addToast({ title: 'Campo Faltante', message: 'Por favor complete Tercero, Concepto y un Valor mayor a cero.', severity: 'WARNING' });
+            return;
+        }
 
-                                if (egresoType === 'INVENTARIO') {
-                                    if (!egresoSku) {
-                                        alert('Por favor seleccione un SKU/Producto para el ingreso de inventario.');
-                                        return;
-                                    }
-                                    if (!egresoCantidad || Number(egresoCantidad) <= 0) {
-                                        alert('Por favor ingrese una cantidad válida mayor a cero.');
-                                        return;
-                                    }
-                                }
+        if (egresoType === 'INVENTARIO') {
+            if (!egresoSku) {
+                addToast({ title: 'SKU Requerido', message: 'Por favor seleccione un SKU/Producto para el ingreso de inventario.', severity: 'WARNING' });
+                return;
+            }
+            if (!egresoCantidad || Number(egresoCantidad) <= 0) {
+                addToast({ title: 'Cantidad Inválida', message: 'Por favor ingrese una cantidad válida mayor a cero.', severity: 'WARNING' });
+                return;
+            }
+        }
 
-                                const valor = Number(egresoValor);
-                                if (valor > saldoDisponible) {
-                                    alert('OPERACIÓN RECHAZADA: Saldo insuficiente en la Caja Menor para cubrir este egreso.');
-                                    return;
-                                }
+        const valor = Number(egresoValor);
+        if (valor > saldoDisponible) {
+            addToast({ title: 'Operación Rechazada', message: 'Saldo insuficiente en la Caja Menor para cubrir este egreso.', severity: 'CRITICAL' });
+            return;
+        }
 
-                                const selectedProduct = inventory.find(p => p.sku === egresoSku);
-                                
-                                // Si es de tipo inventario, sumamos stock en Avalon
-                                if (egresoType === 'INVENTARIO' && selectedProduct) {
-                                    updateInventoryStock(selectedProduct.id, Number(egresoCantidad));
-                                }
+        const selectedProduct = inventory.find(p => p.sku === egresoSku);
+        
+        // Si es de tipo inventario, sumamos stock en Avalon
+        if (egresoType === 'INVENTARIO' && selectedProduct) {
+            updateInventoryStock(selectedProduct.id, Number(egresoCantidad));
+        }
 
-                                addTransaction({
-                                    id: `CM-${Math.floor(Math.random() * 9000) + 1000}`,
-                                    date: egresoFecha,
-                                    type: 'COMPRA',
-                                    client: egresoTercero,
-                                    document: 'Caja Menor',
-                                    productName: egresoType === 'INVENTARIO'
-                                        ? `[Caja Menor] Compra Insumo: ${selectedProduct?.name || egresoSku} (${egresoConcepto})`
-                                        : `[Caja Menor] Gasto: ${egresoConcepto}`,
-                                    sku: egresoType === 'INVENTARIO' ? egresoSku : 'N/A',
-                                    qty: egresoType === 'INVENTARIO' ? Number(egresoCantidad) : 1,
-                                    total: valor,
-                                    iva: 0,
-                                    paymentMethod: 'Caja Menor',
-                                    posLocation: pointsOfSale?.[0] || 'Bogotá',
-                                    siigoExportStatus: 'PENDING_SIIGO_SYNC',
-                                    siigoDocType: 'EGRESO'
-                                });
+        addTransaction({
+            id: `CM-${Math.floor(Math.random() * 9000) + 1000}`,
+            date: egresoFecha,
+            type: 'COMPRA',
+            client: egresoTercero,
+            document: 'Caja Menor',
+            productName: egresoType === 'INVENTARIO'
+                ? `[Caja Menor] Compra Insumo: ${selectedProduct?.name || egresoSku} (${egresoConcepto})`
+                : `[Caja Menor] Gasto: ${egresoConcepto}`,
+            sku: egresoType === 'INVENTARIO' ? egresoSku : 'N/A',
+            qty: egresoType === 'INVENTARIO' ? Number(egresoCantidad) : 1,
+            total: valor,
+            iva: 0,
+            paymentMethod: 'Caja Menor',
+            posLocation: pointsOfSale?.[0] || 'Bogotá',
+            siigoExportStatus: 'PENDING_SIIGO_SYNC',
+            siigoDocType: 'EGRESO'
+        });
 
-                                // Limpiar formulario
-                                setEgresoTercero('');
-                                setEgresoConcepto('');
-                                setEgresoValor('');
-                                setEgresoSku('');
-                                setEgresoCantidad('');
-                                alert('Egreso registrado exitosamente en Caja Menor (Encolado para exportación SIIGO).');
-                            };
+        // Limpiar formulario
+        setEgresoTercero('');
+        setEgresoConcepto('');
+        setEgresoValor('');
+        setEgresoSku('');
+        setEgresoCantidad('');
+        addToast({ title: 'Egreso Exitoso', message: 'Egreso registrado en Caja Menor y encolado para SIIGO.', severity: 'SUCCESS' });
+    };
 
                             const handleReembolsoCaja = () => {
                                 const montoAReembolsar = FONDO_BASE - saldoDisponible;

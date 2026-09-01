@@ -160,6 +160,7 @@ const App: React.FC = () => {
         </main>
         
         <FloatingTaskNote />
+        <ToastContainer />
       </div>
     </HashRouter>
     </EnterpriseProvider>
