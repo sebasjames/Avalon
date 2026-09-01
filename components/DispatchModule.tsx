@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { useUIStore } from '../stores/uiStore';
-import { Truck, Package, PackageCheck, AlertTriangle, CheckCircle2, Search, FileText, Download, Printer, Eye, X } from 'lucide-react';
+import { Truck, Package, PackageCheck, AlertTriangle, CheckCircle2, Search, FileText, Download, Printer, Eye, X, Maximize2, Minimize2 } from 'lucide-react';
 import { DispatchLog, CrmContact } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -12,6 +12,7 @@ export const DispatchModule: React.FC = () => {
     const { addToast } = useUIStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [previewModal, setPreviewModal] = useState<{ isOpen: boolean; blobUrl: string; title: string; dispatchLog?: DispatchLog } | null>(null);
+    const [isModalFullscreen, setIsModalFullscreen] = useState(false);
 
     const filtered = (dispatches || []).filter(d => {
         const idMatch = (d.id || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -339,40 +340,54 @@ export const DispatchModule: React.FC = () => {
             {/* PREVIEW MODAL */}
             {previewModal?.isOpen && (
                 <AnimatePresence>
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+                    <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm ${isModalFullscreen ? 'p-0' : 'p-4'}`}>
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"
+                            className={`bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${
+                                isModalFullscreen 
+                                ? 'w-full h-full max-w-none max-h-none rounded-none border-0' 
+                                : 'w-full max-w-5xl rounded-2xl max-h-[90vh]'
+                            }`}
                         >
                             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
                                 <div className="flex items-center gap-3">
                                     <FileText className="w-5 h-5 text-amber-400" />
                                     <h3 className="text-base font-bold text-white">{previewModal.title}</h3>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
                                     {previewModal.dispatchLog && (
                                         <button
                                             onClick={() => handleDownloadDispatchPdf(previewModal.dispatchLog!)}
-                                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow flex items-center gap-1.5 transition-all"
+                                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow flex items-center gap-1.5 transition-all cursor-pointer mr-1"
                                         >
                                             <Download className="w-3.5 h-3.5" />
                                             Descargar PDF
                                         </button>
                                     )}
                                     <button
-                                        onClick={() => setPreviewModal(null)}
-                                        className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                                        onClick={() => setIsModalFullscreen(!isModalFullscreen)}
+                                        title={isModalFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"}
+                                        className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                                    >
+                                        {isModalFullscreen ? <Minimize2 className="w-4 h-4 text-amber-400" /> : <Maximize2 className="w-4 h-4" />}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setPreviewModal(null);
+                                            setIsModalFullscreen(false);
+                                        }}
+                                        className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
-                            <div className="p-4 flex-1 bg-slate-950/50 overflow-hidden">
+                            <div className="p-4 flex-1 bg-slate-950/50 overflow-hidden flex flex-col">
                                 <iframe 
                                     src={previewModal.blobUrl} 
-                                    className="w-full h-[70vh] border border-slate-800 rounded-xl bg-slate-900"
+                                    className={`w-full border border-slate-800 rounded-xl bg-slate-900 flex-1 ${isModalFullscreen ? 'h-full' : 'h-[72vh]'}`}
                                     title="PDF Preview"
                                 />
                             </div>
