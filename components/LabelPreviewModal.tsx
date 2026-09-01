@@ -92,12 +92,12 @@ ${formulaLines}
 
         // Top Left Header
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
+        doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
-        doc.text('PROCOQUINAL S.A.S.', 6, 9);
+        doc.text('PROCOQUINAL S.A.S.', 6, 9.5);
         doc.setFontSize(6.5);
         doc.setFont('helvetica', 'normal');
-        doc.text('SISTEMA TINTOMÉTRICO INDUSTRIAL', 6, 13);
+        doc.text('SISTEMA TINTOMÉTRICO INDUSTRIAL', 6, 13.5);
         doc.line(6, 15, 68, 15);
 
         // Color ID Big Bold
@@ -218,10 +218,10 @@ ${formulaLines}
                                     {/* Left Text Block */}
                                     <div className="space-y-1.5 flex-1 min-w-0">
                                         <div className="border-b border-black pb-1">
-                                            <h4 className="font-black text-base tracking-tight uppercase">
+                                            <h4 className="font-black text-xl tracking-tight uppercase font-sans leading-none">
                                                 PROCOQUINAL S.A.S.
                                             </h4>
-                                            <span className="text-[9px] font-sans font-bold text-black uppercase block">SISTEMA TINTOMÉTRICO INDUSTRIAL</span>
+                                            <span className="text-[9.5px] font-sans font-extrabold text-black uppercase block tracking-wider mt-0.5">SISTEMA TINTOMÉTRICO INDUSTRIAL</span>
                                         </div>
                                         
                                         <div>
