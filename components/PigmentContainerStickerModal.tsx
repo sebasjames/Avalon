@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Printer, Download, Copy, X, Check, QrCode, Tag, Beaker, ShieldAlert } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
@@ -29,6 +29,7 @@ export const PigmentContainerStickerModal: React.FC<PigmentContainerStickerModal
     const { addToast } = useUIStore();
     const [copiedZpl, setCopiedZpl] = useState(false);
     const [selectedPigment, setSelectedPigment] = useState<string | null>(null);
+    const bodyRef = useRef<HTMLDivElement>(null);
 
     if (!isOpen || !order) return null;
 
@@ -225,7 +226,7 @@ export const PigmentContainerStickerModal: React.FC<PigmentContainerStickerModal
                     </div>
 
                     {/* Body */}
-                    <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
+                    <div ref={bodyRef} className="p-6 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
                         {/* Selector Tabs for active Pigment container */}
                         <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                             {containerItems.map((item) => (
@@ -288,18 +289,32 @@ export const PigmentContainerStickerModal: React.FC<PigmentContainerStickerModal
                         <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Resumen de Envases a Re-Etiquetar ({containerItems.length})</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                {containerItems.map(item => (
-                                    <div key={item.pigmentCode} className="p-3 bg-slate-900 rounded-lg border border-slate-800 flex justify-between items-center">
-                                        <div>
-                                            <span className="font-bold text-white block">{item.pigmentCode}</span>
-                                            <span className="text-[11px] text-slate-400 block font-mono">Lote: {item.containerLot}</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="font-bold text-emerald-400 font-mono block">{item.remainingQtyGrams} g rest.</span>
-                                            <span className="text-[10px] text-rose-400 font-mono block">-{item.usedQtyGrams} g</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                {containerItems.map(item => {
+                                    const isSelected = activeItem.pigmentCode === item.pigmentCode;
+                                    return (
+                                        <button
+                                            key={item.pigmentCode}
+                                            onClick={() => {
+                                                setSelectedPigment(item.pigmentCode);
+                                                bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }}
+                                            className={`p-3 rounded-lg border text-left flex justify-between items-center transition-all cursor-pointer ${
+                                                isSelected 
+                                                ? 'bg-amber-500/10 border-amber-500 shadow-md ring-1 ring-amber-500' 
+                                                : 'bg-slate-900 border-slate-800 hover:border-slate-700 hover:bg-slate-800/80'
+                                            }`}
+                                        >
+                                            <div>
+                                                <span className={`font-bold block ${isSelected ? 'text-amber-400' : 'text-white'}`}>{item.pigmentCode}</span>
+                                                <span className="text-[11px] text-slate-400 block font-mono">Lote: {item.containerLot}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="font-bold text-emerald-400 font-mono block">{item.remainingQtyGrams} g rest.</span>
+                                                <span className="text-[10px] text-rose-400 font-mono block">-{item.usedQtyGrams} g</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
