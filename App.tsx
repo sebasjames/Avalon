@@ -34,7 +34,23 @@ const AccountingModule = React.lazy(() => import('./components/AccountingModule'
 const ReturnsPanel = React.lazy(() => import('./components/ReturnsPanel').then(m => ({ default: m.ReturnsPanel })));
 const DispatchModule = React.lazy(() => import('./components/DispatchModule').then(m => ({ default: m.DispatchModule })));
 const DispatchReports = React.lazy(() => import('./components/DispatchReports').then(m => ({ default: m.DispatchReports })));
-const InformesOmar = React.lazy(() => import('./components/InformesOmar').then(m => ({ default: m.InformesOmar })));
+const lazyRetry = (componentImport: () => Promise<any>) =>
+  React.lazy(async () => {
+    try {
+      const mod = await componentImport();
+      sessionStorage.removeItem('avalon_chunk_retry');
+      return mod;
+    } catch (error: any) {
+      console.warn('Chunk load error, auto-refreshing for newest deployment:', error);
+      if (!sessionStorage.getItem('avalon_chunk_retry')) {
+        sessionStorage.setItem('avalon_chunk_retry', 'true');
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+
+const InformesOmar = lazyRetry(() => import('./components/InformesOmar').then(m => ({ default: m.InformesOmar })));
 import { EnterpriseProvider } from './context/EnterpriseContext';
 import { AuthGate } from './components/AuthGate';
 import { FloatingTaskNote } from './components/FloatingTaskNote';
