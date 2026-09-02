@@ -791,6 +791,8 @@ export interface PosCartItem {
   quantity: number;
   discount?: number;
   product?: Product;
+  baseUnit?: string;
+  unit?: string;
 }
 export interface DispatchItem {
   sku: string;

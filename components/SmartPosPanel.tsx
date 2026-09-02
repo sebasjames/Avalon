@@ -1683,7 +1683,10 @@ export const SmartPosPanel: React.FC = () => {
                         name: c.product.name, 
                         price: basePrice * multiplier, 
                         quantity: c.qty, 
-                        sku: c.product.sku 
+                        sku: c.product.sku,
+                        product: c.product,
+                        baseUnit: c.product.baseUnit || 'UND',
+                        unit: c.product.baseUnit || 'UND'
                     };
                 })} 
                 clientName={contacts.find(c => c.id === selectedCustomerId)?.name || ''} 

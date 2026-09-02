@@ -1,7 +1,7 @@
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Send, Paperclip, FileText, Check, Loader2, Download } from 'lucide-react';
 import { PosCartItem } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -115,15 +115,16 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
 
             // Table
             const tableData = cart.map(item => [
+                item.sku || item.product?.sku || 'N/A',
                 item.name,
                 `${item.quantity}`,
-                `$${item.price.toLocaleString('es-CO')}`,
+                item.baseUnit || item.unit || item.product?.baseUnit || 'UND',
                 `$${(item.quantity * item.price).toLocaleString('es-CO')}`
             ]);
 
             autoTable(doc, {
                 startY: 68,
-                head: [['Producto', 'Cant.', 'Precio Unitario', 'Total']],
+                head: [['Referencia (SKU)', 'Producto', 'Cantidad', 'Unidad de Medida', 'Total']],
                 body: tableData,
                 headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
                 alternateRowStyles: { fillColor: [248, 250, 252] },
@@ -205,34 +206,48 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                             <p className="mb-4">Estimado(a) <strong>{clientName || 'Cliente'}</strong>,</p>
                             <p className="mb-4">De acuerdo a nuestra conversación, adjunto la cotización solicitada con los productos requeridos:</p>
                             
-                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4 overflow-x-auto">
                                 <table className="w-full text-left text-sm">
                                     <thead>
-                                        <tr className="border-b border-slate-200 text-slate-500">
-                                            <th className="pb-2 font-semibold">Producto</th>
-                                            <th className="pb-2 font-semibold text-right">Cant.</th>
-                                            <th className="pb-2 font-semibold text-right">Unitario</th>
-                                            <th className="pb-2 font-semibold text-right">Total</th>
+                                        <tr className="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                                            <th className="pb-2 font-bold">Referencia (SKU)</th>
+                                            <th className="pb-2 font-bold">Producto</th>
+                                            <th className="pb-2 font-bold text-center">Cantidad</th>
+                                            <th className="pb-2 font-bold text-center">Unidad de Medida</th>
+                                            <th className="pb-2 font-bold text-right">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {cart.map((item, idx) => (
-                                            <tr key={idx}>
-                                                <td className="py-2 text-slate-800 font-medium">{item.name}</td>
-                                                <td className="py-2 text-right">{item.quantity} {item.product?.baseUnit || ''}</td>
-                                                <td className="py-2 text-right">{formatCOP(item.price)}</td>
-                                                <td className="py-2 text-right font-bold">{formatCOP(item.quantity * item.price)}</td>
+                                            <tr key={idx} className="hover:bg-slate-100/50 transition-colors">
+                                                <td className="py-2.5 font-mono text-xs font-bold text-slate-700">
+                                                    {item.sku || item.product?.sku || 'N/A'}
+                                                </td>
+                                                <td className="py-2.5 text-slate-800 font-medium text-xs">
+                                                    {item.name}
+                                                </td>
+                                                <td className="py-2.5 text-center font-bold text-slate-800 text-xs">
+                                                    {item.quantity}
+                                                </td>
+                                                <td className="py-2.5 text-center">
+                                                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold bg-white text-slate-600 border border-slate-200 shadow-2xs">
+                                                        {item.baseUnit || item.unit || item.product?.baseUnit || 'UND'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-2.5 text-right font-black text-slate-900 text-xs">
+                                                    {formatCOP(item.quantity * item.price)}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                     <tfoot>
                                         <tr className="border-t border-slate-200">
-                                            <td colSpan={3} className="pt-2 text-right font-medium text-slate-500">Subtotal:</td>
+                                            <td colSpan={4} className="pt-2 text-right font-medium text-slate-500">Subtotal:</td>
                                             <td className="pt-2 text-right font-bold text-slate-700">{formatCOP(subtotal)}</td>
                                         </tr>
                                         {discountAmount > 0 && showDiscount && (
                                             <tr>
-                                                <td colSpan={3} className="py-1 text-right font-medium text-emerald-600 flex items-center justify-end gap-2">
+                                                <td colSpan={4} className="py-1 text-right font-medium text-emerald-600 flex items-center justify-end gap-2">
                                                     <button onClick={() => setShowDiscount(false)} className="text-slate-400 hover:text-rose-500" title="Remover"><X size={14}/></button>
                                                     Descuento Comercial ({discountPercent}%):
                                                 </td>
@@ -241,7 +256,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                         )}
                                         {totalIva > 0 && showIva && (
                                             <tr>
-                                                <td colSpan={3} className="py-1 text-right font-medium text-slate-500 flex items-center justify-end gap-2">
+                                                <td colSpan={4} className="py-1 text-right font-medium text-slate-500 flex items-center justify-end gap-2">
                                                     <button onClick={() => setShowIva(false)} className="text-slate-400 hover:text-rose-500" title="Remover"><X size={14}/></button>
                                                     IVA (Impuesto):
                                                 </td>
@@ -250,7 +265,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                         )}
                                         {retenciones.reteFuente > 0 && showReteFuente && (
                                             <tr>
-                                                <td colSpan={3} className="py-1 text-right font-medium text-rose-500 flex items-center justify-end gap-2">
+                                                <td colSpan={4} className="py-1 text-right font-medium text-rose-500 flex items-center justify-end gap-2">
                                                     <button onClick={() => setShowReteFuente(false)} className="text-slate-400 hover:text-rose-500" title="Remover"><X size={14}/></button>
                                                     Retención en la Fuente:
                                                 </td>
@@ -259,7 +274,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                         )}
                                         {retenciones.reteIca > 0 && showReteIca && (
                                             <tr>
-                                                <td colSpan={3} className="py-1 text-right font-medium text-rose-500 flex items-center justify-end gap-2">
+                                                <td colSpan={4} className="py-1 text-right font-medium text-rose-500 flex items-center justify-end gap-2">
                                                     <button onClick={() => setShowReteIca(false)} className="text-slate-400 hover:text-rose-500" title="Remover"><X size={14}/></button>
                                                     ReteICA:
                                                 </td>
@@ -268,7 +283,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                         )}
                                         {(!showDiscount && discountAmount > 0) || (!showIva && totalIva > 0) || (!showReteFuente && retenciones.reteFuente > 0) || (!showReteIca && retenciones.reteIca > 0) ? (
                                             <tr>
-                                                <td colSpan={4} className="py-2 text-right">
+                                                <td colSpan={5} className="py-2 text-right">
                                                     <div className="flex justify-end gap-2 text-[10px] uppercase font-bold text-blue-500">
                                                         {!showDiscount && discountAmount > 0 && <button onClick={() => setShowDiscount(true)} className="hover:underline">+ Dcto</button>}
                                                         {!showIva && totalIva > 0 && <button onClick={() => setShowIva(true)} className="hover:underline">+ IVA</button>}
@@ -279,7 +294,7 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                             </tr>
                                         ) : null}
                                         <tr className="border-t border-slate-300 mt-2">
-                                            <td colSpan={3} className="pt-3 text-right font-bold text-slate-800">Total Cotización:</td>
+                                            <td colSpan={4} className="pt-3 text-right font-bold text-slate-800">Total Cotización:</td>
                                             <td className="pt-3 text-right font-black text-slate-900 text-xl">{formatCOP(calculatedTotal)}</td>
                                         </tr>
                                     </tfoot>
