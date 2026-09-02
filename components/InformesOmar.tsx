@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Activity, 
   Search, 
@@ -265,11 +265,15 @@ export const InformesOmar: React.FC = () => {
 
   // --- REPORT VIEWER STATE (ULTRA COMPLETO ESTILO WORLD OFFICE) ---
   const [reportActiveTab, setReportActiveTab] = useState<'FORMATO_WORLDOFFICE' | 'TORTAS' | 'TENDENCIAS' | 'TABLA'>('FORMATO_WORLDOFFICE');
+  const [reportPaperMode, setReportPaperMode] = useState<'PAGINADO' | 'TODAS_HOJAS' | 'PDF_NATIVO'>('PAGINADO');
+  const [currentReportPage, setCurrentReportPage] = useState(1);
+  const [pdfPreviewBlobUrl, setPdfPreviewBlobUrl] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [reportSearchTerm, setReportSearchTerm] = useState('');
   const [reportZoom, setReportZoom] = useState<'85' | '100' | '115'>('100');
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
-  // Paginación
+  // Paginación Sábana Plana
   const [pageSize, setPageSize] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -328,6 +332,7 @@ export const InformesOmar: React.FC = () => {
     }
     setPeriodPreset('CUSTOM');
     setCurrentPage(1);
+    setCurrentReportPage(1);
   };
 
   // Quick Period Presets Handler
@@ -362,6 +367,7 @@ export const InformesOmar: React.FC = () => {
       setDiaFin('31'); setMesFin('Diciembre'); setAnoFin('2025');
     }
     setCurrentPage(1);
+    setCurrentReportPage(1);
   };
 
   // Helper toggle all documents
@@ -373,6 +379,7 @@ export const InformesOmar: React.FC = () => {
     setDocTypeREM(anyOff);
     setDocTypeCE(anyOff);
     setCurrentPage(1);
+    setCurrentReportPage(1);
   };
 
   // Helper toggle sucursal cycle
@@ -382,6 +389,7 @@ export const InformesOmar: React.FC = () => {
     const nextIndex = (currentIndex + 1) % options.length;
     setSelectedCostCenter(options[nextIndex]);
     setCurrentPage(1);
+    setCurrentReportPage(1);
   };
 
   // Distinct lists for dropdowns
@@ -418,6 +426,7 @@ export const InformesOmar: React.FC = () => {
       setReportActiveTab('FORMATO_WORLDOFFICE');
       setReportGeneratedAt(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       setCurrentPage(1);
+      setCurrentReportPage(1);
       if (reportResultsRef.current) {
         reportResultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -844,6 +853,157 @@ export const InformesOmar: React.FC = () => {
     });
   }, [groupedReportData, reportSearchTerm]);
 
+  // --- SMART PHYSICAL PAGE CHUNKER (WORLD OFFICE REPORT SHEETS) ---
+  const reportPages = useMemo(() => {
+    const pages: Array<{
+      pageNumber: number;
+      groups: typeof displayedGroups;
+      isFirstPage: boolean;
+      isLastPage: boolean;
+      pageTotalQty: number;
+      pageTotalNet: number;
+      pageTotalGross: number;
+      pageTotalIva: number;
+    }> = [];
+
+    let currentPageGroups: typeof displayedGroups = [];
+    let currentItemsCount = 0;
+    const TARGET_ITEMS_PER_PAGE = 16;
+
+    displayedGroups.forEach((group) => {
+      const groupItemCount = Math.max(group.items.length, 1);
+      if (currentItemsCount + groupItemCount > TARGET_ITEMS_PER_PAGE && currentPageGroups.length > 0) {
+        pages.push({
+          pageNumber: pages.length + 1,
+          groups: currentPageGroups,
+          isFirstPage: pages.length === 0,
+          isLastPage: false,
+          pageTotalQty: currentPageGroups.reduce((acc, g) => acc + g.totalQty, 0),
+          pageTotalNet: currentPageGroups.reduce((acc, g) => acc + g.totalNet, 0),
+          pageTotalGross: currentPageGroups.reduce((acc, g) => acc + g.totalGross, 0),
+          pageTotalIva: currentPageGroups.reduce((acc, g) => acc + g.totalIva, 0),
+        });
+        currentPageGroups = [group];
+        currentItemsCount = groupItemCount;
+      } else {
+        currentPageGroups.push(group);
+        currentItemsCount += groupItemCount;
+      }
+    });
+
+    if (currentPageGroups.length > 0 || pages.length === 0) {
+      pages.push({
+        pageNumber: pages.length + 1,
+        groups: currentPageGroups,
+        isFirstPage: pages.length === 0,
+        isLastPage: true,
+        pageTotalQty: currentPageGroups.reduce((acc, g) => acc + g.totalQty, 0),
+        pageTotalNet: currentPageGroups.reduce((acc, g) => acc + g.totalNet, 0),
+        pageTotalGross: currentPageGroups.reduce((acc, g) => acc + g.totalGross, 0),
+        pageTotalIva: currentPageGroups.reduce((acc, g) => acc + g.totalIva, 0),
+      });
+    }
+
+    if (pages.length > 0) {
+      pages[pages.length - 1].isLastPage = true;
+    }
+
+    return pages;
+  }, [displayedGroups]);
+
+  // Active Display Page clamped
+  const activeReportPageIndex = Math.min(Math.max(currentReportPage, 1), Math.max(reportPages.length, 1));
+  const activeDisplayPage = reportPages[activeReportPageIndex - 1] || reportPages[0];
+
+  // Real PDF Preview Generator (Blob URL)
+  const generateRealPdfPreview = () => {
+    setIsGeneratingPdf(true);
+    try {
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+      
+      // Header Page 1
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PROCOQUINAL S.A.S. - NIT: 901.428.112-4', 40, 40);
+      doc.setFontSize(11);
+      doc.text(selectedReportType.toUpperCase(), 40, 56);
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Periodo: ${dateFrom || diaInicio + '/' + mesInicio + '/' + anoInicio} a ${dateTo || diaFin + '/' + mesFin + '/' + anoFin} | Sede: ${selectedCostCenter} | Moneda: COP`, 40, 70);
+      doc.text(`Generado: ${new Date().toLocaleString('es-CO')} | Usuario: OMAR (GERENCIA)`, 40, 82);
+
+      const tableRows: any[] = [];
+      filteredData.forEach(tx => {
+        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+        const net = Math.abs(tx.total) - (tx.iva || 0);
+        tableRows.push([
+          tx.date,
+          tx.document || tx.id,
+          (tx.client || 'Consumidor Final').substring(0, 24),
+          getTxSeller(tx).split(' (')[0],
+          tx.sku || '-',
+          (tx.productName || 'Varios').substring(0, 24),
+          tx.qty || 1,
+          formatCOP(tx.iva || 0),
+          formatCOP(isReturn ? -net : net),
+          formatCOP(tx.total)
+        ]);
+      });
+
+      autoTable(doc, {
+        startY: 95,
+        head: [['Fecha', 'Comprobante', 'Cliente / Tercero', 'Vendedor', 'SKU', 'Producto', 'Cant.', 'IVA', 'Neto', 'Total']],
+        body: tableRows,
+        theme: 'grid',
+        headStyles: { fillColor: [28, 59, 112], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7.5, cellPadding: 2.5 },
+        foot: [[
+          'TOTALES', '', '', '', '', '',
+          filteredData.reduce((acc, t) => acc + (t.qty || 1), 0).toString(),
+          formatCOP(kpis.totalIva),
+          formatCOP(kpis.totalNet),
+          formatCOP(kpis.totalGross)
+        ]],
+        footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 8 },
+        didDrawPage: (data) => {
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height || pageSize.getHeight();
+          const pageWidth = pageSize.width || pageSize.getWidth();
+
+          if (data.pageNumber > 1) {
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PROCOQUINAL S.A.S. - ' + selectedReportType.toUpperCase(), 40, 25);
+          }
+
+          doc.setFontSize(7.5);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(120);
+          doc.text(`PROCOQUINAL S.A.S. - NIT: 901.428.112-4  |  Usuario: OMAR  |  ${new Date().toLocaleDateString('es-CO')}`, 40, pageHeight - 15);
+          doc.text(`Página ${data.pageNumber}`, pageWidth - 70, pageHeight - 15);
+        }
+      });
+
+      const blob = doc.output('blob');
+      if (pdfPreviewBlobUrl) {
+        URL.revokeObjectURL(pdfPreviewBlobUrl);
+      }
+      const url = URL.createObjectURL(blob);
+      setPdfPreviewBlobUrl(url);
+    } catch (e) {
+      console.error("Error al generar PDF preview:", e);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // Re-generate PDF preview when entering PDF_NATIVO mode
+  useEffect(() => {
+    if (reportPaperMode === 'PDF_NATIVO') {
+      generateRealPdfPreview();
+    }
+  }, [reportPaperMode, filteredData, selectedReportType]);
+
   // --- TORTAS (DONUT / PIE CHARTS DATA) ---
   const familyPieData = useMemo(() => {
     const map: Record<string, number> = {};
@@ -941,7 +1101,7 @@ export const InformesOmar: React.FC = () => {
     }));
   }, [filteredData]);
 
-  // Pagination Data
+  // Pagination Data Sábana
   const totalPages = Math.ceil(filteredData.length / pageSize);
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -1061,6 +1221,276 @@ export const InformesOmar: React.FC = () => {
 
   const toggleGroupCollapse = (key: string) => {
     setCollapsedGroups(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Render a Single World Office Physical Page Sheet
+  const renderReportPageSheet = (page: typeof reportPages[0], totalPagesCount: number) => {
+    if (!page) return null;
+
+    return (
+      <div 
+        key={`report-page-${page.pageNumber}`}
+        style={{ transform: reportZoom === '85' ? 'scale(0.85)' : reportZoom === '115' ? 'scale(1.15)' : 'none', transformOrigin: 'top center' }}
+        className="max-w-5xl mx-auto bg-white p-8 md:p-12 shadow-2xl text-slate-900 border border-slate-300 font-sans transition-all print:shadow-none print:border-none print:p-0 print:max-w-full my-4 flex flex-col justify-between min-h-[900px] relative rounded-xs"
+      >
+        <div>
+          {/* Header Page 1: Full Institutional Letterhead */}
+          {page.isFirstPage ? (
+            <div className="border-b-2 border-slate-900 pb-4 mb-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-xl font-black text-slate-900 tracking-tight">PROCOQUINAL S.A.S.</h1>
+                  <div className="text-xs text-slate-700 font-mono mt-0.5">
+                    NIT: 901.428.112-4 — RÉGIMEN COMÚN — RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    Cra 10 # 15-28, Bogotá D.C., Colombia — PBX: (601) 745-8900 — info@procoquinal.co
+                  </div>
+                </div>
+
+                <div className="text-right font-mono text-[10.5px] text-slate-600 border border-slate-300 p-2 bg-slate-50 rounded-xs">
+                  <div className="font-bold text-slate-900 uppercase">INFORME OFICIAL ERP</div>
+                  <div>Fecha: {new Date().toLocaleDateString('es-CO')}</div>
+                  <div>Hora: {reportGeneratedAt}</div>
+                  <div>Usuario: <span className="font-bold text-slate-900">OMAR (GERENCIA)</span></div>
+                  <div>Página: <span className="font-bold text-blue-900">{page.pageNumber} de {totalPagesCount}</span></div>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div className="mt-4 pt-3 border-t border-slate-200 text-center">
+                <h2 className="text-base md:text-lg font-black text-slate-950 uppercase tracking-wide">
+                  {selectedReportType}
+                </h2>
+                <div className="text-xs text-slate-600 font-medium mt-1 flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
+                  <span><strong>Periodo:</strong> {dateFrom || `${diaInicio}/${mesInicio}/${anoInicio}`} al {dateTo || `${diaFin}/${mesFin}/${anoFin}`}</span>
+                  <span>•</span>
+                  <span><strong>Sucursal:</strong> {selectedCostCenter === 'ALL' ? 'Consolidado General' : selectedCostCenter}</span>
+                  <span>•</span>
+                  <span><strong>Vendedor:</strong> {selectedSeller === 'ALL' ? 'Todos los Comerciales' : selectedSeller}</span>
+                  <span>•</span>
+                  <span><strong>Registros:</strong> {filteredData.length.toLocaleString()} movimientos</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Header on subsequent pages: Sleek World Office Sub-header */
+            <div className="border-b-2 border-slate-800 pb-2 mb-4 flex justify-between items-center text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-black text-slate-900 tracking-tight">PROCOQUINAL S.A.S.</span>
+                <span className="text-slate-400">|</span>
+                <span className="font-bold text-slate-700 uppercase">{selectedReportType}</span>
+              </div>
+              <div className="font-mono text-[10.5px] text-slate-500 font-bold">
+                Página {page.pageNumber} de {totalPagesCount}
+              </div>
+            </div>
+          )}
+
+          {/* Groups & Tables on this Page */}
+          <div className="space-y-4">
+            {page.groups.length === 0 ? (
+              <div className="py-16 text-center text-slate-400 font-medium">
+                No hay registros para mostrar en esta página.
+              </div>
+            ) : (
+              page.groups.map((group, groupIdx) => {
+                const isCollapsed = collapsedGroups[group.groupKey];
+
+                return (
+                  <div key={`${group.groupKey}-${groupIdx}`} className="border border-slate-300 rounded-xs overflow-hidden">
+                    
+                    {/* Ribbon */}
+                    <div 
+                      onClick={() => toggleGroupCollapse(group.groupKey)}
+                      className="bg-[#1c3b70] hover:bg-[#152e57] text-white px-3 py-1.5 font-bold text-xs flex justify-between items-center cursor-pointer select-none"
+                    >
+                      <div className="flex items-center gap-2">
+                        {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        <span>{group.groupTitle}</span>
+                        <span className="text-[10px] text-slate-300 font-normal hidden md:inline">({group.groupSub})</span>
+                      </div>
+                      <div className="font-mono text-[11px] flex items-center gap-3">
+                        <span className="text-amber-300 font-bold">{formatCOP(group.totalNet)}</span>
+                        <span className="text-slate-300 text-[10px]">({group.items.length} docs)</span>
+                      </div>
+                    </div>
+
+                    {/* Table */}
+                    {!isCollapsed && (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-[11px] font-sans">
+                          <thead className="bg-[#eef2f8] text-slate-700 font-bold uppercase tracking-wider border-b border-slate-300 text-[9.5px]">
+                            <tr>
+                              <th className="py-1.5 px-2.5">Fecha</th>
+                              <th className="py-1.5 px-2.5">Comprobante</th>
+                              <th className="py-1.5 px-2.5">SKU / Ref</th>
+                              <th className="py-1.5 px-2.5">Descripción Producto / Concepto</th>
+                              <th className="py-1.5 px-2.5 text-center">Cant.</th>
+                              <th className="py-1.5 px-2.5">Unidad</th>
+                              <th className="py-1.5 px-2.5 text-right">Vr. Unitario</th>
+                              <th className="py-1.5 px-2.5 text-right">IVA (19%)</th>
+                              <th className="py-1.5 px-2.5 text-right">Vr. Neto</th>
+                              <th className="py-1.5 px-2.5 text-right">Total Facturado</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200">
+                            {group.items.map((tx: any, itemIdx: number) => {
+                              const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+                              const netAmount = Math.abs(tx.total) - (tx.iva || 0);
+                              const qty = tx.qty || 1;
+                              const unitPrice = qty > 0 ? (netAmount / qty) : netAmount;
+
+                              return (
+                                <tr key={`${tx.id}-${itemIdx}`} className="hover:bg-amber-50/50 transition-colors">
+                                  <td className="py-1 px-2.5 font-mono text-slate-600 whitespace-nowrap text-[10.5px]">{tx.date}</td>
+                                  <td className="py-1 px-2.5 font-mono font-bold text-slate-800 text-[10.5px]">
+                                    <span className={isReturn ? 'text-rose-600' : 'text-blue-800'}>
+                                      {tx.document || tx.id}
+                                    </span>
+                                  </td>
+                                  <td className="py-1 px-2.5 font-mono text-slate-600 text-[10px]">{tx.sku || '-'}</td>
+                                  <td className="py-1 px-2.5 text-slate-800 max-w-[220px] truncate" title={tx.productName}>
+                                    {tx.productName || 'Venta de Productos Químicos'}
+                                  </td>
+                                  <td className="py-1 px-2.5 text-center font-bold text-slate-900">
+                                    {isReturn ? -qty : qty}
+                                  </td>
+                                  <td className="py-1 px-2.5 text-slate-500 font-mono text-[10px]">
+                                    {tx.baseUnit || 'GL/LT'}
+                                  </td>
+                                  <td className="py-1 px-2.5 text-right font-mono text-slate-600">
+                                    {formatCOP(unitPrice)}
+                                  </td>
+                                  <td className="py-1 px-2.5 text-right font-mono text-slate-500">
+                                    {formatCOP(tx.iva || 0)}
+                                  </td>
+                                  <td className="py-1 px-2.5 text-right font-mono font-semibold text-slate-800">
+                                    {formatCOP(isReturn ? -netAmount : netAmount)}
+                                  </td>
+                                  <td className={`py-1 px-2.5 text-right font-mono font-bold ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
+                                    {formatCOP(tx.total)}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+
+                          {/* Subtotal */}
+                          <tfoot className="bg-[#f4f6f9] border-t-2 border-slate-400 font-bold text-slate-900 text-[10.5px]">
+                            <tr>
+                              <td colSpan={4} className="py-1.5 px-2.5 text-right uppercase tracking-wider text-slate-700">
+                                SUBTOTAL {group.groupKey}:
+                              </td>
+                              <td className="py-1.5 px-2.5 text-center font-mono text-blue-900 font-black">
+                                {group.totalQty}
+                              </td>
+                              <td></td>
+                              <td></td>
+                              <td className="py-1.5 px-2.5 text-right font-mono text-slate-700">
+                                {formatCOP(group.totalIva)}
+                              </td>
+                              <td className="py-1.5 px-2.5 text-right font-mono text-blue-900 font-black">
+                                {formatCOP(group.totalNet)}
+                              </td>
+                              <td className="py-1.5 px-2.5 text-right font-mono text-slate-950 font-black">
+                                {formatCOP(group.totalGross)}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* If LAST page: Grand Totals + Signatures */}
+          {page.isLastPage && (
+            <div className="mt-8 space-y-6">
+              <div className="border-t-4 border-b-4 border-slate-900 py-4 bg-slate-50">
+                <div className="text-center font-black uppercase text-xs tracking-wider text-slate-900 mb-3">
+                  RESUMEN CONSOLIDADO Y TOTALES DEFINITIVOS DEL INFORME
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center font-mono">
+                  <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Unidades Despachadas</div>
+                    <div className="text-base font-black text-slate-900 mt-1">
+                      {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-sans mt-0.5">{Math.round(physicalKpis.totalLiters).toLocaleString()} Litros</div>
+                  </div>
+
+                  <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total Facturas / Docs</div>
+                    <div className="text-base font-black text-blue-800 mt-1">
+                      {kpis.docCount.toLocaleString()}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-sans mt-0.5">Ticket: {formatCOP(kpis.avgTicket)}</div>
+                  </div>
+
+                  <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total IVA Recaudado</div>
+                    <div className="text-base font-black text-slate-900 mt-1">
+                      {formatCOP(kpis.totalIva)}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-sans mt-0.5">Cuenta 240801</div>
+                  </div>
+
+                  <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Notas Crédito (Dev.)</div>
+                    <div className="text-base font-black text-rose-600 mt-1">
+                      {formatCOP(kpis.returnsTotal)}
+                    </div>
+                    <div className="text-[10px] text-rose-500 font-sans mt-0.5">{kpis.returnsImpact.toFixed(1)}% tasa dev.</div>
+                  </div>
+
+                  <div className="border-2 border-emerald-600 bg-emerald-50/60 p-2.5 rounded-xs shadow-xs col-span-2 md:col-span-1">
+                    <div className="text-[10px] text-emerald-800 uppercase font-sans font-black">VENTA NETA DEFINITIVA</div>
+                    <div className="text-base md:text-lg font-black text-emerald-900 mt-1">
+                      {formatCOP(kpis.totalNet)}
+                    </div>
+                    <div className="text-[10px] text-emerald-700 font-sans mt-0.5">Bruta: {formatCOP(kpis.totalGross)}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Signatures */}
+              <div className="pt-6 border-t border-slate-300 grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-xs text-slate-700">
+                <div>
+                  <div className="border-t border-slate-900 pt-2 font-bold font-mono">OMAR PROCOQUINAL</div>
+                  <div className="text-[11px] text-slate-500">Gerencia Comercial y Operativa</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Firma de Emisión</div>
+                </div>
+
+                <div>
+                  <div className="border-t border-slate-900 pt-2 font-bold font-mono">DEPARTAMENTO CONTABLE</div>
+                  <div className="text-[11px] text-slate-500">Revisión Cuentas PUC & Fiscales</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Firma de Control</div>
+                </div>
+
+                <div>
+                  <div className="border-t border-slate-900 pt-2 font-bold font-mono">REVISORÍA FISCAL & AUDITORÍA</div>
+                  <div className="text-[11px] text-slate-500">Conformidad Tributaria DIAN</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Dictamen de Cierre</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Page Footer on EVERY PAGE */}
+        <div className="mt-8 pt-3 border-t border-slate-300 text-[10.5px] text-slate-500 font-mono flex justify-between items-center">
+          <div>PROCOQUINAL S.A.S. — NIT: 901.428.112-4 — Software World Office ERP</div>
+          <div>Usuario: OMAR (Terminal POS-01)</div>
+          <div className="font-bold text-slate-900">Página {page.pageNumber} de {totalPagesCount}</div>
+        </div>
+
+      </div>
+    );
   };
 
   return (
@@ -1883,7 +2313,7 @@ export const InformesOmar: React.FC = () => {
               <span className="font-bold flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-indigo-600" /> Vendedor / Comercial</span>
               <select 
                 value={selectedSeller}
-                onChange={e => { setSelectedSeller(e.target.value); setCurrentPage(1); }}
+                onChange={e => { setSelectedSeller(e.target.value); setCurrentPage(1); setCurrentReportPage(1); }}
                 className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
               >
                 <option value="ALL">-- Todos los Comerciales --</option>
@@ -1896,7 +2326,7 @@ export const InformesOmar: React.FC = () => {
               <span className="font-bold flex items-center gap-1.5"><Building className="w-3.5 h-3.5 text-blue-600" /> Sede / Sucursal</span>
               <select 
                 value={selectedCostCenter}
-                onChange={e => { setSelectedCostCenter(e.target.value); setCurrentPage(1); }}
+                onChange={e => { setSelectedCostCenter(e.target.value); setCurrentPage(1); setCurrentReportPage(1); }}
                 className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
               >
                 <option value="ALL">-- Todas las Sedes --</option>
@@ -1985,50 +2415,118 @@ export const InformesOmar: React.FC = () => {
         </div>
 
         {/* =========================================================================
-            PESTAÑA 1: FORMATO IMPRESO OFICIAL WORLD OFFICE (ULTRA COMPLETO)
+            PESTAÑA 1: FORMATO IMPRESO OFICIAL WORLD OFFICE (PAGINADO & PREVIEW PDF)
             ========================================================================= */}
         {reportActiveTab === 'FORMATO_WORLDOFFICE' && (
           <div className="space-y-3">
             
-            {/* Toolbar Superior del Visor de Impresión */}
+            {/* Toolbar Superior del Visor de Impresión y Paginación */}
             <div className="bg-slate-800 text-slate-100 p-2.5 rounded-t-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs shadow-md">
-              <div className="flex items-center gap-2">
+              
+              {/* Selector de Modo de Visualización: Paginado / Continuo / PDF Nativo */}
+              <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-700">
                 <button
-                  onClick={() => window.print()}
-                  className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  title="Imprimir informe en hoja física o guardar como PDF del navegador"
+                  onClick={() => setReportPaperMode('PAGINADO')}
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    reportPaperMode === 'PAGINADO' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'
+                  }`}
+                  title="Ver hoja por hoja con controles de paginación oficial"
                 >
-                  <Printer className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Imprimir</span>
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Hoja por Hoja</span>
                 </button>
 
                 <button
-                  onClick={handleExportToPdf}
-                  className="px-3 py-1.5 bg-rose-700 hover:bg-rose-600 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  onClick={() => setReportPaperMode('TODAS_HOJAS')}
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    reportPaperMode === 'TODAS_HOJAS' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'
+                  }`}
+                  title="Ver todas las hojas continuas con saltos de página"
                 >
-                  <FileDown className="w-3.5 h-3.5 text-white" />
-                  <span>Exportar PDF</span>
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Todas las Hojas</span>
                 </button>
 
                 <button
-                  onClick={handleExportToExcel}
-                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  onClick={() => {
+                    setReportPaperMode('PDF_NATIVO');
+                    generateRealPdfPreview();
+                  }}
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    reportPaperMode === 'PDF_NATIVO' ? 'bg-rose-600 text-white shadow-xs' : 'text-rose-300 hover:text-white'
+                  }`}
+                  title="Ver previsualización exacta en PDF interactivo"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-white" />
-                  <span>Exportar Excel</span>
+                  <Eye className="w-3.5 h-3.5 text-rose-200" />
+                  <span>Preview en PDF Real</span>
                 </button>
               </div>
 
-              {/* Búsqueda dentro del informe impreso */}
+              {/* Controles de Paginación Centrales (Activos en modo Hoja por Hoja) */}
+              {reportPaperMode === 'PAGINADO' && reportPages.length > 0 && (
+                <div className="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 text-xs">
+                  <button
+                    disabled={activeReportPageIndex === 1}
+                    onClick={() => setCurrentReportPage(1)}
+                    className="px-1.5 py-0.5 hover:bg-slate-800 disabled:opacity-30 rounded text-slate-300 hover:text-white cursor-pointer font-bold"
+                    title="Primera Página"
+                  >
+                    |◀
+                  </button>
+                  <button
+                    disabled={activeReportPageIndex === 1}
+                    onClick={() => setCurrentReportPage(p => Math.max(1, p - 1))}
+                    className="px-1.5 py-0.5 hover:bg-slate-800 disabled:opacity-30 rounded text-slate-300 hover:text-white cursor-pointer font-bold"
+                    title="Página Anterior"
+                  >
+                    ◀
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1 text-slate-200 font-mono text-[11px]">
+                    <span>Página</span>
+                    <select
+                      value={activeReportPageIndex}
+                      onChange={e => setCurrentReportPage(Number(e.target.value))}
+                      className="bg-slate-800 border border-slate-600 text-amber-300 px-1.5 py-0.5 rounded text-xs font-bold cursor-pointer outline-none"
+                    >
+                      {reportPages.map(p => (
+                        <option key={p.pageNumber} value={p.pageNumber}>
+                          {p.pageNumber}
+                        </option>
+                      ))}
+                    </select>
+                    <span>de {reportPages.length}</span>
+                  </div>
+
+                  <button
+                    disabled={activeReportPageIndex === reportPages.length}
+                    onClick={() => setCurrentReportPage(p => Math.min(reportPages.length, p + 1))}
+                    className="px-1.5 py-0.5 hover:bg-slate-800 disabled:opacity-30 rounded text-slate-300 hover:text-white cursor-pointer font-bold"
+                    title="Página Siguiente"
+                  >
+                    ▶
+                  </button>
+                  <button
+                    disabled={activeReportPageIndex === reportPages.length}
+                    onClick={() => setCurrentReportPage(reportPages.length)}
+                    className="px-1.5 py-0.5 hover:bg-slate-800 disabled:opacity-30 rounded text-slate-300 hover:text-white cursor-pointer font-bold"
+                    title="Última Página"
+                  >
+                    ▶|
+                  </button>
+                </div>
+              )}
+
+              {/* Right: Acciones y Búsqueda */}
               <div className="flex items-center gap-2">
-                <div className="relative">
+                <div className="relative hidden sm:block">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" />
                   <input 
                     type="text"
-                    placeholder="Buscar cliente, NIT, producto en el informe..."
+                    placeholder="Buscar en informe..."
                     value={reportSearchTerm}
-                    onChange={e => setReportSearchTerm(e.target.value)}
-                    className="pl-7 pr-3 py-1 bg-slate-900 border border-slate-600 rounded text-slate-100 text-xs w-64 outline-none focus:border-amber-400"
+                    onChange={e => { setReportSearchTerm(e.target.value); setCurrentReportPage(1); }}
+                    className="pl-7 pr-3 py-1 bg-slate-900 border border-slate-600 rounded text-slate-100 text-xs w-44 outline-none focus:border-amber-400"
                   />
                   {reportSearchTerm && (
                     <button onClick={() => setReportSearchTerm('')} className="absolute right-2 top-1.5 text-slate-400 hover:text-white">✕</button>
@@ -2036,259 +2534,143 @@ export const InformesOmar: React.FC = () => {
                 </div>
 
                 {/* Zoom Controls */}
-                <div className="flex items-center bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-slate-300">
-                  <span className="text-[11px] pr-1 font-mono">Zoom:</span>
-                  <button onClick={() => setReportZoom('85')} className={`px-1.5 py-0.5 rounded ${reportZoom === '85' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>85%</button>
-                  <button onClick={() => setReportZoom('100')} className={`px-1.5 py-0.5 rounded ${reportZoom === '100' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>100%</button>
-                  <button onClick={() => setReportZoom('115')} className={`px-1.5 py-0.5 rounded ${reportZoom === '115' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>115%</button>
-                </div>
-              </div>
-            </div>
-
-            {/* HOJA IMPRESA FORMAL DE WORLD OFFICE (PAPER CONTAINER) */}
-            <div className="bg-[#525659] p-4 md:p-8 rounded-b-xl shadow-inner overflow-x-auto">
-              <div 
-                id="world-office-printable-report"
-                style={{ transform: reportZoom === '85' ? 'scale(0.85)' : reportZoom === '115' ? 'scale(1.15)' : 'none', transformOrigin: 'top center' }}
-                className="max-w-5xl mx-auto bg-white p-8 md:p-12 shadow-2xl text-slate-900 border border-slate-300 font-sans transition-all print:shadow-none print:border-none print:p-0 print:max-w-full"
-              >
-                
-                {/* 1. ENCABEZADO FORMAL DEL INFORME WORLD OFFICE */}
-                <div className="border-b-2 border-slate-900 pb-4 mb-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h1 className="text-xl font-black text-slate-900 tracking-tight">PROCOQUINAL S.A.S.</h1>
-                      <div className="text-xs text-slate-700 font-mono mt-0.5">
-                        NIT: 901.428.112-4 — RÉGIMEN COMÚN — RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001
-                      </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
-                        Cra 10 # 15-28, Bogotá D.C., Colombia — PBX: (601) 745-8900 — info@procoquinal.co
-                      </div>
-                    </div>
-
-                    <div className="text-right font-mono text-[10.5px] text-slate-600 border border-slate-300 p-2 bg-slate-50 rounded-xs">
-                      <div className="font-bold text-slate-900 uppercase">INFORME OFICIAL ERP</div>
-                      <div>Fecha: {new Date().toLocaleDateString('es-CO')}</div>
-                      <div>Hora: {reportGeneratedAt}</div>
-                      <div>Usuario: <span className="font-bold text-slate-900">OMAR (GERENCIA)</span></div>
-                      <div>Moneda: <span className="font-bold text-slate-900">COP ($)</span></div>
-                    </div>
-                  </div>
-
-                  {/* Título Principal Dinámico del Informe */}
-                  <div className="mt-4 pt-3 border-t border-slate-200 text-center">
-                    <h2 className="text-base md:text-lg font-black text-slate-950 uppercase tracking-wide">
-                      {selectedReportType}
-                    </h2>
-                    <div className="text-xs text-slate-600 font-medium mt-1 flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
-                      <span><strong>Periodo:</strong> {dateFrom || `${diaInicio}/${mesInicio}/${anoInicio}`} al {dateTo || `${diaFin}/${mesFin}/${anoFin}`}</span>
-                      <span>•</span>
-                      <span><strong>Sucursal:</strong> {selectedCostCenter === 'ALL' ? 'Consolidado General' : selectedCostCenter}</span>
-                      <span>•</span>
-                      <span><strong>Vendedor:</strong> {selectedSeller === 'ALL' ? 'Todos los Comerciales' : selectedSeller}</span>
-                      <span>•</span>
-                      <span><strong>Registros:</strong> {filteredData.length.toLocaleString()} movimientos</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. CUERPO DEL INFORME: AGRUPACIONES OFICIALES Y DETALLE FILA POR FILA */}
-                {displayedGroups.length === 0 ? (
-                  <div className="py-16 text-center text-slate-400 font-medium">
-                    No se encontraron registros en el informe que coincidan con los criterios establecidos.
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {displayedGroups.map((group, groupIdx) => {
-                      const isCollapsed = collapsedGroups[group.groupKey];
-
-                      return (
-                        <div key={`${group.groupKey}-${groupIdx}`} className="border border-slate-300 rounded-xs overflow-hidden">
-                          
-                          {/* Banda Superior de la Agrupación (World Office Ribbon) */}
-                          <div 
-                            onClick={() => toggleGroupCollapse(group.groupKey)}
-                            className="bg-[#1c3b70] hover:bg-[#152e57] text-white px-3 py-1.5 font-bold text-xs flex justify-between items-center cursor-pointer select-none"
-                          >
-                            <div className="flex items-center gap-2">
-                              {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                              <span>{group.groupTitle}</span>
-                              <span className="text-[10px] text-slate-300 font-normal hidden md:inline">({group.groupSub})</span>
-                            </div>
-                            <div className="font-mono text-[11px] flex items-center gap-3">
-                              <span className="text-amber-300 font-bold">{formatCOP(group.totalNet)}</span>
-                              <span className="text-slate-300 text-[10px]">({group.items.length} docs)</span>
-                            </div>
-                          </div>
-
-                          {/* Tabla de Detalle Interna */}
-                          {!isCollapsed && (
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-left text-[11px] font-sans">
-                                <thead className="bg-[#eef2f8] text-slate-700 font-bold uppercase tracking-wider border-b border-slate-300 text-[9.5px]">
-                                  <tr>
-                                    <th className="py-1.5 px-2.5">Fecha</th>
-                                    <th className="py-1.5 px-2.5">Comprobante</th>
-                                    <th className="py-1.5 px-2.5">SKU / Ref</th>
-                                    <th className="py-1.5 px-2.5">Descripción Producto / Concepto</th>
-                                    <th className="py-1.5 px-2.5 text-center">Cant.</th>
-                                    <th className="py-1.5 px-2.5">Unidad</th>
-                                    <th className="py-1.5 px-2.5 text-right">Vr. Unitario</th>
-                                    <th className="py-1.5 px-2.5 text-right">IVA (19%)</th>
-                                    <th className="py-1.5 px-2.5 text-right">Vr. Neto</th>
-                                    <th className="py-1.5 px-2.5 text-right">Total Facturado</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-200">
-                                  {group.items.map((tx: any, itemIdx: number) => {
-                                    const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-                                    const netAmount = Math.abs(tx.total) - (tx.iva || 0);
-                                    const qty = tx.qty || 1;
-                                    const unitPrice = qty > 0 ? (netAmount / qty) : netAmount;
-
-                                    return (
-                                      <tr key={`${tx.id}-${itemIdx}`} className="hover:bg-amber-50/50 transition-colors">
-                                        <td className="py-1 px-2.5 font-mono text-slate-600 whitespace-nowrap text-[10.5px]">{tx.date}</td>
-                                        <td className="py-1 px-2.5 font-mono font-bold text-slate-800 text-[10.5px]">
-                                          <span className={isReturn ? 'text-rose-600' : 'text-blue-800'}>
-                                            {tx.document || tx.id}
-                                          </span>
-                                        </td>
-                                        <td className="py-1 px-2.5 font-mono text-slate-600 text-[10px]">{tx.sku || '-'}</td>
-                                        <td className="py-1 px-2.5 text-slate-800 max-w-[220px] truncate" title={tx.productName}>
-                                          {tx.productName || 'Venta de Productos Químicos'}
-                                        </td>
-                                        <td className="py-1 px-2.5 text-center font-bold text-slate-900">
-                                          {isReturn ? -qty : qty}
-                                        </td>
-                                        <td className="py-1 px-2.5 text-slate-500 font-mono text-[10px]">
-                                          {tx.baseUnit || 'GL/LT'}
-                                        </td>
-                                        <td className="py-1 px-2.5 text-right font-mono text-slate-600">
-                                          {formatCOP(unitPrice)}
-                                        </td>
-                                        <td className="py-1 px-2.5 text-right font-mono text-slate-500">
-                                          {formatCOP(tx.iva || 0)}
-                                        </td>
-                                        <td className="py-1 px-2.5 text-right font-mono font-semibold text-slate-800">
-                                          {formatCOP(isReturn ? -netAmount : netAmount)}
-                                        </td>
-                                        <td className={`py-1 px-2.5 text-right font-mono font-bold ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
-                                          {formatCOP(tx.total)}
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-
-                                {/* Subtotal de la Agrupación (Estilo World Office) */}
-                                <tfoot className="bg-[#f4f6f9] border-t-2 border-slate-400 font-bold text-slate-900 text-[10.5px]">
-                                  <tr>
-                                    <td colSpan={4} className="py-1.5 px-2.5 text-right uppercase tracking-wider text-slate-700">
-                                      SUBTOTAL {group.groupKey}:
-                                    </td>
-                                    <td className="py-1.5 px-2.5 text-center font-mono text-blue-900 font-black">
-                                      {group.totalQty}
-                                    </td>
-                                    <td></td>
-                                    <td></td>
-                                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-700">
-                                      {formatCOP(group.totalIva)}
-                                    </td>
-                                    <td className="py-1.5 px-2.5 text-right font-mono text-blue-900 font-black">
-                                      {formatCOP(group.totalNet)}
-                                    </td>
-                                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-950 font-black">
-                                      {formatCOP(group.totalGross)}
-                                    </td>
-                                  </tr>
-                                </tfoot>
-                              </table>
-                            </div>
-                          )}
-
-                        </div>
-                      );
-                    })}
+                {reportPaperMode !== 'PDF_NATIVO' && (
+                  <div className="flex items-center bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-slate-300">
+                    <button onClick={() => setReportZoom('85')} className={`px-1.5 py-0.5 rounded ${reportZoom === '85' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>85%</button>
+                    <button onClick={() => setReportZoom('100')} className={`px-1.5 py-0.5 rounded ${reportZoom === '100' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>100%</button>
+                    <button onClick={() => setReportZoom('115')} className={`px-1.5 py-0.5 rounded ${reportZoom === '115' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>115%</button>
                   </div>
                 )}
 
-                {/* 3. GRAN TOTAL CONSOLIDADO DEL INFORME (DOBLE BORDE OFICIAL) */}
-                <div className="mt-8 border-t-4 border-b-4 border-slate-900 py-4 bg-slate-50">
-                  <div className="text-center font-black uppercase text-xs tracking-wider text-slate-900 mb-3">
-                    RESUMEN CONSOLIDADO Y TOTALES DEFINITIVOS DEL INFORME
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center font-mono">
-                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
-                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Unidades Despachadas</div>
-                      <div className="text-base font-black text-slate-900 mt-1">
-                        {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-sans mt-0.5">{Math.round(physicalKpis.totalLiters).toLocaleString()} Litros</div>
-                    </div>
+                <button
+                  onClick={() => window.print()}
+                  className="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold flex items-center gap-1 cursor-pointer text-xs"
+                  title="Imprimir informe en papel o guardar en PDF"
+                >
+                  <Printer className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden md:inline">Imprimir</span>
+                </button>
 
-                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
-                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total Facturas / Docs</div>
-                      <div className="text-base font-black text-blue-800 mt-1">
-                        {kpis.docCount.toLocaleString()}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-sans mt-0.5">Ticket: {formatCOP(kpis.avgTicket)}</div>
-                    </div>
+                <button
+                  onClick={handleExportToPdf}
+                  className="px-2.5 py-1.5 bg-rose-700 hover:bg-rose-600 text-white rounded font-bold flex items-center gap-1 cursor-pointer text-xs"
+                  title="Descargar archivo PDF oficial"
+                >
+                  <FileDown className="w-3.5 h-3.5 text-white" />
+                  <span>PDF</span>
+                </button>
 
-                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
-                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total IVA Recaudado</div>
-                      <div className="text-base font-black text-slate-900 mt-1">
-                        {formatCOP(kpis.totalIva)}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-sans mt-0.5">Cuenta 240801</div>
-                    </div>
-
-                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
-                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Notas Crédito (Dev.)</div>
-                      <div className="text-base font-black text-rose-600 mt-1">
-                        {formatCOP(kpis.returnsTotal)}
-                      </div>
-                      <div className="text-[10px] text-rose-500 font-sans mt-0.5">{kpis.returnsImpact.toFixed(1)}% tasa dev.</div>
-                    </div>
-
-                    <div className="border-2 border-emerald-600 bg-emerald-50/60 p-2.5 rounded-xs shadow-xs col-span-2 md:col-span-1">
-                      <div className="text-[10px] text-emerald-800 uppercase font-sans font-black">VENTA NETA DEFINITIVA</div>
-                      <div className="text-base md:text-lg font-black text-emerald-900 mt-1">
-                        {formatCOP(kpis.totalNet)}
-                      </div>
-                      <div className="text-[10px] text-emerald-700 font-sans mt-0.5">Bruta: {formatCOP(kpis.totalGross)}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. PIE DE PÁGINA Y FIRMAS DE RESPONSABILIDAD (NIIF / DIAN) */}
-                <div className="mt-12 pt-6 border-t border-slate-300 grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-xs text-slate-700">
-                  <div>
-                    <div className="border-t border-slate-900 pt-2 font-bold font-mono">OMAR PROCOQUINAL</div>
-                    <div className="text-[11px] text-slate-500">Gerencia Comercial y Operativa</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">Firma de Emisión</div>
-                  </div>
-
-                  <div>
-                    <div className="border-t border-slate-900 pt-2 font-bold font-mono">DEPARTAMENTO CONTABLE</div>
-                    <div className="text-[11px] text-slate-500">Revisión Cuentas PUC & Fiscales</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">Firma de Control</div>
-                  </div>
-
-                  <div>
-                    <div className="border-t border-slate-900 pt-2 font-bold font-mono">REVISORÍA FISCAL & AUDITORÍA</div>
-                    <div className="text-[11px] text-slate-500">Conformidad Tributaria DIAN</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">Dictamen de Cierre</div>
-                  </div>
-                </div>
-
-                <div className="mt-8 text-center text-[10px] text-slate-400 font-mono">
-                  *** Fin del informe oficial — Generado mediante Avalon OS integrado con World Office ERP ***
-                </div>
-
+                <button
+                  onClick={handleExportToExcel}
+                  className="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded font-bold flex items-center gap-1 cursor-pointer text-xs"
+                  title="Descargar archivo Excel oficial"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-white" />
+                  <span>Excel</span>
+                </button>
               </div>
+
             </div>
+
+            {/* MODO 1: PREVIEW NATIVO EN PDF (INTERACTIVO CON IFRAME) */}
+            {reportPaperMode === 'PDF_NATIVO' && (
+              <div className="bg-slate-900 p-3 md:p-6 rounded-b-xl shadow-inner">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-white pb-3 px-1 border-b border-slate-800 mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                    <span className="font-black text-rose-300 uppercase tracking-wider">
+                      Previsualización de Documento PDF Oficial
+                    </span>
+                    <span className="text-slate-400 hidden sm:inline">
+                      ({filteredData.length.toLocaleString()} movimientos generados con motor jsPDF)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={generateRealPdfPreview}
+                      disabled={isGeneratingPdf}
+                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-bold flex items-center gap-1.5 cursor-pointer border border-slate-700"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingPdf ? 'animate-spin text-rose-400' : ''}`} />
+                      <span>Actualizar PDF</span>
+                    </button>
+                    <button
+                      onClick={handleExportToPdf}
+                      className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Descargar PDF</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="w-full bg-slate-800 rounded-lg p-1 border border-slate-700 overflow-hidden shadow-2xl">
+                  {pdfPreviewBlobUrl ? (
+                    <iframe
+                      src={pdfPreviewBlobUrl}
+                      title="Vista Previa PDF World Office"
+                      className="w-full h-[850px] rounded border-0 bg-white"
+                    />
+                  ) : (
+                    <div className="h-[500px] flex flex-col items-center justify-center text-slate-400 gap-3">
+                      <RefreshCw className="w-8 h-8 animate-spin text-rose-500" />
+                      <span className="text-sm font-bold">Generando documento PDF apaisado con resolución tipográfica...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* MODO 2: HOJA POR HOJA (PAGINACIÓN EXACTA ESTILO WORLD OFFICE) */}
+            {reportPaperMode === 'PAGINADO' && (
+              <div id="world-office-printable-report" className="bg-[#525659] p-4 md:p-8 rounded-b-xl shadow-inner overflow-x-auto">
+                {renderReportPageSheet(activeDisplayPage, reportPages.length)}
+
+                {/* Barra Flotante Inferior de Paginación */}
+                {reportPages.length > 1 && (
+                  <div className="max-w-md mx-auto mt-4 bg-slate-900/90 backdrop-blur-xs text-white p-2 rounded-xl shadow-xl flex items-center justify-between text-xs border border-slate-700">
+                    <button
+                      disabled={activeReportPageIndex === 1}
+                      onClick={() => setCurrentReportPage(1)}
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded font-bold cursor-pointer"
+                    >
+                      Primera Hoja
+                    </button>
+                    <button
+                      disabled={activeReportPageIndex === 1}
+                      onClick={() => setCurrentReportPage(p => Math.max(1, p - 1))}
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded font-bold cursor-pointer"
+                    >
+                      ◀ Anterior
+                    </button>
+                    <span className="font-mono font-bold text-amber-300">
+                      Página {activeReportPageIndex} / {reportPages.length}
+                    </span>
+                    <button
+                      disabled={activeReportPageIndex === reportPages.length}
+                      onClick={() => setCurrentReportPage(p => Math.min(reportPages.length, p + 1))}
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded font-bold cursor-pointer"
+                    >
+                      Siguiente ▶
+                    </button>
+                    <button
+                      disabled={activeReportPageIndex === reportPages.length}
+                      onClick={() => setCurrentReportPage(reportPages.length)}
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded font-bold cursor-pointer"
+                    >
+                      Última Hoja
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MODO 3: TODAS LAS HOJAS (VISTA CONTINUA DE PÁGINAS SEPARADAS) */}
+            {reportPaperMode === 'TODAS_HOJAS' && (
+              <div id="world-office-printable-report" className="bg-[#525659] p-4 md:p-8 rounded-b-xl shadow-inner overflow-x-auto space-y-8">
+                {reportPages.map(page => renderReportPageSheet(page, reportPages.length))}
+              </div>
+            )}
 
           </div>
         )}
