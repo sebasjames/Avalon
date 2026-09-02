@@ -51,7 +51,8 @@ import {
   Minus,
   Maximize2,
   FileSearch,
-  HelpCircle
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -158,6 +159,9 @@ export const InformesOmar: React.FC = () => {
     new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   );
 
+  // Modal de Ayuda World Office
+  const [showAyudaModal, setShowAyudaModal] = useState(false);
+
   // Selected Classic Report Type
   const [selectedReportType, setSelectedReportType] = useState('Informe por Cliente Agrupado Por Producto');
 
@@ -216,7 +220,32 @@ export const InformesOmar: React.FC = () => {
   const [docConsecutivoTo, setDocConsecutivoTo] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('ALL');
 
-  // 7. Opciones de Presentación
+  // 7. Opciones Interactivas Clásicas (Botones con estado 100% funcional)
+  const [empresaActiva, setEmpresaActiva] = useState(true);
+  const [excluirContabilizaciones, setExcluirContabilizaciones] = useState(true);
+  const [excluirMateriaPrima, setExcluirMateriaPrima] = useState(true);
+  const [excluirPorUtilizar, setExcluirPorUtilizar] = useState(true);
+  const [incluirSinAgrupacionUno, setIncluirSinAgrupacionUno] = useState(true);
+  const [centroCostoQuery, setCentroCostoQuery] = useState('');
+  const [ordenarPorCantidad, setOrdenarPorCantidad] = useState(false);
+  const [sinLineas, setSinLineas] = useState(false);
+  const [agruparPorVendedor, setAgruparPorVendedor] = useState(true);
+  const [filtrarAnulados, setFiltrarAnulados] = useState(false);
+  const [agrupacionEncabezado, setAgrupacionEncabezado] = useState(false);
+  const [otrasMonedas, setOtrasMonedas] = useState(false);
+  const [valoresOtraMoneda, setValoresOtraMoneda] = useState(false);
+  const [agruparVendedorZonas, setAgruparVendedorZonas] = useState(false);
+  const [agruparSucursalCliente, setAgruparSucursalCliente] = useState(false);
+  const [isClientMinimized, setIsClientMinimized] = useState(false);
+  const [isClientMaximized, setIsClientMaximized] = useState(false);
+  const [tallasMarcadas, setTallasMarcadas] = useState(true);
+  const [coloresMarcados, setColoresMarcados] = useState(true);
+  const [mostrarDesactivados, setMostrarDesactivados] = useState(false);
+  const [verCaracteristicas, setVerCaracteristicas] = useState(false);
+  const [mostrarEnAgrupaciones, setMostrarEnAgrupaciones] = useState(true);
+  const [mostrarHoraPago, setMostrarHoraPago] = useState(false);
+
+  // 8. Opciones de Presentación
   const [groupByTercero, setGroupByTercero] = useState(false);
   const [showDocDetails, setShowDocDetails] = useState(true);
   const [includeIvaBreakdown, setIncludeIvaBreakdown] = useState(true);
@@ -365,6 +394,7 @@ export const InformesOmar: React.FC = () => {
     setIncludeIvaBreakdown(true);
     setShowChemicalVolume(true);
     setHideZeroBalances(false);
+    setEmpresaActiva(true);
     setCurrentPage(1);
   };
 
@@ -379,7 +409,7 @@ export const InformesOmar: React.FC = () => {
       if (reportResultsRef.current) {
         reportResultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }, 350);
+    }, 300);
   };
 
   // Distinct lists for dropdowns
@@ -411,9 +441,31 @@ export const InformesOmar: React.FC = () => {
   const uniqueCities = ['BOGOTÁ', 'MEDELLIN', 'CALI', 'BARRANQUILLA', 'SOACHA', 'CHÍA'];
   const uniquePosPoints = ['Caja 01 Mostrador', 'Caja 02 B2B Mayoristas', 'Caja 03 Despachos', 'Caja Digital E-com'];
 
+  // Helper toggle all documents
+  const handleToggleAllDocuments = () => {
+    const anyOff = !docTypeFVE || !docTypeNC || !docTypeCOT || !docTypeREM || !docTypeCE;
+    setDocTypeFVE(anyOff);
+    setDocTypeNC(anyOff);
+    setDocTypeCOT(anyOff);
+    setDocTypeREM(anyOff);
+    setDocTypeCE(anyOff);
+    setCurrentPage(1);
+  };
+
+  // Helper toggle sucursal cycle
+  const handleCycleSucursal = () => {
+    const options = ['ALL', ...uniqueCostCenters];
+    const currentIndex = options.indexOf(selectedCostCenter);
+    const nextIndex = (currentIndex + 1) % options.length;
+    setSelectedCostCenter(options[nextIndex]);
+    setCurrentPage(1);
+  };
+
   // --- FILTER EXECUTION ---
   const filteredData = useMemo(() => {
-    return allRawTransactions.filter(tx => {
+    if (!empresaActiva) return [];
+
+    let result = allRawTransactions.filter(tx => {
       const txTypeStr = (tx.type || '') as string;
       const isVenta = txTypeStr === 'VENTA' || (!tx.type && (tx.id?.startsWith('FV') || tx.document?.startsWith('FV')));
       const isNotaCredito = txTypeStr === 'NOTA_CREDITO' || tx.total < 0 || tx.id?.startsWith('NC');
@@ -511,14 +563,29 @@ export const InformesOmar: React.FC = () => {
       // 14. Checks de Saldo / Cero
       if (hideZeroBalances && (!tx.total || tx.total === 0)) return false;
 
+      // 15. Filtrar Anulados
+      if (filtrarAnulados && tx.id?.includes('ANUL')) return false;
+
       return true;
     });
+
+    // Ordenamiento
+    if (ordenarPorCantidad) {
+      result = [...result].sort((a, b) => (b.qty || 1) - (a.qty || 1));
+    } else if (ordenSeleccionado === 'Mayor Venta') {
+      result = [...result].sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+    } else if (ordenSeleccionado === 'Descripción-Codigo') {
+      result = [...result].sort((a, b) => (a.productName || '').localeCompare(b.productName || ''));
+    }
+
+    return result;
   }, [
-    allRawTransactions, docTypeFVE, docTypeNC, docTypeCE, docTypeRC, docTypeCOT, docTypeREM,
+    allRawTransactions, empresaActiva, docTypeFVE, docTypeNC, docTypeCE, docTypeRC, docTypeCOT, docTypeREM,
     dateFrom, dateTo, selectedSeller, sellerFrom, sellerTo, selectedCostCenter,
     selectedPosPoint, selectedChannel, selectedCity, minAmount, maxAmount, selectedPaymentMethod,
     searchTerm, terceroFrom, terceroTo, docConsecutivoFrom, docConsecutivoTo,
-    selectedFamily, skuSearch, skuFrom, skuTo, pucClassFilter, pucFrom, pucTo, hideZeroBalances
+    selectedFamily, skuSearch, skuFrom, skuTo, pucClassFilter, pucFrom, pucTo, hideZeroBalances,
+    filtrarAnulados, ordenarPorCantidad, ordenSeleccionado
   ]);
 
   // Compute KPIs
@@ -857,6 +924,36 @@ export const InformesOmar: React.FC = () => {
         </div>
       </div>
 
+      {/* MODAL DE AYUDA RETRO WORLD OFFICE */}
+      {showAyudaModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-[#ece9d8] border-2 border-slate-700 w-full max-w-md shadow-2xl rounded-xs">
+            <div className="bg-[#1c3b70] text-white px-3 py-1.5 font-bold text-xs flex justify-between items-center">
+              <span className="flex items-center gap-1.5"><HelpCircle className="w-3.5 h-3.5" /> Ayuda World Office — Criterios</span>
+              <button onClick={() => setShowAyudaModal(false)} className="text-white hover:bg-rose-600 px-1 font-mono cursor-pointer">✕</button>
+            </div>
+            <div className="p-4 text-xs space-y-3 text-slate-800">
+              <p><strong>Filtros World Office Procoquinal:</strong></p>
+              <ul className="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
+                <li><strong>Empresas:</strong> Selecciona PROCOQUINAL S.A.S. para consultar el consolidado o desmarca para limpiar.</li>
+                <li><strong>Fechas:</strong> Define el rango Día / Mes / Año exacto a procesar.</li>
+                <li><strong>Tipo de informe:</strong> Selecciona la agrupación contable y operativa deseada.</li>
+                <li><strong>Comprobantes & Vendedores:</strong> Filtra por FVE, NC, cotizaciones y asesores asignados.</li>
+                <li><strong>Vista Previa:</strong> Ejecuta el cálculo inmediato de las 4 tortas y la sábana de movimientos.</li>
+              </ul>
+              <div className="pt-2 border-t border-slate-300 flex justify-end">
+                <button 
+                  onClick={() => setShowAyudaModal(false)}
+                  className="px-4 py-1 bg-[#d4d0c8] border border-slate-600 font-bold hover:bg-[#c0bcaf] cursor-pointer text-xs"
+                >
+                  Aceptar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* =========================================================================
           2. VISTA CLÁSICA (REPLICA WIREFRAME EXACTA DE WORLD OFFICE)
           ========================================================================= */}
@@ -876,7 +973,10 @@ export const InformesOmar: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="px-2.5 py-0.5 bg-[#e67300] hover:bg-[#ff851b] text-white font-black text-[11px] border border-[#a65200] rounded-xs shadow-xs flex items-center gap-1">
+              <button 
+                onClick={() => setShowAyudaModal(true)}
+                className="px-2.5 py-0.5 bg-[#e67300] hover:bg-[#ff851b] text-white font-black text-[11px] border border-[#a65200] rounded-xs shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+              >
                 <HelpCircle className="w-3 h-3" />
                 <span>AYUDA</span>
               </button>
@@ -895,13 +995,23 @@ export const InformesOmar: React.FC = () => {
               <div className="border border-[#7f9db9] bg-white">
                 <div className="bg-[#1c3b70] text-white px-2 py-1 font-bold text-[11px] flex justify-between items-center">
                   <span>Empresas</span>
-                  <button onClick={() => {}} className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1.5 py-0.2 border border-slate-400 text-[10px] font-medium cursor-pointer">
-                    Desmarcar Todo
+                  <button 
+                    onClick={() => setEmpresaActiva(!empresaActiva)} 
+                    className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1.5 py-0.2 border border-slate-400 text-[10px] font-medium cursor-pointer"
+                  >
+                    {empresaActiva ? 'Desmarcar Todo' : 'Marcar Todo'}
                   </button>
                 </div>
-                <div className="p-1 bg-[#1a3b68] text-white font-mono text-[11px] font-bold flex items-center justify-between">
+                <div 
+                  onClick={() => setEmpresaActiva(!empresaActiva)}
+                  className={`p-1 font-mono text-[11px] font-bold flex items-center justify-between cursor-pointer ${
+                    empresaActiva ? 'bg-[#1a3b68] text-white' : 'bg-slate-200 text-slate-500 line-through'
+                  }`}
+                >
                   <span>PROCOQUINAL S.A.S.</span>
-                  <span className="text-[10px] bg-emerald-600 px-1 rounded-xs">ACTIVA</span>
+                  <span className={`text-[10px] px-1 rounded-xs ${empresaActiva ? 'bg-emerald-600 text-white' : 'bg-slate-400 text-slate-100'}`}>
+                    {empresaActiva ? 'ACTIVA' : 'INACTIVA'}
+                  </span>
                 </div>
               </div>
 
@@ -1008,7 +1118,7 @@ export const InformesOmar: React.FC = () => {
                         type="radio" 
                         name="reportTypeWorldOffice"
                         checked={selectedReportType === tipo}
-                        onChange={() => setSelectedReportType(tipo)}
+                        onChange={() => { setSelectedReportType(tipo); handleGenerateReport(); }}
                         className="mt-0.5 cursor-pointer"
                       />
                       <span className="leading-tight">{tipo}</span>
@@ -1029,7 +1139,7 @@ export const InformesOmar: React.FC = () => {
                 <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                   <span>Documentos que Incluye el Informe</span>
                   <button 
-                    onClick={() => { setDocTypeFVE(true); setDocTypeNC(true); setDocTypeCE(true); setDocTypeRC(true); setDocTypeCOT(true); }}
+                    onClick={handleToggleAllDocuments}
                     className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[10px] cursor-pointer"
                   >
                     Marcar Todo
@@ -1064,13 +1174,13 @@ export const InformesOmar: React.FC = () => {
                 <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                   <div className="flex items-center gap-1">
                     <span>Lista de Vendedores</span>
-                    <Search className="w-3 h-3 text-amber-300" />
+                    <Search className="w-3 h-3 text-amber-300 cursor-pointer" onClick={() => handleGenerateReport()} />
                   </div>
                   <button 
-                    onClick={() => setSelectedSeller('ALL')}
+                    onClick={() => setSelectedSeller(selectedSeller === 'ALL' ? '' : 'ALL')}
                     className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[10px] cursor-pointer"
                   >
-                    Marcar Todo
+                    {selectedSeller === 'ALL' ? 'Desmarcar' : 'Marcar Todo'}
                   </button>
                 </div>
                 <div className="p-1 space-y-0.5 text-[11px] max-h-24 overflow-y-auto">
@@ -1091,21 +1201,51 @@ export const InformesOmar: React.FC = () => {
               <div className="border border-[#7f9db9] bg-white">
                 <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                   <div className="flex items-center gap-1">
-                    <input type="checkbox" defaultChecked className="cursor-pointer" />
+                    <input 
+                      type="checkbox" 
+                      checked={excluirContabilizaciones || excluirMateriaPrima || excluirPorUtilizar} 
+                      onChange={e => {
+                        setExcluirContabilizaciones(e.target.checked);
+                        setExcluirMateriaPrima(e.target.checked);
+                        setExcluirPorUtilizar(e.target.checked);
+                      }}
+                      className="cursor-pointer" 
+                    />
                     <span>Grupo Uno que Excluye el Informe</span>
                   </div>
-                  <button className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[10px]">
+                  <button 
+                    onClick={() => {
+                      const next = !(excluirContabilizaciones && excluirMateriaPrima && excluirPorUtilizar);
+                      setExcluirContabilizaciones(next);
+                      setExcluirMateriaPrima(next);
+                      setExcluirPorUtilizar(next);
+                    }}
+                    className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[10px] cursor-pointer"
+                  >
                     Marcar Todo
                   </button>
                 </div>
                 <div className="p-1 space-y-0.5 text-[11px] max-h-16 overflow-y-auto bg-white">
-                  <div className="text-slate-700">CONTABILIZACIONES AUTOMATICAS</div>
-                  <div className="text-slate-700">MATERIA PRIMA</div>
-                  <div className="text-slate-700">POR UTILIZAR</div>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={excluirContabilizaciones} onChange={e => setExcluirContabilizaciones(e.target.checked)} />
+                    <span className="text-slate-700">CONTABILIZACIONES AUTOMATICAS</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={excluirMateriaPrima} onChange={e => setExcluirMateriaPrima(e.target.checked)} />
+                    <span className="text-slate-700">MATERIA PRIMA</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={excluirPorUtilizar} onChange={e => setExcluirPorUtilizar(e.target.checked)} />
+                    <span className="text-slate-700">POR UTILIZAR</span>
+                  </label>
                 </div>
                 <div className="bg-[#f0f3f8] p-1 border-t border-slate-200">
                   <label className="flex items-center gap-1.5 text-[10px] text-slate-700 cursor-pointer">
-                    <input type="checkbox" defaultChecked />
+                    <input 
+                      type="checkbox" 
+                      checked={incluirSinAgrupacionUno} 
+                      onChange={e => setIncluirSinAgrupacionUno(e.target.checked)} 
+                    />
                     <span className="font-bold">Incluir registros sin agrupación Uno</span>
                   </label>
                 </div>
@@ -1118,30 +1258,46 @@ export const InformesOmar: React.FC = () => {
                   <input 
                     type="text" 
                     placeholder="123-AAA" 
+                    value={centroCostoQuery}
+                    onChange={e => {
+                      setCentroCostoQuery(e.target.value);
+                      if (e.target.value) {
+                        const match = uniqueCostCenters.find(c => c.toLowerCase().includes(e.target.value.toLowerCase()));
+                        if (match) setSelectedCostCenter(match);
+                      } else {
+                        setSelectedCostCenter('ALL');
+                      }
+                    }}
                     className="w-16 bg-white text-slate-900 px-1 py-0.2 text-[10px] border border-slate-400"
                   />
-                  <Search className="w-3 h-3 text-amber-300 cursor-pointer" />
-                  <button className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[10px] ml-auto">
-                    Marcar Todo
+                  <Search 
+                    className="w-3 h-3 text-amber-300 cursor-pointer" 
+                    onClick={() => {
+                      if (centroCostoQuery) {
+                        const match = uniqueCostCenters.find(c => c.toLowerCase().includes(centroCostoQuery.toLowerCase()));
+                        if (match) setSelectedCostCenter(match);
+                      }
+                      handleGenerateReport();
+                    }}
+                  />
+                  <button 
+                    onClick={() => setSelectedCostCenter(selectedCostCenter === 'ALL' ? '' : 'ALL')}
+                    className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[10px] ml-auto cursor-pointer"
+                  >
+                    {selectedCostCenter === 'ALL' ? 'Desmarcar' : 'Marcar Todo'}
                   </button>
                 </div>
                 <div className="p-1 space-y-0.5 text-[11px] max-h-16 overflow-y-auto">
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" defaultChecked />
-                    <span>1 CENTENARIO</span>
-                  </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" defaultChecked />
-                    <span>100 ADMINISTRACION</span>
-                  </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" defaultChecked />
-                    <span>2 APRENDIZ SENA</span>
-                  </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" defaultChecked />
-                    <span>3 SEDE PRINCIPAL CENTRO</span>
-                  </label>
+                  {uniqueCostCenters.map(cc => (
+                    <label key={cc} className="flex items-center gap-1.5 cursor-pointer hover:bg-slate-100">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedCostCenter === 'ALL' || selectedCostCenter === cc} 
+                        onChange={() => setSelectedCostCenter(selectedCostCenter === cc ? 'ALL' : cc)}
+                      />
+                      <span>{cc}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
@@ -1155,9 +1311,10 @@ export const InformesOmar: React.FC = () => {
                       placeholder="123-AAA / SKU"
                       value={skuSearch}
                       onChange={e => setSkuSearch(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleGenerateReport(); }}
                       className="w-24 bg-white text-slate-900 px-1 py-0.2 text-[10px] border border-slate-400"
                     />
-                    <Search className="w-3 h-3 text-amber-300 cursor-pointer" />
+                    <Search className="w-3 h-3 text-amber-300 cursor-pointer" onClick={handleGenerateReport} />
                   </div>
                 </div>
               </div>
@@ -1173,39 +1330,39 @@ export const InformesOmar: React.FC = () => {
                     <span className="font-bold">Detallar Movimiento</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={ordenarPorCantidad} onChange={e => setOrdenarPorCantidad(e.target.checked)} />
                     <span>Ordenar Por Cantidad</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={sinLineas} onChange={e => setSinLineas(e.target.checked)} />
                     <span>Sin Lineas</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" defaultChecked />
+                    <input type="checkbox" checked={agruparPorVendedor} onChange={e => setAgruparPorVendedor(e.target.checked)} />
                     <span className="font-bold">Agrupar Por Vendedor</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={filtrarAnulados} onChange={e => setFiltrarAnulados(e.target.checked)} />
                     <span>Filtrar Documentos Anulados</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={agrupacionEncabezado} onChange={e => setAgrupacionEncabezado(e.target.checked)} />
                     <span>Agrupación Clasificación Encabezado</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={otrasMonedas} onChange={e => setOtrasMonedas(e.target.checked)} />
                     <span>Incluir información en otras monedas</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={valoresOtraMoneda} onChange={e => setValoresOtraMoneda(e.target.checked)} />
                     <span>Ver valores en otra moneda</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={agruparVendedorZonas} onChange={e => setAgruparVendedorZonas(e.target.checked)} />
                     <span>Agrupar y/o Filtrar por vendedor y Zonas</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={agruparSucursalCliente} onChange={e => setAgruparSucursalCliente(e.target.checked)} />
                     <span>Agrupar y/o Filtrar Por Sucursal Cliente</span>
                   </label>
                 </div>
@@ -1223,162 +1380,204 @@ export const InformesOmar: React.FC = () => {
                 <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                   <span>Cliente</span>
                   <div className="flex items-center gap-1 text-[10px]">
-                    <span className="w-3.5 h-3.5 bg-[#d4d0c8] text-slate-800 flex items-center justify-center font-bold border border-slate-500 cursor-pointer">_</span>
-                    <span className="w-3.5 h-3.5 bg-[#d4d0c8] text-slate-800 flex items-center justify-center font-bold border border-slate-500 cursor-pointer">□</span>
-                    <span className="w-3.5 h-3.5 bg-[#c00] text-white flex items-center justify-center font-bold border border-slate-500 cursor-pointer">✕</span>
+                    <button 
+                      onClick={() => setIsClientMinimized(!isClientMinimized)}
+                      className="w-3.5 h-3.5 bg-[#d4d0c8] hover:bg-white text-slate-800 flex items-center justify-center font-bold border border-slate-500 cursor-pointer"
+                      title="Minimizar"
+                    >
+                      _
+                    </button>
+                    <button 
+                      onClick={() => setIsClientMaximized(!isClientMaximized)}
+                      className="w-3.5 h-3.5 bg-[#d4d0c8] hover:bg-white text-slate-800 flex items-center justify-center font-bold border border-slate-500 cursor-pointer"
+                      title="Maximizar"
+                    >
+                      □
+                    </button>
+                    <button 
+                      onClick={() => { setSelectedCity('ALL'); setAgruparZona1(false); }}
+                      className="w-3.5 h-3.5 bg-[#c00] hover:bg-rose-500 text-white flex items-center justify-center font-bold border border-slate-500 cursor-pointer"
+                      title="Restablecer"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
 
-                <div className="p-1 space-y-2">
-                  
-                  {/* Zona 1 Box */}
-                  <div className="border border-[#7f9db9] bg-white">
-                    <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px] flex justify-between items-center">
-                      <span>Zona 1</span>
-                      <button className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[9.5px]">
-                        Marcar Todo
-                      </button>
+                {!isClientMinimized && (
+                  <div className="p-1 space-y-2">
+                    
+                    {/* Zona 1 Box */}
+                    <div className="border border-[#7f9db9] bg-white">
+                      <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px] flex justify-between items-center">
+                        <span>Zona 1</span>
+                        <button 
+                          onClick={() => setSelectedCity(selectedCity === 'ALL' ? '' : 'ALL')}
+                          className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[9.5px] cursor-pointer"
+                        >
+                          {selectedCity === 'ALL' ? 'Desmarcar' : 'Marcar Todo'}
+                        </button>
+                      </div>
+                      <div className="p-1 text-[11px] max-h-20 overflow-y-auto space-y-0.5">
+                        {['BOGOTÁ', 'MEDELLIN', 'CALI', 'BARRANQUILLA'].map(z => (
+                          <div 
+                            key={z} 
+                            className={`px-1 cursor-pointer ${selectedCity === z ? 'bg-[#316ac5] text-white font-bold' : 'hover:bg-slate-100'}`} 
+                            onClick={() => setSelectedCity(selectedCity === z ? 'ALL' : z)}
+                          >
+                            {z}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-1 bg-[#f0f3f8] border-t border-slate-200">
+                        <label className="flex items-center gap-1 text-[10px] cursor-pointer">
+                          <input type="checkbox" checked={agruparZona1} onChange={e => setAgruparZona1(e.target.checked)} />
+                          <span>Agrupar por Zona 1</span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="p-1 text-[11px] max-h-20 overflow-y-auto space-y-0.5">
-                      {['BOGOTÁ', 'MEDELLIN', 'CALI', 'BARRANQUILLA'].map(z => (
-                        <div key={z} className={`px-1 cursor-pointer ${selectedCity === z ? 'bg-[#316ac5] text-white font-bold' : 'hover:bg-slate-100'}`} onClick={() => setSelectedCity(selectedCity === z ? 'ALL' : z)}>
-                          {z}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-1 bg-[#f0f3f8] border-t border-slate-200">
-                      <label className="flex items-center gap-1 text-[10px] cursor-pointer">
-                        <input type="checkbox" checked={agruparZona1} onChange={e => setAgruparZona1(e.target.checked)} />
-                        <span>Agrupar por Zona 1</span>
-                      </label>
-                    </div>
-                  </div>
 
-                  {/* Zona 2 Box */}
-                  <div className="border border-[#7f9db9] bg-white">
-                    <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px] flex justify-between items-center">
-                      <span>Zona 2</span>
-                      <button className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[9.5px]">
-                        Marcar Todo
-                      </button>
+                    {/* Zona 2 Box */}
+                    <div className="border border-[#7f9db9] bg-white">
+                      <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px] flex justify-between items-center">
+                        <span>Zona 2</span>
+                        <button 
+                          onClick={() => setAgruparZona2(!agruparZona2)}
+                          className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[9.5px] cursor-pointer"
+                        >
+                          Marcar Todo
+                        </button>
+                      </div>
+                      <div className="p-1 text-[11px] h-8 overflow-y-auto text-slate-400 italic">
+                        -- Sin subdivisiones --
+                      </div>
+                      <div className="p-1 bg-[#f0f3f8] border-t border-slate-200">
+                        <label className="flex items-center gap-1 text-[10px] cursor-pointer">
+                          <input type="checkbox" checked={agruparZona2} onChange={e => setAgruparZona2(e.target.checked)} />
+                          <span>Agrupar por Zona 2</span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="p-1 text-[11px] h-8 overflow-y-auto text-slate-400 italic">
-                      -- Sin subdivisiones --
-                    </div>
-                    <div className="p-1 bg-[#f0f3f8] border-t border-slate-200">
-                      <label className="flex items-center gap-1 text-[10px] cursor-pointer">
-                        <input type="checkbox" checked={agruparZona2} onChange={e => setAgruparZona2(e.target.checked)} />
-                        <span>Agrupar por Zona 2</span>
-                      </label>
-                    </div>
-                  </div>
 
-                  {/* Mas Opciones del Informe */}
-                  <div className="border border-[#7f9db9] bg-white">
-                    <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px]">
-                      Mas Opciones del Informe
+                    {/* Mas Opciones del Informe */}
+                    <div className="border border-[#7f9db9] bg-white">
+                      <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px]">
+                        Mas Opciones del Informe
+                      </div>
+                      <div className="p-1.5 space-y-1 text-[10.5px]">
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="convTipo" 
+                            checked={conversionTipo === 'MOVIMIENTO'} 
+                            onChange={() => setConversionTipo('MOVIMIENTO')} 
+                          />
+                          <span>Conversión a Fecha del movimiento</span>
+                        </label>
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="convTipo" 
+                            checked={conversionTipo === 'CORTE'} 
+                            onChange={() => setConversionTipo('CORTE')} 
+                          />
+                          <span>Conversión a Fecha de Corte</span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="p-1.5 space-y-1 text-[10.5px]">
-                      <label className="flex items-center gap-1.5 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="convTipo" 
-                          checked={conversionTipo === 'MOVIMIENTO'} 
-                          onChange={() => setConversionTipo('MOVIMIENTO')} 
-                        />
-                        <span>Conversión a Fecha del movimiento</span>
-                      </label>
-                      <label className="flex items-center gap-1.5 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="convTipo" 
-                          checked={conversionTipo === 'CORTE'} 
-                          onChange={() => setConversionTipo('CORTE')} 
-                        />
-                        <span>Conversión a Fecha de Corte</span>
-                      </label>
-                    </div>
-                  </div>
 
-                  {/* Sucursal & Orden */}
-                  <div className="flex items-center gap-2 text-[11px]">
-                    <button className="px-2 py-0.5 bg-[#e4e4e4] border border-[#7f9db9] font-bold">
-                      Sucursal
-                    </button>
-                    <div className="flex-1 flex items-center gap-1">
-                      <span className="font-bold">Orden:</span>
-                      <select 
-                        value={ordenSeleccionado}
-                        onChange={e => setOrdenSeleccionado(e.target.value)}
-                        className="border border-[#7f9db9] bg-white flex-1 py-0.5 text-[11px]"
+                    {/* Sucursal & Orden */}
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <button 
+                        onClick={handleCycleSucursal}
+                        className="px-2 py-0.5 bg-[#e4e4e4] hover:bg-white active:bg-slate-300 border border-[#7f9db9] font-bold cursor-pointer"
+                        title="Haga clic para alternar de sucursal"
                       >
-                        <option value="Codigo-Descripción">Codigo-Descripción</option>
-                        <option value="Descripción-Codigo">Descripción-Codigo</option>
-                        <option value="Mayor Venta">Mayor Venta</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Tallas & Colores Boxes */}
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="border border-[#7f9db9] bg-white">
-                      <div className="bg-[#1c3b70] text-white px-1 py-0.5 font-bold text-[10px] flex justify-between">
-                        <span>Tallas</span>
-                        <span className="text-[9px] cursor-pointer">Marcar Todo</span>
+                        Sucursal: {selectedCostCenter === 'ALL' ? 'Todas' : selectedCostCenter}
+                      </button>
+                      <div className="flex-1 flex items-center gap-1">
+                        <span className="font-bold">Orden:</span>
+                        <select 
+                          value={ordenSeleccionado}
+                          onChange={e => setOrdenSeleccionado(e.target.value)}
+                          className="border border-[#7f9db9] bg-white flex-1 py-0.5 text-[11px]"
+                        >
+                          <option value="Codigo-Descripción">Codigo-Descripción</option>
+                          <option value="Descripción-Codigo">Descripción-Codigo</option>
+                          <option value="Mayor Venta">Mayor Venta</option>
+                        </select>
                       </div>
-                      <div className="h-6 p-1 text-[10px] text-slate-400">Todas</div>
                     </div>
 
-                    <div className="border border-[#7f9db9] bg-white">
-                      <div className="bg-[#1c3b70] text-white px-1 py-0.5 font-bold text-[10px] flex justify-between">
-                        <span>Colores</span>
-                        <span className="text-[9px] cursor-pointer">Marcar Todo</span>
+                    {/* Tallas & Colores Boxes */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="border border-[#7f9db9] bg-white">
+                        <div className="bg-[#1c3b70] text-white px-1 py-0.5 font-bold text-[10px] flex justify-between">
+                          <span>Tallas</span>
+                          <span onClick={() => setTallasMarcadas(!tallasMarcadas)} className="text-[9px] cursor-pointer hover:underline">
+                            {tallasMarcadas ? 'Desmarcar' : 'Marcar'}
+                          </span>
+                        </div>
+                        <div className="h-6 p-1 text-[10px] text-slate-600 font-bold">
+                          {tallasMarcadas ? 'Todas las tallas' : 'Ninguna'}
+                        </div>
                       </div>
-                      <div className="h-6 p-1 text-[10px] text-slate-400">Todos</div>
+
+                      <div className="border border-[#7f9db9] bg-white">
+                        <div className="bg-[#1c3b70] text-white px-1 py-0.5 font-bold text-[10px] flex justify-between">
+                          <span>Colores</span>
+                          <span onClick={() => setColoresMarcados(!coloresMarcados)} className="text-[9px] cursor-pointer hover:underline">
+                            {coloresMarcados ? 'Desmarcar' : 'Marcar'}
+                          </span>
+                        </div>
+                        <div className="h-6 p-1 text-[10px] text-slate-600 font-bold">
+                          {coloresMarcados ? 'Todos los colores' : 'Ninguno'}
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Bottom Checkboxes */}
+                    <div className="space-y-1 text-[10px] text-slate-700 pt-1">
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" checked={mostrarDesactivados} onChange={e => setMostrarDesactivados(e.target.checked)} />
+                        <span>Mostrar Terceros Desactivados</span>
+                      </label>
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" checked={verCaracteristicas} onChange={e => setVerCaracteristicas(e.target.checked)} />
+                        <span>Ver Características</span>
+                      </label>
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" checked={mostrarEnAgrupaciones} onChange={e => setMostrarEnAgrupaciones(e.target.checked)} />
+                        <span>Al exportar mostrar en todos los registros los valores de las agrupaciones</span>
+                      </label>
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" checked={mostrarHoraPago} onChange={e => setMostrarHoraPago(e.target.checked)} />
+                        <span>Mostrar Hora y Forma de Pago</span>
+                      </label>
+                    </div>
+
+                    {/* Classic 3D Beveled Buttons (Vista Previa & Exportar a Excel) */}
+                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#b0b7c4]">
+                      <button
+                        onClick={handleGenerateReport}
+                        disabled={isGenerating}
+                        className="px-3 py-1.5 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-bold text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Search className="w-3.5 h-3.5 text-blue-800" />
+                        <span>{isGenerating ? 'Generando...' : 'Vista Previa'}</span>
+                      </button>
+
+                      <button
+                        onClick={handleExportToExcel}
+                        className="px-3 py-1.5 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-bold text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Exportar a Excel</span>
+                      </button>
+                    </div>
+
                   </div>
-
-                  {/* Bottom Checkboxes */}
-                  <div className="space-y-1 text-[10px] text-slate-700 pt-1">
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="checkbox" />
-                      <span>Mostrar Terceros Desactivados</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="checkbox" />
-                      <span>Ver Características</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="checkbox" defaultChecked />
-                      <span>Al exportar mostrar en todos los registros los valores de las agrupaciones</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="checkbox" />
-                      <span>Mostrar Hora y Forma de Pago</span>
-                    </label>
-                  </div>
-
-                  {/* Classic 3D Beveled Buttons (Vista Previa & Exportar a Excel) */}
-                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#b0b7c4]">
-                    <button
-                      onClick={handleGenerateReport}
-                      disabled={isGenerating}
-                      className="px-3 py-1.5 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-bold text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-xs flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Search className="w-3.5 h-3.5 text-blue-800" />
-                      <span>{isGenerating ? 'Generando...' : 'Vista Previa'}</span>
-                    </button>
-
-                    <button
-                      onClick={handleExportToExcel}
-                      className="px-3 py-1.5 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-bold text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-xs flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Exportar a Excel</span>
-                    </button>
-                  </div>
-
-                </div>
+                )}
               </div>
 
             </div>
@@ -1636,7 +1835,7 @@ export const InformesOmar: React.FC = () => {
                 </div>
               </div>
               <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {sellerPieData.slice(0, 5).map((entry, idx) => (
+                {sellerPieData.slice(0, 5).map((entry) => (
                   <div key={entry.name} className="flex items-center justify-between">
                     <span className="truncate pr-2">{entry.name}</span>
                     <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
@@ -1942,14 +2141,14 @@ export const InformesOmar: React.FC = () => {
               <button 
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(1)}
-                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold"
+                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
               >
                 « Primero
               </button>
               <button 
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold"
+                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
               >
                 Anterior
               </button>
@@ -1959,14 +2158,14 @@ export const InformesOmar: React.FC = () => {
               <button 
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold"
+                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
               >
                 Siguiente
               </button>
               <button 
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(totalPages)}
-                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold"
+                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
               >
                 Último »
               </button>
