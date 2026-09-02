@@ -52,9 +52,16 @@ import {
   Maximize2,
   FileSearch,
   HelpCircle,
-  Info
+  Printer,
+  FileDown,
+  ZoomIn,
+  ZoomOut,
+  Sliders,
+  ChevronRight
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { ACCOUNTING_TRANSACTIONS } from '../data/accounting_ledger';
 import { INVENTORY_DATA } from '../data/inventory';
@@ -256,8 +263,11 @@ export const InformesOmar: React.FC = () => {
   const [conversionTipo, setConversionTipo] = useState<'MOVIMIENTO' | 'CORTE'>('MOVIMIENTO');
   const [ordenSeleccionado, setOrdenSeleccionado] = useState('Codigo-Descripción');
 
-  // Active View Tab for Report
-  const [reportActiveTab, setReportActiveTab] = useState<'TODOS' | 'TORTAS' | 'TENDENCIAS' | 'TABLA'>('TODOS');
+  // --- REPORT VIEWER STATE (ULTRA COMPLETO ESTILO WORLD OFFICE) ---
+  const [reportActiveTab, setReportActiveTab] = useState<'FORMATO_WORLDOFFICE' | 'TORTAS' | 'TENDENCIAS' | 'TABLA'>('FORMATO_WORLDOFFICE');
+  const [reportSearchTerm, setReportSearchTerm] = useState('');
+  const [reportZoom, setReportZoom] = useState<'85' | '100' | '115'>('100');
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   // Paginación
   const [pageSize, setPageSize] = useState(50);
@@ -354,62 +364,24 @@ export const InformesOmar: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleResetFilters = () => {
-    setSelectedSeller('ALL');
-    setSellerFrom('');
-    setSellerTo('');
-    setSelectedCostCenter('ALL');
-    setSelectedPosPoint('ALL');
-    setSelectedChannel('ALL');
-    setSelectedCity('ALL');
-    setMinAmount('');
-    setMaxAmount('');
-    setPeriodPreset('ALL');
-    setDateFrom('');
-    setDateTo('');
-    setSelectedTimeShift('ALL');
-    setTerceroType('TODOS');
-    setTerceroFrom('');
-    setTerceroTo('');
-    setSearchTerm('');
-    setSelectedFamily('ALL');
-    setSkuSearch('');
-    setSkuFrom('');
-    setSkuTo('');
-    setPucClassFilter('ALL');
-    setPucFrom('110505');
-    setPucTo('413595');
-    setPucLevel('AUXILIAR');
-    setDocTypeFVE(true);
-    setDocTypeNC(true);
-    setDocTypeRC(false);
-    setDocTypeCE(false);
-    setDocTypeCOT(false);
-    setDocTypeREM(false);
-    setDocConsecutivoFrom('');
-    setDocConsecutivoTo('');
-    setSelectedPaymentMethod('ALL');
-    setGroupByTercero(false);
-    setShowDocDetails(true);
-    setIncludeIvaBreakdown(true);
-    setShowChemicalVolume(true);
-    setHideZeroBalances(false);
-    setEmpresaActiva(true);
+  // Helper toggle all documents
+  const handleToggleAllDocuments = () => {
+    const anyOff = !docTypeFVE || !docTypeNC || !docTypeCOT || !docTypeREM || !docTypeCE;
+    setDocTypeFVE(anyOff);
+    setDocTypeNC(anyOff);
+    setDocTypeCOT(anyOff);
+    setDocTypeREM(anyOff);
+    setDocTypeCE(anyOff);
     setCurrentPage(1);
   };
 
-  // Trigger Generar Informe with Visual Feedback
-  const handleGenerateReport = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      setHasGeneratedReport(true);
-      setReportGeneratedAt(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      setCurrentPage(1);
-      if (reportResultsRef.current) {
-        reportResultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 300);
+  // Helper toggle sucursal cycle
+  const handleCycleSucursal = () => {
+    const options = ['ALL', ...uniqueCostCenters];
+    const currentIndex = options.indexOf(selectedCostCenter);
+    const nextIndex = (currentIndex + 1) % options.length;
+    setSelectedCostCenter(options[nextIndex]);
+    setCurrentPage(1);
   };
 
   // Distinct lists for dropdowns
@@ -437,28 +409,19 @@ export const InformesOmar: React.FC = () => {
     'Andrés Mendoza'
   ];
 
-  const uniqueChannels = ['B2B Corporativo', 'Venta Mostrador', 'Distribuidores', 'E-commerce / WhatsApp'];
-  const uniqueCities = ['BOGOTÁ', 'MEDELLIN', 'CALI', 'BARRANQUILLA', 'SOACHA', 'CHÍA'];
-  const uniquePosPoints = ['Caja 01 Mostrador', 'Caja 02 B2B Mayoristas', 'Caja 03 Despachos', 'Caja Digital E-com'];
-
-  // Helper toggle all documents
-  const handleToggleAllDocuments = () => {
-    const anyOff = !docTypeFVE || !docTypeNC || !docTypeCOT || !docTypeREM || !docTypeCE;
-    setDocTypeFVE(anyOff);
-    setDocTypeNC(anyOff);
-    setDocTypeCOT(anyOff);
-    setDocTypeREM(anyOff);
-    setDocTypeCE(anyOff);
-    setCurrentPage(1);
-  };
-
-  // Helper toggle sucursal cycle
-  const handleCycleSucursal = () => {
-    const options = ['ALL', ...uniqueCostCenters];
-    const currentIndex = options.indexOf(selectedCostCenter);
-    const nextIndex = (currentIndex + 1) % options.length;
-    setSelectedCostCenter(options[nextIndex]);
-    setCurrentPage(1);
+  // Trigger Generar Informe with Visual Feedback & Scroll
+  const handleGenerateReport = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setHasGeneratedReport(true);
+      setReportActiveTab('FORMATO_WORLDOFFICE');
+      setReportGeneratedAt(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setCurrentPage(1);
+      if (reportResultsRef.current) {
+        reportResultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 300);
   };
 
   // --- FILTER EXECUTION ---
@@ -676,9 +639,212 @@ export const InformesOmar: React.FC = () => {
     return { totalLiters, totalKilos };
   }, [filteredData, inventorySource]);
 
-  // --- TORTAS (DONUT / PIE CHARTS DATA) ---
+  // --- DYNAMIC GROUPING ENGINE FOR WORLD OFFICE OFFICIAL PRINTABLE REPORT ---
+  const groupedReportData = useMemo(() => {
+    // 1. Agrupación por Cliente (Default de World Office)
+    if (selectedReportType.includes('Cliente') || selectedReportType.includes('Empresas')) {
+      const map: Record<string, { 
+        groupKey: string, 
+        groupTitle: string, 
+        groupSub: string,
+        items: any[], 
+        totalQty: number, 
+        totalNet: number, 
+        totalIva: number, 
+        totalGross: number 
+      }> = {};
 
-  // Torta 1: Mix por Familia Química
+      filteredData.forEach(tx => {
+        const clientName = tx.client || 'CONSUMIDOR FINAL';
+        const nit = tx.document || '222222222222';
+        const city = getTxCity(tx);
+        const seller = getTxSeller(tx).split(' (')[0];
+
+        if (!map[clientName]) {
+          map[clientName] = {
+            groupKey: clientName,
+            groupTitle: `CLIENTE: ${nit} — ${clientName}`,
+            groupSub: `Ciudad: ${city} | Asesor Comercial: ${seller}`,
+            items: [],
+            totalQty: 0,
+            totalNet: 0,
+            totalIva: 0,
+            totalGross: 0
+          };
+        }
+
+        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+        const net = Math.abs(tx.total) - (tx.iva || 0);
+        const qty = tx.qty || 1;
+
+        map[clientName].items.push(tx);
+        map[clientName].totalQty += isReturn ? -qty : qty;
+        map[clientName].totalNet += isReturn ? -net : net;
+        map[clientName].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
+        map[clientName].totalGross += tx.total;
+      });
+
+      return {
+        groupingType: 'CLIENTE',
+        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
+      };
+    } 
+    // 2. Agrupación por Vendedor / Asesor Comercial
+    else if (selectedReportType.includes('Vendedor')) {
+      const map: Record<string, { 
+        groupKey: string, 
+        groupTitle: string, 
+        groupSub: string,
+        items: any[], 
+        totalQty: number, 
+        totalNet: number, 
+        totalIva: number, 
+        totalGross: number 
+      }> = {};
+
+      filteredData.forEach(tx => {
+        const seller = getTxSeller(tx).split(' (')[0];
+
+        if (!map[seller]) {
+          map[seller] = {
+            groupKey: seller,
+            groupTitle: `ASESOR COMERCIAL / VENDEDOR: ${seller}`,
+            groupSub: `Canal Principal: ${getTxChannel(tx)} | Base: Sede Principal Centro`,
+            items: [],
+            totalQty: 0,
+            totalNet: 0,
+            totalIva: 0,
+            totalGross: 0
+          };
+        }
+
+        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+        const net = Math.abs(tx.total) - (tx.iva || 0);
+        const qty = tx.qty || 1;
+
+        map[seller].items.push(tx);
+        map[seller].totalQty += isReturn ? -qty : qty;
+        map[seller].totalNet += isReturn ? -net : net;
+        map[seller].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
+        map[seller].totalGross += tx.total;
+      });
+
+      return {
+        groupingType: 'VENDEDOR',
+        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
+      };
+    }
+    // 3. Agrupación por Forma de Pago
+    else if (selectedReportType.includes('Forma de Pago')) {
+      const map: Record<string, { 
+        groupKey: string, 
+        groupTitle: string, 
+        groupSub: string,
+        items: any[], 
+        totalQty: number, 
+        totalNet: number, 
+        totalIva: number, 
+        totalGross: number 
+      }> = {};
+
+      filteredData.forEach(tx => {
+        const method = (tx.paymentMethod || 'Efectivo').toUpperCase();
+
+        if (!map[method]) {
+          map[method] = {
+            groupKey: method,
+            groupTitle: `FORMA DE PAGO / MEDIO: ${method}`,
+            groupSub: `Cuenta Contable de Recaudo: 110505 / 111005 Bancos`,
+            items: [],
+            totalQty: 0,
+            totalNet: 0,
+            totalIva: 0,
+            totalGross: 0
+          };
+        }
+
+        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+        const net = Math.abs(tx.total) - (tx.iva || 0);
+        const qty = tx.qty || 1;
+
+        map[method].items.push(tx);
+        map[method].totalQty += isReturn ? -qty : qty;
+        map[method].totalNet += isReturn ? -net : net;
+        map[method].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
+        map[method].totalGross += tx.total;
+      });
+
+      return {
+        groupingType: 'FORMA_PAGO',
+        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
+      };
+    }
+    // 4. Agrupación por Producto / Portafolio Químico
+    else {
+      const map: Record<string, { 
+        groupKey: string, 
+        groupTitle: string, 
+        groupSub: string,
+        items: any[], 
+        totalQty: number, 
+        totalNet: number, 
+        totalIva: number, 
+        totalGross: number 
+      }> = {};
+
+      filteredData.forEach(tx => {
+        const prod = tx.productName || 'PRODUCTO DIVERSO';
+        const sku = tx.sku || 'REF-GEN';
+        const fam = tx.family || 'QUÍMICOS';
+
+        if (!map[prod]) {
+          map[prod] = {
+            groupKey: prod,
+            groupTitle: `PRODUCTO: [${sku}] ${prod}`,
+            groupSub: `Familia / Portafolio: ${fam} | Código Contable: 143505 / 413505`,
+            items: [],
+            totalQty: 0,
+            totalNet: 0,
+            totalIva: 0,
+            totalGross: 0
+          };
+        }
+
+        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+        const net = Math.abs(tx.total) - (tx.iva || 0);
+        const qty = tx.qty || 1;
+
+        map[prod].items.push(tx);
+        map[prod].totalQty += isReturn ? -qty : qty;
+        map[prod].totalNet += isReturn ? -net : net;
+        map[prod].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
+        map[prod].totalGross += tx.total;
+      });
+
+      return {
+        groupingType: 'PRODUCTO',
+        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
+      };
+    }
+  }, [filteredData, selectedReportType]);
+
+  // Filter groups if live search in report is used
+  const displayedGroups = useMemo(() => {
+    if (!reportSearchTerm) return groupedReportData.groups;
+    const q = reportSearchTerm.toLowerCase();
+    return groupedReportData.groups.filter(g => {
+      const titleMatch = g.groupTitle.toLowerCase().includes(q) || g.groupSub.toLowerCase().includes(q);
+      const itemsMatch = g.items.some(it => 
+        (it.productName && it.productName.toLowerCase().includes(q)) ||
+        (it.sku && it.sku.toLowerCase().includes(q)) ||
+        (it.client && it.client.toLowerCase().includes(q)) ||
+        (it.document && it.document.toLowerCase().includes(q))
+      );
+      return titleMatch || itemsMatch;
+    });
+  }, [groupedReportData, reportSearchTerm]);
+
+  // --- TORTAS (DONUT / PIE CHARTS DATA) ---
   const familyPieData = useMemo(() => {
     const map: Record<string, number> = {};
     filteredData.forEach(tx => {
@@ -692,7 +858,6 @@ export const InformesOmar: React.FC = () => {
       .sort((a, b) => b.value - a.value);
   }, [filteredData]);
 
-  // Torta 2: Ventas por Vendedor / Comercial
   const sellerPieData = useMemo(() => {
     const map: Record<string, number> = {};
     filteredData.forEach(tx => {
@@ -706,7 +871,6 @@ export const InformesOmar: React.FC = () => {
       .sort((a, b) => b.value - a.value);
   }, [filteredData]);
 
-  // Torta 3: Distribución por Sede / Sucursal
   const costCenterPieData = useMemo(() => {
     const map: Record<string, number> = {};
     filteredData.forEach(tx => {
@@ -720,7 +884,6 @@ export const InformesOmar: React.FC = () => {
       .sort((a, b) => b.value - a.value);
   }, [filteredData]);
 
-  // Torta 4: Canal de Venta & Despacho
   const channelPieData = useMemo(() => {
     const map: Record<string, number> = {};
     filteredData.forEach(tx => {
@@ -843,6 +1006,63 @@ export const InformesOmar: React.FC = () => {
     XLSX.writeFile(wb, `Informe_WorldOffice_Procoquinal_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
+  // Official PDF Export with jsPDF and AutoTable
+  const handleExportToPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+    
+    // Header
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PROCOQUINAL S.A.S. - NIT: 901.428.112-4', 40, 40);
+    doc.setFontSize(11);
+    doc.text(selectedReportType.toUpperCase(), 40, 56);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Periodo: ${dateFrom || diaInicio + '/' + mesInicio + '/' + anoInicio} a ${dateTo || diaFin + '/' + mesFin + '/' + anoFin} | Sede: ${selectedCostCenter} | Moneda: COP`, 40, 70);
+    doc.text(`Generado: ${new Date().toLocaleString('es-CO')} | Usuario: OMAR (GERENCIA)`, 40, 82);
+
+    const tableRows: any[] = [];
+    filteredData.forEach(tx => {
+      const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+      const net = Math.abs(tx.total) - (tx.iva || 0);
+      tableRows.push([
+        tx.date,
+        tx.document || tx.id,
+        (tx.client || 'Consumidor Final').substring(0, 24),
+        getTxSeller(tx).split(' (')[0],
+        tx.sku || '-',
+        (tx.productName || 'Varios').substring(0, 24),
+        tx.qty || 1,
+        formatCOP(tx.iva || 0),
+        formatCOP(isReturn ? -net : net),
+        formatCOP(tx.total)
+      ]);
+    });
+
+    autoTable(doc, {
+      startY: 95,
+      head: [['Fecha', 'Comprobante', 'Cliente / Tercero', 'Vendedor', 'SKU', 'Producto', 'Cant.', 'IVA', 'Neto', 'Total']],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { fillColor: [28, 59, 112], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+      styles: { fontSize: 7.5, cellPadding: 2.5 },
+      foot: [[
+        'TOTALES', '', '', '', '', '',
+        filteredData.reduce((acc, t) => acc + (t.qty || 1), 0).toString(),
+        formatCOP(kpis.totalIva),
+        formatCOP(kpis.totalNet),
+        formatCOP(kpis.totalGross)
+      ]],
+      footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 8 }
+    });
+
+    doc.save(`Informe_WorldOffice_${selectedReportType.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  const toggleGroupCollapse = (key: string) => {
+    setCollapsedGroups(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-[1700px] mx-auto bg-[#f1f3f7] min-h-screen text-slate-800 font-sans">
       
@@ -866,7 +1086,7 @@ export const InformesOmar: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-500">
-              Generador de informes con el layout nativo de World Office sin fricción para Omar.
+              Generador de informes ultra completos con formato oficial impreso de World Office.
             </p>
           </div>
         </div>
@@ -900,15 +1120,25 @@ export const InformesOmar: React.FC = () => {
             onClick={handleGenerateReport}
             disabled={isGenerating}
             className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black rounded-lg transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            title="Procesar informe y actualizar gráficos"
+            title="Generar informe ultra completo y vista previa"
           >
             {isGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-300" />}
-            <span>Generar Informe</span>
+            <span>Vista Previa (Generar)</span>
+          </button>
+
+          <button 
+            onClick={handleExportToPdf}
+            className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg border border-rose-200 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Descargar documento PDF formal"
+          >
+            <FileDown className="w-3.5 h-3.5 text-rose-600" />
+            <span>PDF</span>
           </button>
 
           <button 
             onClick={handleExportToExcel}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Exportar a Excel (.xlsx)"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             <span>Excel</span>
@@ -939,7 +1169,7 @@ export const InformesOmar: React.FC = () => {
                 <li><strong>Fechas:</strong> Define el rango Día / Mes / Año exacto a procesar.</li>
                 <li><strong>Tipo de informe:</strong> Selecciona la agrupación contable y operativa deseada.</li>
                 <li><strong>Comprobantes & Vendedores:</strong> Filtra por FVE, NC, cotizaciones y asesores asignados.</li>
-                <li><strong>Vista Previa:</strong> Ejecuta el cálculo inmediato de las 4 tortas y la sábana de movimientos.</li>
+                <li><strong>Vista Previa:</strong> Genera el informe formal en hoja impresa oficial con subtotales y libro auxiliar.</li>
               </ul>
               <div className="pt-2 border-t border-slate-300 flex justify-end">
                 <button 
@@ -1174,7 +1404,7 @@ export const InformesOmar: React.FC = () => {
                 <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                   <div className="flex items-center gap-1">
                     <span>Lista de Vendedores</span>
-                    <Search className="w-3 h-3 text-amber-300 cursor-pointer" onClick={() => handleGenerateReport()} />
+                    <Search className="w-3 h-3 text-amber-300 cursor-pointer" onClick={handleGenerateReport} />
                   </div>
                   <button 
                     onClick={() => setSelectedSeller(selectedSeller === 'ALL' ? '' : 'ALL')}
@@ -1561,7 +1791,7 @@ export const InformesOmar: React.FC = () => {
                       <button
                         onClick={handleGenerateReport}
                         disabled={isGenerating}
-                        className="px-3 py-1.5 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-bold text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-xs flex items-center gap-1.5 cursor-pointer"
+                        className="px-4 py-2 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-black text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
                       >
                         <Search className="w-3.5 h-3.5 text-blue-800" />
                         <span>{isGenerating ? 'Generando...' : 'Vista Previa'}</span>
@@ -1569,7 +1799,7 @@ export const InformesOmar: React.FC = () => {
 
                       <button
                         onClick={handleExportToExcel}
-                        className="px-3 py-1.5 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-bold text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-xs flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-2 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-bold text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-xs flex items-center gap-1.5 cursor-pointer"
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
                         <span>Exportar a Excel</span>
@@ -1691,488 +1921,763 @@ export const InformesOmar: React.FC = () => {
               className="px-6 py-3 bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>GENERAR INFORME</span>
+              <span>GENERAR INFORME & VISTA PREVIA</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* 3. RESUMEN DE CRITERIOS ACTIVOS & ESTADO DEL INFORME */}
-      <div ref={reportResultsRef} className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-extrabold text-indigo-700 uppercase tracking-wider text-[11px] flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Informe Generado
-          </span>
-          <span className="text-slate-400">|</span>
-          <span className="text-slate-600 font-medium">Actualizado: <strong className="text-slate-900">{reportGeneratedAt}</strong></span>
-          <span className="text-slate-400">|</span>
-          <span className="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-semibold border border-slate-200">
-            Vendedor: {selectedSeller === 'ALL' ? 'Todos' : selectedSeller}
-          </span>
-          <span className="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-semibold border border-slate-200">
-            Periodo: {dateFrom || `${diaInicio} ${mesInicio} ${anoInicio}`} a {dateTo || `${diaFin} ${mesFin} ${anoFin}`}
-          </span>
-        </div>
-
-        {/* View mode switcher */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-bold">
-          <button 
-            onClick={() => setReportActiveTab('TODOS')}
-            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
-              reportActiveTab === 'TODOS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Vista Completa
-          </button>
-          <button 
-            onClick={() => setReportActiveTab('TORTAS')}
-            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 ${
-              reportActiveTab === 'TORTAS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <PieChartIcon className="w-3.5 h-3.5" /> Tortas
-          </button>
-          <button 
-            onClick={() => setReportActiveTab('TENDENCIAS')}
-            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 ${
-              reportActiveTab === 'TENDENCIAS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <TrendingUp className="w-3.5 h-3.5" /> Tendencias
-          </button>
-          <button 
-            onClick={() => setReportActiveTab('TABLA')}
-            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 ${
-              reportActiveTab === 'TABLA' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" /> Sábana
-          </button>
-        </div>
-      </div>
-
-      {/* 4. KPIS EJECUTIVOS (TARJETAS VISUALES) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        <div className="bg-white p-3.5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Venta Neta</span>
-          <div className="text-xl font-black text-slate-900 mt-1">{formatCOP(kpis.totalNet)}</div>
-          <span className="text-[11px] text-slate-500 font-medium">Bruta: {formatCOP(kpis.totalGross)}</span>
-        </div>
-
-        <div className="bg-white p-3.5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">IVA Recaudado</span>
-          <div className="text-xl font-black text-slate-900 mt-1">{formatCOP(kpis.totalIva)}</div>
-          <span className="text-[11px] text-slate-400 font-medium">Cuenta 240801</span>
-        </div>
-
-        <div className="bg-white p-3.5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comprobantes</span>
-          <div className="text-xl font-black text-blue-600 mt-1">{kpis.docCount.toLocaleString()}</div>
-          <span className="text-[11px] text-slate-500 font-medium">Ticket: {formatCOP(kpis.avgTicket)}</span>
-        </div>
-
-        <div className="bg-white p-3.5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Devoluciones</span>
-          <div className="text-xl font-black text-rose-600 mt-1">{formatCOP(kpis.returnsTotal)}</div>
-          <span className="text-[11px] text-rose-400 font-semibold">Tasa: {kpis.returnsImpact.toFixed(1)}%</span>
-        </div>
-
-        <div className="bg-white p-3.5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Volumen Químico</span>
-          <div className="text-xl font-black text-purple-700 mt-1">
-            {Math.round(physicalKpis.totalLiters).toLocaleString()} <span className="text-xs font-normal">LT</span>
-          </div>
-          <span className="text-[11px] text-slate-500 font-medium">
-            {Math.round(physicalKpis.totalKilos).toLocaleString()} KG Estimados
-          </span>
-        </div>
-
-        <div className="bg-white p-3.5 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Cliente Top #1</span>
-          <div className="text-xs font-bold text-slate-800 truncate mt-1" title={kpis.topClientName}>
-            {kpis.topClientName}
-          </div>
-          <span className="text-xs font-black text-amber-600">{formatCOP(kpis.topClientAmount)}</span>
-        </div>
-      </div>
-
-      {/* 5. SECCIÓN DE TORTAS Y COSAS VISUALES */}
-      {(reportActiveTab === 'TODOS' || reportActiveTab === 'TORTAS') && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <PieChartIcon className="w-4 h-4 text-indigo-600" />
-            <h2 className="text-sm font-black text-slate-900 tracking-tight">Distribución Visual en Tortas</h2>
+      {/* =========================================================================
+          3. VISOR DE INFORMES WORLD OFFICE (ULTRA COMPLETO) & BARRA DE CRITERIOS
+          ========================================================================= */}
+      <div id="world-office-report-viewer" ref={reportResultsRef} className="space-y-4">
+        
+        {/* Banner de Estado y Selector de Vistas */}
+        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Informe World Office Generado
+            </span>
+            <span className="text-slate-400">|</span>
+            <span className="text-slate-600 font-medium">Actualizado: <strong className="text-slate-900">{reportGeneratedAt}</strong></span>
+            <span className="text-slate-400">|</span>
+            <span className="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-semibold border border-slate-200">
+              Tipo: {selectedReportType}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {/* Selector de Pestañas del Informe */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-bold">
+            <button 
+              onClick={() => setReportActiveTab('FORMATO_WORLDOFFICE')}
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                reportActiveTab === 'FORMATO_WORLDOFFICE' ? 'bg-white text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5 text-blue-700" />
+              <span>Formato Impreso World Office</span>
+            </button>
+            <button 
+              onClick={() => setReportActiveTab('TORTAS')}
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 ${
+                reportActiveTab === 'TORTAS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <PieChartIcon className="w-3.5 h-3.5" /> Tortas
+            </button>
+            <button 
+              onClick={() => setReportActiveTab('TENDENCIAS')}
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 ${
+                reportActiveTab === 'TENDENCIAS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5" /> Tendencias
+            </button>
+            <button 
+              onClick={() => setReportActiveTab('TABLA')}
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 ${
+                reportActiveTab === 'TABLA' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" /> Sábana Plana
+            </button>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            PESTAÑA 1: FORMATO IMPRESO OFICIAL WORLD OFFICE (ULTRA COMPLETO)
+            ========================================================================= */}
+        {reportActiveTab === 'FORMATO_WORLDOFFICE' && (
+          <div className="space-y-3">
             
-            {/* TORTA 1: VENTAS POR ASESOR COMERCIAL */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-indigo-600" /> Ventas por Comercial
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sellerPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {sellerPieData.map((_, index) => (
-                          <Cell key={`cell-sel-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
+            {/* Toolbar Superior del Visor de Impresión */}
+            <div className="bg-slate-800 text-slate-100 p-2.5 rounded-t-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs shadow-md">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  title="Imprimir informe en hoja física o guardar como PDF del navegador"
+                >
+                  <Printer className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Imprimir</span>
+                </button>
+
+                <button
+                  onClick={handleExportToPdf}
+                  className="px-3 py-1.5 bg-rose-700 hover:bg-rose-600 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <FileDown className="w-3.5 h-3.5 text-white" />
+                  <span>Exportar PDF</span>
+                </button>
+
+                <button
+                  onClick={handleExportToExcel}
+                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-white" />
+                  <span>Exportar Excel</span>
+                </button>
+              </div>
+
+              {/* Búsqueda dentro del informe impreso */}
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" />
+                  <input 
+                    type="text"
+                    placeholder="Buscar cliente, NIT, producto en el informe..."
+                    value={reportSearchTerm}
+                    onChange={e => setReportSearchTerm(e.target.value)}
+                    className="pl-7 pr-3 py-1 bg-slate-900 border border-slate-600 rounded text-slate-100 text-xs w-64 outline-none focus:border-amber-400"
+                  />
+                  {reportSearchTerm && (
+                    <button onClick={() => setReportSearchTerm('')} className="absolute right-2 top-1.5 text-slate-400 hover:text-white">✕</button>
+                  )}
+                </div>
+
+                {/* Zoom Controls */}
+                <div className="flex items-center bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-slate-300">
+                  <span className="text-[11px] pr-1 font-mono">Zoom:</span>
+                  <button onClick={() => setReportZoom('85')} className={`px-1.5 py-0.5 rounded ${reportZoom === '85' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>85%</button>
+                  <button onClick={() => setReportZoom('100')} className={`px-1.5 py-0.5 rounded ${reportZoom === '100' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>100%</button>
+                  <button onClick={() => setReportZoom('115')} className={`px-1.5 py-0.5 rounded ${reportZoom === '115' ? 'bg-blue-600 text-white font-bold' : 'hover:text-white'}`}>115%</button>
                 </div>
               </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {sellerPieData.slice(0, 5).map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* TORTA 2: SEDES Y SUCURSALES */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-emerald-600" /> Sedes y Sucursales
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={costCenterPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {costCenterPieData.map((_, index) => (
-                          <Cell key={`cell-cc-${index}`} fill={PIE_COLORS[(index + 2) % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {costCenterPieData.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* TORTA 3: FAMILIAS QUÍMICAS */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Package className="w-3.5 h-3.5 text-purple-600" /> Familias Químicas
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={familyPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {familyPieData.map((_, index) => (
-                          <Cell key={`cell-fam-${index}`} fill={PIE_COLORS[(index + 4) % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {familyPieData.slice(0, 5).map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* TORTA 4: CANALES DE VENTA */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-amber-500" /> Canales de Venta
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={channelPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {channelPieData.map((_, index) => (
-                          <Cell key={`cell-ch-${index}`} fill={PIE_COLORS[(index + 6) % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {channelPieData.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* 6. CHARTS SECTION (TENDENCIAS Y TOP CLIENTES) */}
-      {(reportActiveTab === 'TODOS' || reportActiveTab === 'TENDENCIAS') && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
-            <h2 className="text-xs font-black text-slate-900 mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" /> Evolución Mensual de Ventas Netas
-            </h2>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timeSeriesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={(val) => `$${(val/1000000).toFixed(1)}M`} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <RechartsTooltip formatter={(value: number) => formatCOP(value)} labelStyle={{ fontWeight: 'bold' }} />
-                  <Line type="monotone" dataKey="ventas" name="Venta Neta" stroke="#4f46e5" strokeWidth={3} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
-            <h2 className="text-xs font-black text-slate-900 mb-3 flex items-center gap-2">
-              <Crown className="w-4 h-4 text-amber-500" /> Top 10 Clientes por Volumen Facturado
-            </h2>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topClientsData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                  <XAxis type="number" tickFormatter={(val) => `$${(val/1000000).toFixed(0)}M`} tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="name" type="category" width={110} tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <RechartsTooltip formatter={(value: number) => formatCOP(value)} />
-                  <Bar dataKey="amount" name="Venta Neta" radius={[0, 4, 4, 0]}>
-                    {topClientsData.map((_, index) => (
-                      <Cell key={`cell-bar-${index}`} fill={index === 0 ? '#f59e0b' : '#3b82f6'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 7. TABLA DE RESULTADOS (LIBRO AUXILIAR CON TOTALES FIJOS Y COLUMNAS OPERATIVAS) */}
-      {(reportActiveTab === 'TODOS' || reportActiveTab === 'TABLA') && (
-        <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
-          <div className="p-3.5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
-              <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                Sábana Operativa & Comprobantes Contables
-              </h2>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-500 font-medium">Filas:</span>
-              <select 
-                value={pageSize}
-                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                className="font-bold border border-slate-200 bg-white rounded px-2 py-1 text-slate-700 outline-none"
+            {/* HOJA IMPRESA FORMAL DE WORLD OFFICE (PAPER CONTAINER) */}
+            <div className="bg-[#525659] p-4 md:p-8 rounded-b-xl shadow-inner overflow-x-auto">
+              <div 
+                id="world-office-printable-report"
+                style={{ transform: reportZoom === '85' ? 'scale(0.85)' : reportZoom === '115' ? 'scale(1.15)' : 'none', transformOrigin: 'top center' }}
+                className="max-w-5xl mx-auto bg-white p-8 md:p-12 shadow-2xl text-slate-900 border border-slate-300 font-sans transition-all print:shadow-none print:border-none print:p-0 print:max-w-full"
               >
-                <option value="15">15</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="250">250</option>
-              </select>
-            </div>
-          </div>
+                
+                {/* 1. ENCABEZADO FORMAL DEL INFORME WORLD OFFICE */}
+                <div className="border-b-2 border-slate-900 pb-4 mb-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h1 className="text-xl font-black text-slate-900 tracking-tight">PROCOQUINAL S.A.S.</h1>
+                      <div className="text-xs text-slate-700 font-mono mt-0.5">
+                        NIT: 901.428.112-4 — RÉGIMEN COMÚN — RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        Cra 10 # 15-28, Bogotá D.C., Colombia — PBX: (601) 745-8900 — info@procoquinal.co
+                      </div>
+                    </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-600">
-              <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200 text-[10.5px]">
-                <tr>
-                  <th className="py-2.5 px-3">Fecha</th>
-                  <th className="py-2.5 px-3">Comprobante</th>
-                  <th className="py-2.5 px-3">Asesor Comercial</th>
-                  <th className="py-2.5 px-3">Sede / POS</th>
-                  <th className="py-2.5 px-3">Tercero / Cliente</th>
-                  <th className="py-2.5 px-3">Cuenta PUC</th>
-                  <th className="py-2.5 px-3">SKU</th>
-                  <th className="py-2.5 px-3">Detalle</th>
-                  <th className="py-2.5 px-3 text-center">Cant.</th>
-                  <th className="py-2.5 px-3 text-right">IVA</th>
-                  <th className="py-2.5 px-3 text-right">Total Neto</th>
-                  <th className="py-2.5 px-3 text-right">Total Bruto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-[11px]">
-                {paginatedData.length === 0 ? (
-                  <tr>
-                    <td colSpan={12} className="py-10 text-center text-slate-400 font-medium">
-                      No hay transacciones que coincidan con los criterios seleccionados en el filtro.
-                    </td>
-                  </tr>
+                    <div className="text-right font-mono text-[10.5px] text-slate-600 border border-slate-300 p-2 bg-slate-50 rounded-xs">
+                      <div className="font-bold text-slate-900 uppercase">INFORME OFICIAL ERP</div>
+                      <div>Fecha: {new Date().toLocaleDateString('es-CO')}</div>
+                      <div>Hora: {reportGeneratedAt}</div>
+                      <div>Usuario: <span className="font-bold text-slate-900">OMAR (GERENCIA)</span></div>
+                      <div>Moneda: <span className="font-bold text-slate-900">COP ($)</span></div>
+                    </div>
+                  </div>
+
+                  {/* Título Principal Dinámico del Informe */}
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-center">
+                    <h2 className="text-base md:text-lg font-black text-slate-950 uppercase tracking-wide">
+                      {selectedReportType}
+                    </h2>
+                    <div className="text-xs text-slate-600 font-medium mt-1 flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
+                      <span><strong>Periodo:</strong> {dateFrom || `${diaInicio}/${mesInicio}/${anoInicio}`} al {dateTo || `${diaFin}/${mesFin}/${anoFin}`}</span>
+                      <span>•</span>
+                      <span><strong>Sucursal:</strong> {selectedCostCenter === 'ALL' ? 'Consolidado General' : selectedCostCenter}</span>
+                      <span>•</span>
+                      <span><strong>Vendedor:</strong> {selectedSeller === 'ALL' ? 'Todos los Comerciales' : selectedSeller}</span>
+                      <span>•</span>
+                      <span><strong>Registros:</strong> {filteredData.length.toLocaleString()} movimientos</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. CUERPO DEL INFORME: AGRUPACIONES OFICIALES Y DETALLE FILA POR FILA */}
+                {displayedGroups.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400 font-medium">
+                    No se encontraron registros en el informe que coincidan con los criterios establecidos.
+                  </div>
                 ) : (
-                  paginatedData.map((tx, idx) => {
-                    const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-                    const netAmount = Math.abs(tx.total) - (tx.iva || 0);
-                    const puc = tx.type === 'VENTA' ? '413505' : (isReturn ? '417505' : (tx.type === 'COMPRA' ? '143505' : '110505'));
-                    const sellerName = getTxSeller(tx).split(' (')[0];
+                  <div className="space-y-6">
+                    {displayedGroups.map((group, groupIdx) => {
+                      const isCollapsed = collapsedGroups[group.groupKey];
 
-                    return (
-                      <tr key={`${tx.id}-${idx}`} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-2 px-3 font-mono whitespace-nowrap text-slate-500">{tx.date}</td>
-                        <td className="py-2 px-3 font-mono font-bold">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                            isReturn ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700 border border-blue-200'
-                          }`}>
-                            {tx.document || tx.id}
-                          </span>
-                        </td>
-                        <td className="py-2 px-3 text-slate-700 font-semibold max-w-[130px] truncate" title={getTxSeller(tx)}>
-                          {sellerName}
-                        </td>
-                        <td className="py-2 px-3 text-slate-500 max-w-[130px] truncate" title={tx.posLocation}>
-                          {tx.posLocation || 'Principal'}
-                        </td>
-                        <td className="py-2 px-3 font-bold text-slate-800 max-w-[180px] truncate" title={tx.client}>
-                          {tx.client || 'Consumidor Final'}
-                        </td>
-                        <td className="py-2 px-3 font-mono text-slate-600 font-bold">
-                          {puc}
-                        </td>
-                        <td className="py-2 px-3 font-mono text-slate-600 text-[10.5px]">
-                          {tx.sku && tx.sku !== '-' ? tx.sku : 'DIVERSO'}
-                        </td>
-                        <td className="py-2 px-3 max-w-[170px] truncate text-slate-700" title={tx.productName}>
-                          {tx.productName || 'Varios'}
-                        </td>
-                        <td className="py-2 px-3 text-center font-bold text-slate-800">
-                          {tx.qty || 1}
-                        </td>
-                        <td className="py-2 px-3 text-right text-slate-400 font-mono">
-                          {formatCOP(tx.iva || 0)}
-                        </td>
-                        <td className="py-2 px-3 text-right font-bold text-slate-700 font-mono">
-                          {formatCOP(isReturn ? -netAmount : netAmount)}
-                        </td>
-                        <td className={`py-2 px-3 text-right font-black font-mono ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
-                          {formatCOP(tx.total)}
-                        </td>
-                      </tr>
-                    );
-                  })
+                      return (
+                        <div key={`${group.groupKey}-${groupIdx}`} className="border border-slate-300 rounded-xs overflow-hidden">
+                          
+                          {/* Banda Superior de la Agrupación (World Office Ribbon) */}
+                          <div 
+                            onClick={() => toggleGroupCollapse(group.groupKey)}
+                            className="bg-[#1c3b70] hover:bg-[#152e57] text-white px-3 py-1.5 font-bold text-xs flex justify-between items-center cursor-pointer select-none"
+                          >
+                            <div className="flex items-center gap-2">
+                              {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                              <span>{group.groupTitle}</span>
+                              <span className="text-[10px] text-slate-300 font-normal hidden md:inline">({group.groupSub})</span>
+                            </div>
+                            <div className="font-mono text-[11px] flex items-center gap-3">
+                              <span className="text-amber-300 font-bold">{formatCOP(group.totalNet)}</span>
+                              <span className="text-slate-300 text-[10px]">({group.items.length} docs)</span>
+                            </div>
+                          </div>
+
+                          {/* Tabla de Detalle Interna */}
+                          {!isCollapsed && (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left text-[11px] font-sans">
+                                <thead className="bg-[#eef2f8] text-slate-700 font-bold uppercase tracking-wider border-b border-slate-300 text-[9.5px]">
+                                  <tr>
+                                    <th className="py-1.5 px-2.5">Fecha</th>
+                                    <th className="py-1.5 px-2.5">Comprobante</th>
+                                    <th className="py-1.5 px-2.5">SKU / Ref</th>
+                                    <th className="py-1.5 px-2.5">Descripción Producto / Concepto</th>
+                                    <th className="py-1.5 px-2.5 text-center">Cant.</th>
+                                    <th className="py-1.5 px-2.5">Unidad</th>
+                                    <th className="py-1.5 px-2.5 text-right">Vr. Unitario</th>
+                                    <th className="py-1.5 px-2.5 text-right">IVA (19%)</th>
+                                    <th className="py-1.5 px-2.5 text-right">Vr. Neto</th>
+                                    <th className="py-1.5 px-2.5 text-right">Total Facturado</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200">
+                                  {group.items.map((tx: any, itemIdx: number) => {
+                                    const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+                                    const netAmount = Math.abs(tx.total) - (tx.iva || 0);
+                                    const qty = tx.qty || 1;
+                                    const unitPrice = qty > 0 ? (netAmount / qty) : netAmount;
+
+                                    return (
+                                      <tr key={`${tx.id}-${itemIdx}`} className="hover:bg-amber-50/50 transition-colors">
+                                        <td className="py-1 px-2.5 font-mono text-slate-600 whitespace-nowrap text-[10.5px]">{tx.date}</td>
+                                        <td className="py-1 px-2.5 font-mono font-bold text-slate-800 text-[10.5px]">
+                                          <span className={isReturn ? 'text-rose-600' : 'text-blue-800'}>
+                                            {tx.document || tx.id}
+                                          </span>
+                                        </td>
+                                        <td className="py-1 px-2.5 font-mono text-slate-600 text-[10px]">{tx.sku || '-'}</td>
+                                        <td className="py-1 px-2.5 text-slate-800 max-w-[220px] truncate" title={tx.productName}>
+                                          {tx.productName || 'Venta de Productos Químicos'}
+                                        </td>
+                                        <td className="py-1 px-2.5 text-center font-bold text-slate-900">
+                                          {isReturn ? -qty : qty}
+                                        </td>
+                                        <td className="py-1 px-2.5 text-slate-500 font-mono text-[10px]">
+                                          {tx.baseUnit || 'GL/LT'}
+                                        </td>
+                                        <td className="py-1 px-2.5 text-right font-mono text-slate-600">
+                                          {formatCOP(unitPrice)}
+                                        </td>
+                                        <td className="py-1 px-2.5 text-right font-mono text-slate-500">
+                                          {formatCOP(tx.iva || 0)}
+                                        </td>
+                                        <td className="py-1 px-2.5 text-right font-mono font-semibold text-slate-800">
+                                          {formatCOP(isReturn ? -netAmount : netAmount)}
+                                        </td>
+                                        <td className={`py-1 px-2.5 text-right font-mono font-bold ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
+                                          {formatCOP(tx.total)}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+
+                                {/* Subtotal de la Agrupación (Estilo World Office) */}
+                                <tfoot className="bg-[#f4f6f9] border-t-2 border-slate-400 font-bold text-slate-900 text-[10.5px]">
+                                  <tr>
+                                    <td colSpan={4} className="py-1.5 px-2.5 text-right uppercase tracking-wider text-slate-700">
+                                      SUBTOTAL {group.groupKey}:
+                                    </td>
+                                    <td className="py-1.5 px-2.5 text-center font-mono text-blue-900 font-black">
+                                      {group.totalQty}
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-700">
+                                      {formatCOP(group.totalIva)}
+                                    </td>
+                                    <td className="py-1.5 px-2.5 text-right font-mono text-blue-900 font-black">
+                                      {formatCOP(group.totalNet)}
+                                    </td>
+                                    <td className="py-1.5 px-2.5 text-right font-mono text-slate-950 font-black">
+                                      {formatCOP(group.totalGross)}
+                                    </td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          )}
+
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
-              </tbody>
-              
-              {filteredData.length > 0 && (
-                <tfoot className="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300 text-xs">
-                  <tr>
-                    <td colSpan={8} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-600 font-bold">
-                      Totales ({filteredData.length} docs):
-                    </td>
-                    <td className="py-2.5 px-3 text-center">
-                      {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-600">
-                      {formatCOP(kpis.totalIva)}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-indigo-700">
-                      {formatCOP(kpis.totalNet)}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-emerald-700 text-sm">
-                      {formatCOP(kpis.totalGross)}
-                    </td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
-          </div>
 
-          {/* Pagination */}
-          <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
-            <div>
-              {Math.min((currentPage - 1) * pageSize + 1, filteredData.length)} a {Math.min(currentPage * pageSize, filteredData.length)} de {filteredData.length.toLocaleString()} registros
+                {/* 3. GRAN TOTAL CONSOLIDADO DEL INFORME (DOBLE BORDE OFICIAL) */}
+                <div className="mt-8 border-t-4 border-b-4 border-slate-900 py-4 bg-slate-50">
+                  <div className="text-center font-black uppercase text-xs tracking-wider text-slate-900 mb-3">
+                    RESUMEN CONSOLIDADO Y TOTALES DEFINITIVOS DEL INFORME
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center font-mono">
+                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Unidades Despachadas</div>
+                      <div className="text-base font-black text-slate-900 mt-1">
+                        {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-sans mt-0.5">{Math.round(physicalKpis.totalLiters).toLocaleString()} Litros</div>
+                    </div>
+
+                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total Facturas / Docs</div>
+                      <div className="text-base font-black text-blue-800 mt-1">
+                        {kpis.docCount.toLocaleString()}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-sans mt-0.5">Ticket: {formatCOP(kpis.avgTicket)}</div>
+                    </div>
+
+                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total IVA Recaudado</div>
+                      <div className="text-base font-black text-slate-900 mt-1">
+                        {formatCOP(kpis.totalIva)}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-sans mt-0.5">Cuenta 240801</div>
+                    </div>
+
+                    <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
+                      <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Notas Crédito (Dev.)</div>
+                      <div className="text-base font-black text-rose-600 mt-1">
+                        {formatCOP(kpis.returnsTotal)}
+                      </div>
+                      <div className="text-[10px] text-rose-500 font-sans mt-0.5">{kpis.returnsImpact.toFixed(1)}% tasa dev.</div>
+                    </div>
+
+                    <div className="border-2 border-emerald-600 bg-emerald-50/60 p-2.5 rounded-xs shadow-xs col-span-2 md:col-span-1">
+                      <div className="text-[10px] text-emerald-800 uppercase font-sans font-black">VENTA NETA DEFINITIVA</div>
+                      <div className="text-base md:text-lg font-black text-emerald-900 mt-1">
+                        {formatCOP(kpis.totalNet)}
+                      </div>
+                      <div className="text-[10px] text-emerald-700 font-sans mt-0.5">Bruta: {formatCOP(kpis.totalGross)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. PIE DE PÁGINA Y FIRMAS DE RESPONSABILIDAD (NIIF / DIAN) */}
+                <div className="mt-12 pt-6 border-t border-slate-300 grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-xs text-slate-700">
+                  <div>
+                    <div className="border-t border-slate-900 pt-2 font-bold font-mono">OMAR PROCOQUINAL</div>
+                    <div className="text-[11px] text-slate-500">Gerencia Comercial y Operativa</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Firma de Emisión</div>
+                  </div>
+
+                  <div>
+                    <div className="border-t border-slate-900 pt-2 font-bold font-mono">DEPARTAMENTO CONTABLE</div>
+                    <div className="text-[11px] text-slate-500">Revisión Cuentas PUC & Fiscales</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Firma de Control</div>
+                  </div>
+
+                  <div>
+                    <div className="border-t border-slate-900 pt-2 font-bold font-mono">REVISORÍA FISCAL & AUDITORÍA</div>
+                    <div className="text-[11px] text-slate-500">Conformidad Tributaria DIAN</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Dictamen de Cierre</div>
+                  </div>
+                </div>
+
+                <div className="mt-8 text-center text-[10px] text-slate-400 font-mono">
+                  *** Fin del informe oficial — Generado mediante Avalon OS integrado con World Office ERP ***
+                </div>
+
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(1)}
-                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                « Primero
-              </button>
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                Anterior
-              </button>
-              <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-extrabold rounded border border-indigo-100">
-                {currentPage} / {totalPages || 1}
-              </span>
-              <button 
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                Siguiente
-              </button>
-              <button 
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(totalPages)}
-                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                Último »
-              </button>
+
+          </div>
+        )}
+
+        {/* =========================================================================
+            PESTAÑA 2: TORTAS Y ANALÍTICA VISUAL
+            ========================================================================= */}
+        {reportActiveTab === 'TORTAS' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <PieChartIcon className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-sm font-black text-slate-900 tracking-tight">Distribución Visual en Tortas (Modo Ejecutivo)</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              
+              {/* TORTA 1: VENTAS POR ASESOR COMERCIAL */}
+              <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-indigo-600" /> Ventas por Comercial
+                  </h3>
+                  <div className="h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={sellerPieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={38}
+                          outerRadius={65}
+                          paddingAngle={3}
+                        >
+                          {sellerPieData.map((_, index) => (
+                            <Cell key={`cell-sel-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
+                  {sellerPieData.slice(0, 5).map((entry) => (
+                    <div key={entry.name} className="flex items-center justify-between">
+                      <span className="truncate pr-2">{entry.name}</span>
+                      <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* TORTA 2: SEDES Y SUCURSALES */}
+              <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5 text-emerald-600" /> Sedes y Sucursales
+                  </h3>
+                  <div className="h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={costCenterPieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={38}
+                          outerRadius={65}
+                          paddingAngle={3}
+                        >
+                          {costCenterPieData.map((_, index) => (
+                            <Cell key={`cell-cc-${index}`} fill={PIE_COLORS[(index + 2) % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
+                  {costCenterPieData.map((entry) => (
+                    <div key={entry.name} className="flex items-center justify-between">
+                      <span className="truncate pr-2">{entry.name}</span>
+                      <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* TORTA 3: FAMILIAS QUÍMICAS */}
+              <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5 text-purple-600" /> Familias Químicas
+                  </h3>
+                  <div className="h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={familyPieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={38}
+                          outerRadius={65}
+                          paddingAngle={3}
+                        >
+                          {familyPieData.map((_, index) => (
+                            <Cell key={`cell-fam-${index}`} fill={PIE_COLORS[(index + 4) % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
+                  {familyPieData.slice(0, 5).map((entry) => (
+                    <div key={entry.name} className="flex items-center justify-between">
+                      <span className="truncate pr-2">{entry.name}</span>
+                      <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* TORTA 4: CANALES DE VENTA */}
+              <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-amber-500" /> Canales de Venta
+                  </h3>
+                  <div className="h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={channelPieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={38}
+                          outerRadius={65}
+                          paddingAngle={3}
+                        >
+                          {channelPieData.map((_, index) => (
+                            <Cell key={`cell-ch-${index}`} fill={PIE_COLORS[(index + 6) % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
+                  {channelPieData.map((entry) => (
+                    <div key={entry.name} className="flex items-center justify-between">
+                      <span className="truncate pr-2">{entry.name}</span>
+                      <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* =========================================================================
+            PESTAÑA 3: TENDENCIAS Y TOP CLIENTES
+            ========================================================================= */}
+        {reportActiveTab === 'TENDENCIAS' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
+              <h2 className="text-xs font-black text-slate-900 mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-blue-600" /> Evolución Mensual de Ventas Netas
+              </h2>
+              <div className="h-60">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={timeSeriesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tickFormatter={(val) => `$${(val/1000000).toFixed(1)}M`} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <RechartsTooltip formatter={(value: number) => formatCOP(value)} labelStyle={{ fontWeight: 'bold' }} />
+                    <Line type="monotone" dataKey="ventas" name="Venta Neta" stroke="#4f46e5" strokeWidth={3} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
+              <h2 className="text-xs font-black text-slate-900 mb-3 flex items-center gap-2">
+                <Crown className="w-4 h-4 text-amber-500" /> Top 10 Clientes por Volumen Facturado
+              </h2>
+              <div className="h-60">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topClientsData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis type="number" tickFormatter={(val) => `$${(val/1000000).toFixed(0)}M`} tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis dataKey="name" type="category" width={110} tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <RechartsTooltip formatter={(value: number) => formatCOP(value)} />
+                    <Bar dataKey="amount" name="Venta Neta" radius={[0, 4, 4, 0]}>
+                      {topClientsData.map((_, index) => (
+                        <Cell key={`cell-bar-${index}`} fill={index === 0 ? '#f59e0b' : '#3b82f6'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            PESTAÑA 4: SÁBANA PLANA / LIBRO AUXILIAR CON TOTALES FIJOS
+            ========================================================================= */}
+        {reportActiveTab === 'TABLA' && (
+          <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+            <div className="p-3.5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+                <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                  Sábana Operativa & Comprobantes Contables
+                </h2>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-slate-500 font-medium">Filas:</span>
+                <select 
+                  value={pageSize}
+                  onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                  className="font-bold border border-slate-200 bg-white rounded px-2 py-1 text-slate-700 outline-none"
+                >
+                  <option value="15">15</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="250">250</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200 text-[10.5px]">
+                  <tr>
+                    <th className="py-2.5 px-3">Fecha</th>
+                    <th className="py-2.5 px-3">Comprobante</th>
+                    <th className="py-2.5 px-3">Asesor Comercial</th>
+                    <th className="py-2.5 px-3">Sede / POS</th>
+                    <th className="py-2.5 px-3">Tercero / Cliente</th>
+                    <th className="py-2.5 px-3">Cuenta PUC</th>
+                    <th className="py-2.5 px-3">SKU</th>
+                    <th className="py-2.5 px-3">Detalle</th>
+                    <th className="py-2.5 px-3 text-center">Cant.</th>
+                    <th className="py-2.5 px-3 text-right">IVA</th>
+                    <th className="py-2.5 px-3 text-right">Total Neto</th>
+                    <th className="py-2.5 px-3 text-right">Total Bruto</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-[11px]">
+                  {paginatedData.length === 0 ? (
+                    <tr>
+                      <td colSpan={12} className="py-10 text-center text-slate-400 font-medium">
+                        No hay transacciones que coincidan con los criterios seleccionados en el filtro.
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedData.map((tx, idx) => {
+                      const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+                      const netAmount = Math.abs(tx.total) - (tx.iva || 0);
+                      const puc = tx.type === 'VENTA' ? '413505' : (isReturn ? '417505' : (tx.type === 'COMPRA' ? '143505' : '110505'));
+                      const sellerName = getTxSeller(tx).split(' (')[0];
+
+                      return (
+                        <tr key={`${tx.id}-${idx}`} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-2 px-3 font-mono whitespace-nowrap text-slate-500">{tx.date}</td>
+                          <td className="py-2 px-3 font-mono font-bold">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                              isReturn ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                            }`}>
+                              {tx.document || tx.id}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-slate-700 font-semibold max-w-[130px] truncate" title={getTxSeller(tx)}>
+                            {sellerName}
+                          </td>
+                          <td className="py-2 px-3 text-slate-500 max-w-[130px] truncate" title={tx.posLocation}>
+                            {tx.posLocation || 'Principal'}
+                          </td>
+                          <td className="py-2 px-3 font-bold text-slate-800 max-w-[180px] truncate" title={tx.client}>
+                            {tx.client || 'Consumidor Final'}
+                          </td>
+                          <td className="py-2 px-3 font-mono text-slate-600 font-bold">
+                            {puc}
+                          </td>
+                          <td className="py-2 px-3 font-mono text-slate-600 text-[10.5px]">
+                            {tx.sku && tx.sku !== '-' ? tx.sku : 'DIVERSO'}
+                          </td>
+                          <td className="py-2 px-3 max-w-[170px] truncate text-slate-700" title={tx.productName}>
+                            {tx.productName || 'Varios'}
+                          </td>
+                          <td className="py-2 px-3 text-center font-bold text-slate-800">
+                            {tx.qty || 1}
+                          </td>
+                          <td className="py-2 px-3 text-right text-slate-400 font-mono">
+                            {formatCOP(tx.iva || 0)}
+                          </td>
+                          <td className="py-2 px-3 text-right font-bold text-slate-700 font-mono">
+                            {formatCOP(isReturn ? -netAmount : netAmount)}
+                          </td>
+                          <td className={`py-2 px-3 text-right font-black font-mono ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
+                            {formatCOP(tx.total)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+                
+                {filteredData.length > 0 && (
+                  <tfoot className="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300 text-xs">
+                    <tr>
+                      <td colSpan={8} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-600 font-bold">
+                        Totales ({filteredData.length} docs):
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono text-slate-600">
+                        {formatCOP(kpis.totalIva)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono text-indigo-700">
+                        {formatCOP(kpis.totalNet)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono text-emerald-700 text-sm">
+                        {formatCOP(kpis.totalGross)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
+              <div>
+                {Math.min((currentPage - 1) * pageSize + 1, filteredData.length)} a {Math.min(currentPage * pageSize, filteredData.length)} de {filteredData.length.toLocaleString()} registros
+              </div>
+              <div className="flex items-center gap-1">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(1)}
+                  className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
+                >
+                  « Primero
+                </button>
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
+                >
+                  Anterior
+                </button>
+                <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-extrabold rounded border border-indigo-100">
+                  {currentPage} / {totalPages || 1}
+                </span>
+                <button 
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
+                >
+                  Siguiente
+                </button>
+                <button 
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
+                >
+                  Último »
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
 
     </div>
   );
