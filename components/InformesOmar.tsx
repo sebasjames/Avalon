@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   Activity, 
   Search, 
@@ -32,7 +32,13 @@ import {
   Eye,
   FileSpreadsheet,
   CheckCircle2,
-  FolderKanban
+  FolderKanban,
+  PieChart as PieChartIcon,
+  CreditCard,
+  Percent,
+  TrendingDown,
+  Check,
+  Zap
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -40,7 +46,7 @@ import { ACCOUNTING_TRANSACTIONS } from '../data/accounting_ledger';
 import { INVENTORY_DATA } from '../data/inventory';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  BarChart, Bar, Cell, Legend
+  BarChart, Bar, Cell, Legend, PieChart, Pie
 } from 'recharts';
 
 // Helper for COP Currency Formatting
@@ -53,10 +59,24 @@ const formatCOP = (value: number) => {
   }).format(value);
 };
 
+const PIE_COLORS = [
+  '#4f46e5', // Indigo
+  '#06b6d4', // Cyan
+  '#10b981', // Emerald
+  '#f59e0b', // Amber
+  '#ec4899', // Pink
+  '#8b5cf6', // Purple
+  '#f97316', // Orange
+  '#64748b', // Slate
+  '#14b8a6', // Teal
+  '#ef4444'  // Rose
+];
+
 export const InformesOmar: React.FC = () => {
   const enterprise = useEnterprise();
+  const reportResultsRef = useRef<HTMLDivElement>(null);
   
-  // Use live enterprise transactions if available, fallback to static ledger
+  // Live enterprise transactions or static ledger fallback
   const allRawTransactions = useMemo(() => {
     if (enterprise?.transactions && enterprise.transactions.length > 0) {
       return enterprise.transactions;
@@ -72,8 +92,13 @@ export const InformesOmar: React.FC = () => {
     return INVENTORY_DATA;
   }, [enterprise?.inventory]);
 
-  // --- WORLD OFFICE FILTER STATE ---
+  // --- STATE: WORLD OFFICE FILTER CRITERIA ---
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
+  const [hasGeneratedReport, setHasGeneratedReport] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [reportGeneratedAt, setReportGeneratedAt] = useState<string>(
+    new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  );
   
   // 1. Fechas & Periodo
   const [periodPreset, setPeriodPreset] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH' | '2026' | '2025' | 'CUSTOM'>('ALL');
@@ -81,7 +106,7 @@ export const InformesOmar: React.FC = () => {
   const [dateTo, setDateTo] = useState('');
 
   // 2. Cuentas Contables (PUC)
-  const [pucClassFilter, setPucClassFilter] = useState('ALL'); // ALL, 1_ACTIVOS, 2_PASIVOS, 4_INGRESOS, 5_GASTOS
+  const [pucClassFilter, setPucClassFilter] = useState('ALL');
   const [pucFrom, setPucFrom] = useState('110505');
   const [pucTo, setPucTo] = useState('413595');
   const [pucLevel, setPucLevel] = useState<'AUXILIAR' | 'SUBCUENTA' | 'CUENTA'>('AUXILIAR');
@@ -115,6 +140,9 @@ export const InformesOmar: React.FC = () => {
   const [includeIvaBreakdown, setIncludeIvaBreakdown] = useState(true);
   const [showChemicalVolume, setShowChemicalVolume] = useState(true);
   const [hideZeroBalances, setHideZeroBalances] = useState(false);
+
+  // Active View Tab for Report
+  const [reportActiveTab, setReportActiveTab] = useState<'TODOS' | 'TORTAS' | 'TENDENCIAS' | 'TABLA'>('TODOS');
 
   // Paginación
   const [pageSize, setPageSize] = useState(50);
@@ -177,6 +205,21 @@ export const InformesOmar: React.FC = () => {
     setShowChemicalVolume(true);
     setHideZeroBalances(false);
     setCurrentPage(1);
+  };
+
+  // Trigger Generar Informe with Visual Feedback
+  const handleGenerateReport = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setHasGeneratedReport(true);
+      setReportGeneratedAt(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setCurrentPage(1);
+      // Scroll to results smoothly
+      if (reportResultsRef.current) {
+        reportResultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 400);
   };
 
   // Distinct families from inventory & transactions for filters
@@ -360,6 +403,79 @@ export const InformesOmar: React.FC = () => {
     return { totalLiters, totalKilos };
   }, [filteredData, inventorySource]);
 
+  // --- TORTAS (DONUT / PIE CHARTS DATA) ---
+
+  // Torta 1: Mix por Familia Química
+  const familyPieData = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredData.forEach(tx => {
+      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
+      const fam = tx.family || 'DIVERSOS';
+      const net = tx.total - (tx.iva || 0);
+      map[fam] = (map[fam] || 0) + net;
+    });
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredData]);
+
+  // Torta 2: Distribución por Sucursal / Centro de Costos
+  const costCenterPieData = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredData.forEach(tx => {
+      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
+      const loc = tx.posLocation || 'Principal Centro';
+      const net = tx.total - (tx.iva || 0);
+      map[loc] = (map[loc] || 0) + net;
+    });
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredData]);
+
+  // Torta 3: Métodos de Pago y Recaudos
+  const paymentMethodPieData = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredData.forEach(tx => {
+      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
+      const method = tx.paymentMethod || 'Efectivo';
+      map[method] = (map[method] || 0) + tx.total;
+    });
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredData]);
+
+  // Top 10 Clientes
+  const topClientsData = useMemo(() => {
+    const clientSales: Record<string, number> = {};
+    filteredData.forEach(tx => {
+      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
+      const netAmount = tx.total - (tx.iva || 0);
+      if (tx.client) {
+        clientSales[tx.client] = (clientSales[tx.client] || 0) + netAmount;
+      }
+    });
+
+    return Object.entries(clientSales)
+      .map(([name, amount]) => ({ name, amount }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 10);
+  }, [filteredData]);
+
+  // Torta 4: Concentración de Cartera (Top 5 Clientes vs Resto)
+  const clientConcentrationPieData = useMemo(() => {
+    const top5 = topClientsData.slice(0, 5);
+    const top5Total = top5.reduce((sum, c) => sum + c.amount, 0);
+    const othersTotal = Math.max(0, kpis.totalNet - top5Total);
+
+    const list = top5.map(c => ({ name: c.name.length > 18 ? c.name.substring(0, 18) + '...' : c.name, value: c.amount }));
+    if (othersTotal > 0) {
+      list.push({ name: 'Demás Clientes', value: othersTotal });
+    }
+    return list;
+  }, [topClientsData, kpis.totalNet]);
+
   // Time Series Data (Monthly)
   const timeSeriesData = useMemo(() => {
     const monthlyMap: Record<string, { month: string, ventas: number, ticket: number, docs: Set<string>, totalGross: number }> = {};
@@ -385,23 +501,6 @@ export const InformesOmar: React.FC = () => {
       ventas: item.ventas,
       ticket: item.docs.size > 0 ? (item.totalGross / item.docs.size) : 0
     }));
-  }, [filteredData]);
-
-  // Top 10 Clients
-  const topClientsData = useMemo(() => {
-    const clientSales: Record<string, number> = {};
-    filteredData.forEach(tx => {
-      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const netAmount = tx.total - (tx.iva || 0);
-      if (tx.client) {
-        clientSales[tx.client] = (clientSales[tx.client] || 0) + netAmount;
-      }
-    });
-
-    return Object.entries(clientSales)
-      .map(([name, amount]) => ({ name, amount }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 10);
   }, [filteredData]);
 
   // Pagination Data
@@ -496,11 +595,17 @@ export const InformesOmar: React.FC = () => {
         {/* Action Buttons Toolbar */}
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
           <button 
-            onClick={() => setCurrentPage(1)}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-2"
-            title="Procesar y aplicar criterios del informe"
+            onClick={handleGenerateReport}
+            disabled={isGenerating}
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/20 active:scale-95 flex items-center gap-2 cursor-pointer"
+            title="Procesar y generar informe visual completo"
           >
-            <Activity className="w-4 h-4" /> Procesar Informe
+            {isGenerating ? (
+              <RefreshCw className="w-4 h-4 animate-spin text-white" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-amber-300" />
+            )}
+            {isGenerating ? 'Generando...' : 'Generar Informe'}
           </button>
 
           <button 
@@ -550,7 +655,7 @@ export const InformesOmar: React.FC = () => {
                 <button
                   key={p.id}
                   onClick={() => handleApplyPeriodPreset(p.id as any)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     periodPreset === p.id 
                       ? 'bg-indigo-600 text-white shadow-sm' 
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -811,7 +916,7 @@ export const InformesOmar: React.FC = () => {
               </select>
             </div>
 
-            {/* 7. OPCIONES DE SALIDA (CHECKS CLÁSICOS DE WORLD OFFICE) */}
+            {/* 7. OPCIONES DE SALIDA */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
                 <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" /> Opciones de Presentación
@@ -858,66 +963,142 @@ export const InformesOmar: React.FC = () => {
 
           </div>
 
-          {/* Barra de Estado de Filtros Activos (Breadcrumbs) */}
-          <div className="bg-indigo-50/60 rounded-xl p-3 border border-indigo-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex flex-wrap items-center gap-2 font-medium text-indigo-900">
-              <span className="font-bold text-indigo-700 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" /> Criterios Activos:
-              </span>
-              <span className="bg-white px-2 py-0.5 rounded border border-indigo-200">
-                Periodo: {dateFrom || 'Inicio'} a {dateTo || 'Fin'}
-              </span>
-              <span className="bg-white px-2 py-0.5 rounded border border-indigo-200">
-                PUC: {pucFrom} a {pucTo}
-              </span>
-              <span className="bg-white px-2 py-0.5 rounded border border-indigo-200">
-                Docs: {[docTypeFVE && 'FVE', docTypeNC && 'NC', docTypeCE && 'CE', docTypeRC && 'RC'].filter(Boolean).join(', ') || 'Ninguno'}
-              </span>
-              {selectedCostCenter !== 'ALL' && (
-                <span className="bg-white px-2 py-0.5 rounded border border-indigo-200">
-                  Sede: {selectedCostCenter}
-                </span>
-              )}
+          {/* Gran Botón de Acción Principal para Omar: GENERAR INFORME */}
+          <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs text-slate-500 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span>Configuración lista: <strong>{filteredData.length.toLocaleString()} transacciones</strong> coincidentes.</span>
             </div>
 
-            <div className="font-bold text-indigo-900 bg-white px-3 py-1 rounded-lg border border-indigo-200">
-              Registros Encontrados: <span className="text-indigo-600">{filteredData.length.toLocaleString()}</span>
-            </div>
+            <button
+              onClick={handleGenerateReport}
+              disabled={isGenerating}
+              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 hover:from-emerald-500 hover:to-indigo-600 text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-700/20 active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
+            >
+              {isGenerating ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <Sparkles className="w-5 h-5 text-amber-300" />
+              )}
+              <span>{isGenerating ? 'PROCESANDO CRITERIOS...' : 'GENERAR INFORME VISUAL & TORTAS'}</span>
+            </button>
           </div>
 
         </div>
       )}
 
-      {/* 3. KPIS EJECUTIVOS */}
+      {/* 3. RESUMEN DE CRITERIOS ACTIVOS & ESTADO DEL INFORME */}
+      <div ref={reportResultsRef} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-extrabold text-indigo-700 uppercase tracking-wider text-[11px] flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Informe Generado
+          </span>
+          <span className="text-slate-400">|</span>
+          <span className="text-slate-600 font-medium">Actualizado: <strong className="text-slate-900">{reportGeneratedAt}</strong></span>
+          <span className="text-slate-400">|</span>
+          <span className="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-semibold border border-slate-200">
+            Periodo: {dateFrom || 'Inicio'} a {dateTo || 'Fin'}
+          </span>
+          <span className="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-semibold border border-slate-200">
+            PUC: {pucFrom} a {pucTo}
+          </span>
+          <span className="bg-slate-100 px-2.5 py-0.5 rounded text-slate-700 font-semibold border border-slate-200">
+            Docs: {[docTypeFVE && 'FVE', docTypeNC && 'NC', docTypeCE && 'CE', docTypeRC && 'RC'].filter(Boolean).join(', ') || 'Todos'}
+          </span>
+        </div>
+
+        {/* View mode switcher */}
+        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+          <button 
+            onClick={() => setReportActiveTab('TODOS')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              reportActiveTab === 'TODOS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Vista Completa
+          </button>
+          <button 
+            onClick={() => setReportActiveTab('TORTAS')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+              reportActiveTab === 'TORTAS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <PieChartIcon className="w-3.5 h-3.5" /> Tortas
+          </button>
+          <button 
+            onClick={() => setReportActiveTab('TENDENCIAS')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+              reportActiveTab === 'TENDENCIAS' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" /> Tendencias
+          </button>
+          <button 
+            onClick={() => setReportActiveTab('TABLA')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+              reportActiveTab === 'TABLA' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" /> Sábana
+          </button>
+        </div>
+      </div>
+
+      {/* 4. KPIS EJECUTIVOS (TARJETAS VISUALES) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Venta Neta</span>
-          <div className="text-xl font-black text-slate-900 mt-1">{formatCOP(kpis.totalNet)}</div>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Venta Neta</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-black text-slate-900 mt-2">{formatCOP(kpis.totalNet)}</div>
           <span className="text-[11px] text-slate-500 font-medium">Bruta: {formatCOP(kpis.totalGross)}</span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">IVA Recaudado</span>
-          <div className="text-xl font-black text-slate-900 mt-1">{formatCOP(kpis.totalIva)}</div>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">IVA Recaudado</span>
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Receipt className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-black text-slate-900 mt-2">{formatCOP(kpis.totalIva)}</div>
           <span className="text-[11px] text-slate-400 font-medium">Cuenta 240801</span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comprobantes</span>
-          <div className="text-xl font-black text-blue-600 mt-1">{kpis.docCount.toLocaleString()}</div>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-indigo-300 transition-colors">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comprobantes</span>
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <FileText className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-black text-blue-600 mt-2">{kpis.docCount.toLocaleString()}</div>
           <span className="text-[11px] text-slate-500 font-medium">Ticket: {formatCOP(kpis.avgTicket)}</span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Notas Crédito (Dev.)</span>
-          <div className="text-xl font-black text-rose-600 mt-1">{formatCOP(kpis.returnsTotal)}</div>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-rose-300 transition-colors">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Devoluciones</span>
+            <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <RotateCcw className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-black text-rose-600 mt-2">{formatCOP(kpis.returnsTotal)}</div>
           <span className="text-[11px] text-rose-400 font-semibold">Tasa: {kpis.returnsImpact.toFixed(1)}%</span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Volumen Químico</span>
-          <div className="text-xl font-black text-purple-700 mt-1">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-purple-300 transition-colors">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Volumen Químico</span>
+            <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+              <TestTube className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-black text-purple-700 mt-2">
             {Math.round(physicalKpis.totalLiters).toLocaleString()} <span className="text-xs font-normal">LT</span>
           </div>
           <span className="text-[11px] text-slate-500 font-medium">
@@ -925,9 +1106,14 @@ export const InformesOmar: React.FC = () => {
           </span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Cliente Top #1</span>
-          <div className="text-sm font-bold text-slate-800 truncate mt-1" title={kpis.topClientName}>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-amber-300 transition-colors">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Cliente Top #1</span>
+            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Crown className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-sm font-bold text-slate-800 truncate mt-2" title={kpis.topClientName}>
             {kpis.topClientName}
           </div>
           <span className="text-xs font-black text-amber-600">{formatCOP(kpis.topClientAmount)}</span>
@@ -935,228 +1121,457 @@ export const InformesOmar: React.FC = () => {
 
       </div>
 
-      {/* 4. CHARTS SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Time Series */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-            <h2 className="text-sm font-bold text-slate-900">Evolución de Ventas Netas (Consolidado Mensual)</h2>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={timeSeriesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tickFormatter={(val) => `$${(val/1000000).toFixed(1)}M`} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <RechartsTooltip formatter={(value: number) => formatCOP(value)} labelStyle={{ fontWeight: 'bold' }} />
-                <Line type="monotone" dataKey="ventas" name="Venta Neta" stroke="#4f46e5" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Top 10 Clients Bar Chart */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-2 mb-4">
-            <Crown className="w-5 h-5 text-amber-500" />
-            <h2 className="text-sm font-bold text-slate-900">Top 10 Clientes por Venta Neta</h2>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topClientsData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                <XAxis type="number" tickFormatter={(val) => `$${(val/1000000).toFixed(0)}M`} tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis dataKey="name" type="category" width={110} tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <RechartsTooltip formatter={(value: number) => formatCOP(value)} />
-                <Bar dataKey="amount" name="Venta Neta" radius={[0, 4, 4, 0]}>
-                  {topClientsData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 0 ? '#f59e0b' : '#3b82f6'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-      </div>
-
-      {/* 5. TABLA DE RESULTADOS (LIBRO AUXILIAR CON TOTALES FIJOS) */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        
-        {/* Table Header & Size selector */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* 5. SECCIÓN DE TORTAS Y COSAS VISUALES ("TODO LO QUE OMAR QUIERA") */}
+      {(reportActiveTab === 'TODOS' || reportActiveTab === 'TORTAS') && (
+        <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
-            <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              Detalle Transaccional y Comprobantes Contables
-            </h2>
+            <PieChartIcon className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-base font-black text-slate-900 tracking-tight">Distribución Visual & Gráficos de Torta</h2>
+            <span className="text-xs text-slate-400 font-medium">Participación porcentual y concentración</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500 font-medium">Filas por vista:</span>
-            <select 
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="text-xs font-bold border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-slate-700 outline-none"
-            >
-              <option value="15">15 filas</option>
-              <option value="50">50 filas</option>
-              <option value="100">100 filas</option>
-              <option value="250">250 filas</option>
-              <option value="1000">1000 filas</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Table Content */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200 text-[11px]">
-              <tr>
-                <th className="py-3 px-4">Fecha</th>
-                <th className="py-3 px-4">Comprobante</th>
-                <th className="py-3 px-4">Tercero / Cliente</th>
-                <th className="py-3 px-4">Cuenta PUC</th>
-                <th className="py-3 px-4">Referencia SKU</th>
-                <th className="py-3 px-4">Producto / Detalle</th>
-                <th className="py-3 px-4 text-center">Cant.</th>
-                <th className="py-3 px-4">Sucursal</th>
-                <th className="py-3 px-4 text-right">IVA</th>
-                <th className="py-3 px-4 text-right">Total Neto</th>
-                <th className="py-3 px-4 text-right">Total Bruto</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium">
-              {paginatedData.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-400 font-medium">
-                    No hay transacciones que coincidan con los criterios seleccionados en el filtro.
-                  </td>
-                </tr>
-              ) : (
-                paginatedData.map((tx, idx) => {
-                  const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-                  const netAmount = Math.abs(tx.total) - (tx.iva || 0);
-                  const puc = tx.type === 'VENTA' ? '413505' : (isReturn ? '417505' : (tx.type === 'COMPRA' ? '143505' : '110505'));
-
-                  return (
-                    <tr key={`${tx.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2.5 px-4 font-mono whitespace-nowrap text-slate-500">{tx.date}</td>
-                      <td className="py-2.5 px-4 font-mono font-bold">
-                        <span className={`px-2 py-0.5 rounded text-[10px] ${
-                          isReturn 
-                            ? 'bg-rose-100 text-rose-700' 
-                            : 'bg-blue-50 text-blue-700 border border-blue-200'
-                        }`}>
-                          {tx.document || tx.id}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-4 font-bold text-slate-800 max-w-[220px] truncate" title={tx.client}>
-                        {tx.client || 'Consumidor Final'}
-                      </td>
-                      <td className="py-2.5 px-4 font-mono text-[11px] text-slate-600 font-bold">
-                        {puc}
-                      </td>
-                      <td className="py-2.5 px-4 font-mono text-slate-600 text-xs">
-                        {tx.sku && tx.sku !== '-' ? tx.sku : 'DIVERSO'}
-                      </td>
-                      <td className="py-2.5 px-4 max-w-[200px] truncate text-slate-700" title={tx.productName}>
-                        {tx.productName || 'Varios'}
-                      </td>
-                      <td className="py-2.5 px-4 text-center font-bold text-slate-800">
-                        {tx.qty || 1}
-                      </td>
-                      <td className="py-2.5 px-4 text-[11px] text-slate-500">
-                        {tx.posLocation || 'Principal'}
-                      </td>
-                      <td className="py-2.5 px-4 text-right text-slate-400 font-mono">
-                        {formatCOP(tx.iva || 0)}
-                      </td>
-                      <td className="py-2.5 px-4 text-right font-bold text-slate-700 font-mono">
-                        {formatCOP(isReturn ? -netAmount : netAmount)}
-                      </td>
-                      <td className={`py-2.5 px-4 text-right font-black font-mono ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
-                        {formatCOP(tx.total)}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             
-            {/* Totales Fijos en el Pie de la Tabla (Como en World Office) */}
-            {filteredData.length > 0 && (
-              <tfoot className="bg-slate-100/90 font-black text-slate-900 border-t-2 border-slate-300 text-xs">
-                <tr>
-                  <td colSpan={6} className="py-3 px-4 text-right uppercase tracking-wider text-slate-600 font-bold">
-                    Totales Consolidados del Informe ({filteredData.length} transacciones):
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
-                  </td>
-                  <td></td>
-                  <td className="py-3 px-4 text-right font-mono text-slate-600">
-                    {formatCOP(kpis.totalIva)}
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono text-indigo-700">
-                    {formatCOP(kpis.totalNet)}
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono text-emerald-700 text-sm">
-                    {formatCOP(kpis.totalGross)}
-                  </td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
+            {/* TORTA 1: FAMILIAS QUÍMICAS */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-indigo-600" /> Mix Familias Químicas
+                  </h3>
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Venta Neta</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mb-4">Participación por línea y portafolio</p>
+                
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={familyPieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={42}
+                        outerRadius={70}
+                        paddingAngle={3}
+                      >
+                        {familyPieData.map((_, index) => (
+                          <Cell key={`cell-fam-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-        {/* Pagination Bar */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
-          <div>
-            Mostrando {Math.min((currentPage - 1) * pageSize + 1, filteredData.length)} a {Math.min(currentPage * pageSize, filteredData.length)} de {filteredData.length.toLocaleString()} registros
+              {/* Leyenda Detallada */}
+              <div className="mt-3 space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar pt-2 border-t border-slate-100 text-xs">
+                {familyPieData.slice(0, 5).map((entry, idx) => {
+                  const pct = kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={entry.name} className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                        <span className="text-slate-700 font-medium truncate">{entry.name}</span>
+                      </div>
+                      <span className="font-bold text-slate-900 shrink-0">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* TORTA 2: SUCURSALES / CENTRO DE COSTOS */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Building className="w-4 h-4 text-emerald-600" /> Sucursales y Sedes
+                  </h3>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Centros Costo</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mb-4">Aporte de cada punto operativo</p>
+                
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={costCenterPieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={42}
+                        outerRadius={70}
+                        paddingAngle={3}
+                      >
+                        {costCenterPieData.map((_, index) => (
+                          <Cell key={`cell-cc-${index}`} fill={PIE_COLORS[(index + 2) % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Leyenda */}
+              <div className="mt-3 space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar pt-2 border-t border-slate-100 text-xs">
+                {costCenterPieData.map((entry, idx) => {
+                  const pct = kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={entry.name} className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[(idx + 2) % PIE_COLORS.length] }} />
+                        <span className="text-slate-700 font-medium truncate">{entry.name}</span>
+                      </div>
+                      <span className="font-bold text-slate-900 shrink-0">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* TORTA 3: MÉTODOS DE PAGO */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-blue-600" /> Medios de Pago
+                  </h3>
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Recaudos</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mb-4">Datáfonos, efectivo y bancos</p>
+                
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={paymentMethodPieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={42}
+                        outerRadius={70}
+                        paddingAngle={3}
+                      >
+                        {paymentMethodPieData.map((_, index) => (
+                          <Cell key={`cell-pm-${index}`} fill={PIE_COLORS[(index + 4) % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Leyenda */}
+              <div className="mt-3 space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar pt-2 border-t border-slate-100 text-xs">
+                {paymentMethodPieData.map((entry, idx) => {
+                  const pct = kpis.totalGross > 0 ? ((entry.value / kpis.totalGross) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={entry.name} className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[(idx + 4) % PIE_COLORS.length] }} />
+                        <span className="text-slate-700 font-medium truncate">{entry.name}</span>
+                      </div>
+                      <span className="font-bold text-slate-900 shrink-0">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* TORTA 4: CONCENTRACIÓN PARETO (TOP CLIENTES VS RESTO) */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Crown className="w-4 h-4 text-amber-500" /> Concentración Cartera
+                  </h3>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Pareto 80/20</span>
+                </div>
+                <p className="text-[11px] text-slate-400 mb-4">Top 5 clientes vs resto del mercado</p>
+                
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={clientConcentrationPieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={42}
+                        outerRadius={70}
+                        paddingAngle={3}
+                      >
+                        {clientConcentrationPieData.map((_, index) => (
+                          <Cell key={`cell-cp-${index}`} fill={index === 0 ? '#f59e0b' : PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Leyenda */}
+              <div className="mt-3 space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar pt-2 border-t border-slate-100 text-xs">
+                {clientConcentrationPieData.map((entry, idx) => {
+                  const pct = kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={entry.name} className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: idx === 0 ? '#f59e0b' : PIE_COLORS[idx % PIE_COLORS.length] }} />
+                        <span className="text-slate-700 font-medium truncate">{entry.name}</span>
+                      </div>
+                      <span className="font-bold text-slate-900 shrink-0">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
+        </div>
+      )}
+
+      {/* 6. CHARTS SECTION (TENDENCIAS Y TOP CLIENTES) */}
+      {(reportActiveTab === 'TODOS' || reportActiveTab === 'TENDENCIAS') && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          <div className="flex items-center gap-1.5">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(1)}
-              className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
-            >
-              « Primero
-            </button>
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
-            >
-              Anterior
-            </button>
-            <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-extrabold rounded-lg border border-indigo-100">
-              Página {currentPage} de {totalPages || 1}
-            </span>
-            <button 
-              disabled={currentPage === totalPages || totalPages === 0}
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
-            >
-              Siguiente
-            </button>
-            <button 
-              disabled={currentPage === totalPages || totalPages === 0}
-              onClick={() => setCurrentPage(totalPages)}
-              className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
-            >
-              Último »
-            </button>
+          {/* Time Series */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+                <h2 className="text-sm font-black text-slate-900">Evolución Mensual de Ventas Netas</h2>
+              </div>
+              <span className="text-xs font-bold text-slate-400">Total Histórico</span>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={timeSeriesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={(val) => `$${(val/1000000).toFixed(1)}M`} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip formatter={(value: number) => formatCOP(value)} labelStyle={{ fontWeight: 'bold' }} />
+                  <Line type="monotone" dataKey="ventas" name="Venta Neta" stroke="#4f46e5" strokeWidth={3} dot={{ r: 3.5 }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
 
-      </div>
+          {/* Top 10 Clients Bar Chart */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-amber-500" />
+                <h2 className="text-sm font-black text-slate-900">Top 10 Clientes por Volumen Facturado</h2>
+              </div>
+              <span className="text-xs font-bold text-amber-600">Venta Neta</span>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topClientsData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" tickFormatter={(val) => `$${(val/1000000).toFixed(0)}M`} tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" width={110} tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip formatter={(value: number) => formatCOP(value)} />
+                  <Bar dataKey="amount" name="Venta Neta" radius={[0, 4, 4, 0]}>
+                    {topClientsData.map((_, index) => (
+                      <Cell key={`cell-bar-${index}`} fill={index === 0 ? '#f59e0b' : '#3b82f6'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* 7. TABLA DE RESULTADOS (LIBRO AUXILIAR CON TOTALES FIJOS) */}
+      {(reportActiveTab === 'TODOS' || reportActiveTab === 'TABLA') && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          
+          {/* Table Header & Size selector */}
+          <div className="p-4 border-b border-slate-200 bg-slate-50/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                Sábana Transaccional & Comprobantes Contables
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500 font-medium">Filas por vista:</span>
+              <select 
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="text-xs font-bold border border-slate-200 bg-white rounded-lg px-2.5 py-1 text-slate-700 outline-none"
+              >
+                <option value="15">15 filas</option>
+                <option value="50">50 filas</option>
+                <option value="100">100 filas</option>
+                <option value="250">250 filas</option>
+                <option value="1000">1000 filas</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Table Content */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-600">
+              <thead className="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200 text-[11px]">
+                <tr>
+                  <th className="py-3 px-4">Fecha</th>
+                  <th className="py-3 px-4">Comprobante</th>
+                  <th className="py-3 px-4">Tercero / Cliente</th>
+                  <th className="py-3 px-4">Cuenta PUC</th>
+                  <th className="py-3 px-4">Referencia SKU</th>
+                  <th className="py-3 px-4">Producto / Detalle</th>
+                  <th className="py-3 px-4 text-center">Cant.</th>
+                  <th className="py-3 px-4">Sucursal</th>
+                  <th className="py-3 px-4 text-right">IVA</th>
+                  <th className="py-3 px-4 text-right">Total Neto</th>
+                  <th className="py-3 px-4 text-right">Total Bruto</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {paginatedData.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="py-12 text-center text-slate-400 font-medium">
+                      No hay transacciones que coincidan con los criterios seleccionados en el filtro.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedData.map((tx, idx) => {
+                    const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+                    const netAmount = Math.abs(tx.total) - (tx.iva || 0);
+                    const puc = tx.type === 'VENTA' ? '413505' : (isReturn ? '417505' : (tx.type === 'COMPRA' ? '143505' : '110505'));
+
+                    return (
+                      <tr key={`${tx.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-2.5 px-4 font-mono whitespace-nowrap text-slate-500">{tx.date}</td>
+                        <td className="py-2.5 px-4 font-mono font-bold">
+                          <span className={`px-2 py-0.5 rounded text-[10px] ${
+                            isReturn 
+                              ? 'bg-rose-100 text-rose-700' 
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          }`}>
+                            {tx.document || tx.id}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-4 font-bold text-slate-800 max-w-[220px] truncate" title={tx.client}>
+                          {tx.client || 'Consumidor Final'}
+                        </td>
+                        <td className="py-2.5 px-4 font-mono text-[11px] text-slate-600 font-bold">
+                          {puc}
+                        </td>
+                        <td className="py-2.5 px-4 font-mono text-slate-600 text-xs">
+                          {tx.sku && tx.sku !== '-' ? tx.sku : 'DIVERSO'}
+                        </td>
+                        <td className="py-2.5 px-4 max-w-[200px] truncate text-slate-700" title={tx.productName}>
+                          {tx.productName || 'Varios'}
+                        </td>
+                        <td className="py-2.5 px-4 text-center font-bold text-slate-800">
+                          {tx.qty || 1}
+                        </td>
+                        <td className="py-2.5 px-4 text-[11px] text-slate-500">
+                          {tx.posLocation || 'Principal'}
+                        </td>
+                        <td className="py-2.5 px-4 text-right text-slate-400 font-mono">
+                          {formatCOP(tx.iva || 0)}
+                        </td>
+                        <td className="py-2.5 px-4 text-right font-bold text-slate-700 font-mono">
+                          {formatCOP(isReturn ? -netAmount : netAmount)}
+                        </td>
+                        <td className={`py-2.5 px-4 text-right font-black font-mono ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
+                          {formatCOP(tx.total)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              
+              {/* Totales Fijos en el Pie de la Tabla (Como en World Office) */}
+              {filteredData.length > 0 && (
+                <tfoot className="bg-slate-100/90 font-black text-slate-900 border-t-2 border-slate-300 text-xs">
+                  <tr>
+                    <td colSpan={6} className="py-3 px-4 text-right uppercase tracking-wider text-slate-600 font-bold">
+                      Totales Consolidados del Informe ({filteredData.length} transacciones):
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
+                    </td>
+                    <td></td>
+                    <td className="py-3 px-4 text-right font-mono text-slate-600">
+                      {formatCOP(kpis.totalIva)}
+                    </td>
+                    <td className="py-3 px-4 text-right font-mono text-indigo-700">
+                      {formatCOP(kpis.totalNet)}
+                    </td>
+                    <td className="py-3 px-4 text-right font-mono text-emerald-700 text-sm">
+                      {formatCOP(kpis.totalGross)}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+
+          {/* Pagination Bar */}
+          <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+            <div>
+              Mostrando {Math.min((currentPage - 1) * pageSize + 1, filteredData.length)} a {Math.min(currentPage * pageSize, filteredData.length)} de {filteredData.length.toLocaleString()} registros
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
+              >
+                « Primero
+              </button>
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
+              >
+                Anterior
+              </button>
+              <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-extrabold rounded-lg border border-indigo-100">
+                Página {currentPage} de {totalPages || 1}
+              </span>
+              <button 
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
+              >
+                Siguiente
+              </button>
+              <button 
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage(totalPages)}
+                className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 disabled:opacity-40 font-bold"
+              >
+                Último »
+              </button>
+            </div>
+          </div>
+
+        </div>
+      )}
 
     </div>
   );
