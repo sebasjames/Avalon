@@ -562,7 +562,6 @@ export const InformesOmar: React.FC = () => {
         if (fav.diaFin) setDiaFin(fav.diaFin);
         if (fav.mesFin) setMesFin(fav.mesFin);
         if (fav.anoFin) setAnoFin(fav.anoFin);
-        handleGenerateReport();
       }
     } catch (e) {
       console.warn("Could not load from localStorage", e);
@@ -2249,7 +2248,7 @@ export const InformesOmar: React.FC = () => {
                           type="radio" 
                           name="reportTypeWorldOffice"
                           checked={selectedReportType === tipo}
-                          onChange={() => { setSelectedReportType(tipo); handleGenerateReport(); }}
+                          onChange={() => setSelectedReportType(tipo)}
                           className="mt-0.5 cursor-pointer"
                         />
                         <span className="leading-tight">{tipo}</span>
@@ -2303,7 +2302,6 @@ export const InformesOmar: React.FC = () => {
                   <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                     <div className="flex items-center gap-1">
                       <span>Lista de Vendedores / Responsables</span>
-                      <Search className="w-3 h-3 text-amber-300 cursor-pointer" onClick={handleGenerateReport} />
                     </div>
                     <button 
                       onClick={() => setSelectedSeller(selectedSeller === 'ALL' ? '' : 'ALL')}
@@ -2380,7 +2378,6 @@ export const InformesOmar: React.FC = () => {
                           const match = uniqueCostCenters.find(c => c.toLowerCase().includes(centroCostoQuery.toLowerCase()));
                           if (match) setSelectedCostCenter(match);
                         }
-                        handleGenerateReport();
                       }}
                     />
                     <button 
@@ -2414,10 +2411,8 @@ export const InformesOmar: React.FC = () => {
                         placeholder="123-AAA / SKU"
                         value={skuSearch}
                         onChange={e => setSkuSearch(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') handleGenerateReport(); }}
                         className="w-24 bg-white text-slate-900 px-1 py-0.2 text-[10px] border border-slate-400"
                       />
-                      <Search className="w-3 h-3 text-amber-300 cursor-pointer" onClick={handleGenerateReport} />
                     </div>
                   </div>
                 </div>
@@ -2675,7 +2670,7 @@ export const InformesOmar: React.FC = () => {
                 <span className="font-bold flex items-center gap-1.5"><FolderKanban className="w-3.5 h-3.5 text-indigo-600" /> Tipo de Informe ({currentModuleDef.label})</span>
                 <select 
                   value={selectedReportType}
-                  onChange={e => { setSelectedReportType(e.target.value); handleGenerateReport(); }}
+                  onChange={e => setSelectedReportType(e.target.value)}
                   className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold"
                 >
                   {REPORT_CATALOGS[selectedModule].map(tipo => (
