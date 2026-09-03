@@ -225,24 +225,17 @@ export const InformesOmar: React.FC = () => {
     worldOfficeConfig?.chemicalPresentations?.map(p => p.id) || ['TAMBOR', 'CUNETE', 'GALON', 'CUARTO', 'LITRO', 'KILO']
   );
 
-  // Dynamic Warehouses list from locations & worldOfficeConfig
+  // Dynamic Warehouses list: exactly the 3 official Procoquinal locations
   const availableWarehouses = useMemo(() => {
-    const list: string[] = [];
     if (locations && locations.length > 0) {
-      locations.forEach(l => list.push(`Bodega ${l.name} (${l.type || 'Sede'})`));
+      return locations.map(l => `Bodega ${l.name} (${l.type || 'Sede'})`);
     }
-    if (worldOfficeConfig?.activeWarehouses) {
-      worldOfficeConfig.activeWarehouses.forEach(w => {
-        if (!list.includes(w)) list.push(w);
-      });
-    }
-    return list.length > 0 ? list : [
-      'Bodega 01 - Centenario (Principal)',
-      'Bodega 02 - Punto Norte',
-      'Bodega 03 - Barranquilla',
-      'Bodega 04 - Planta Químicos & Resinas'
+    return [
+      'Bodega Centenario (Bodega Principal)',
+      'Bodega Norte (Punto de Venta)',
+      'Bodega Barranquilla (Bodega Satélite)'
     ];
-  }, [locations, worldOfficeConfig]);
+  }, [locations]);
 
   // Live enterprise transactions or static ledger fallback
   const allRawTransactions = useMemo(() => {
@@ -2338,7 +2331,7 @@ export const InformesOmar: React.FC = () => {
                       {selectedWarehouse === 'ALL' ? 'Desmarcar' : 'Marcar Todo'}
                     </button>
                   </div>
-                  <div className="p-1 space-y-0.5 text-[11px] max-h-16 overflow-y-auto">
+                  <div className="p-1 space-y-0.5 text-[11px]">
                     {availableWarehouses.map(bod => (
                       <label key={bod} className="flex items-center gap-1.5 cursor-pointer hover:bg-slate-100">
                         <input 

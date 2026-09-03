@@ -51,10 +51,9 @@ export const DEFAULT_WORLD_OFFICE_CONFIG: WorldOfficeConfig = {
   },
 
   activeWarehouses: [
-    'Bodega 01 - Centenario (Principal)',
-    'Bodega 02 - Punto Norte',
-    'Bodega 03 - Barranquilla',
-    'Bodega 04 - Planta Químicos & Resinas'
+    'Bodega Centenario (Bodega Principal)',
+    'Bodega Norte (Punto de Venta)',
+    'Bodega Barranquilla (Bodega Satélite)'
   ]
 };
 
