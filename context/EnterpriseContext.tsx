@@ -12,7 +12,7 @@ const CLIENTS_DATA = clientsData as CrmContact[];
 export const DEFAULT_WORLD_OFFICE_CONFIG: WorldOfficeConfig = {
   companyName: 'PROCOQUINAL S.A.S.',
   companyNit: '901.428.112-4',
-  regimen: 'RÉGIMEN COMÚN — RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001',
+  regimen: 'RÉGIMEN COMÚN',
   dianResolution: 'RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001',
   dianPrefix: 'FVE',
   dianFrom: 1,
