@@ -243,7 +243,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             dealId: 'D-MOCK-3',
             contactId: 'C-MOCK-3',
             status: 'EN_TRANSITO',
-            promisedDate: new Date(Date.now() - 1 * 86400000).toISOString().split('T')[0],
+            promisedDate: new Date(Date.now()).toISOString().split('T')[0],
+            driver: 'Carlos Perea',
+            vehicle: 'Furgón NPR-450',
             items: [
                 { sku: 'FG-PU-002', productName: 'Barniz Poliuretano Mate', orderedQty: 30, deliveredQty: 30 }
             ]
@@ -253,13 +255,144 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             dealId: 'D-MOCK-1',
             contactId: 'C-002',
             status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            actualDeliveryDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+            promisedDate: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0],
             driver: 'Roberto Méndez',
             vehicle: 'Camión NKR-123',
             items: [
                 { sku: 'CLORO-01', productName: 'Cloro Industrial', orderedQty: 50, deliveredQty: 50 },
                 { sku: 'JABON-05', productName: 'Jabón Multiusos', orderedQty: 20, deliveredQty: 20 }
+            ]
+        },
+        {
+            id: 'DSP-1002',
+            dealId: 'D-MOCK-4',
+            contactId: 'C-004',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0],
+            driver: 'Roberto Méndez',
+            vehicle: 'Camión NKR-123',
+            items: [
+                { sku: 'FG-PU-001', productName: 'Fondo Poliuretano Blanco', orderedQty: 40, deliveredQty: 40 },
+                { sku: 'RM-SOL-005', productName: 'Solvente Universal', orderedQty: 25, deliveredQty: 25 }
+            ]
+        },
+        {
+            id: 'DSP-1003',
+            dealId: 'D-MOCK-5',
+            contactId: 'C-005',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 12 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 12 * 86400000).toISOString().split('T')[0],
+            driver: 'Carlos Perea',
+            vehicle: 'Furgón NPR-450',
+            items: [
+                { sku: 'FG-AQ-003', productName: 'Laca Acrílica Transparente', orderedQty: 60, deliveredQty: 60 }
+            ]
+        },
+        {
+            id: 'DSP-1004',
+            dealId: 'D-MOCK-6',
+            contactId: 'C-006',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 18 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 18 * 86400000).toISOString().split('T')[0],
+            driver: 'Carlos Perea',
+            vehicle: 'Furgón NPR-450',
+            items: [
+                { sku: 'RM-RES-001', productName: 'Resina Poliéster Ortoftálica 800', orderedQty: 10, deliveredQty: 10 }
+            ]
+        },
+        {
+            id: 'DSP-1005',
+            dealId: 'D-MOCK-7',
+            contactId: 'C-007',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 25 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 24 * 86400000).toISOString().split('T')[0],
+            driver: 'Roberto Méndez',
+            vehicle: 'Camión NKR-123',
+            items: [
+                { sku: 'RM-SOL-002', productName: 'Thinner Acrílico 5 Gal', orderedQty: 30, deliveredQty: 28 }
+            ]
+        },
+        {
+            id: 'DSP-1006',
+            dealId: 'D-MOCK-8',
+            contactId: 'C-008',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 35 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 35 * 86400000).toISOString().split('T')[0],
+            driver: 'Roberto Méndez',
+            vehicle: 'Camión NKR-123',
+            items: [
+                { sku: 'FG-PU-002', productName: 'Barniz Poliuretano Mate', orderedQty: 50, deliveredQty: 50 }
+            ]
+        },
+        {
+            id: 'DSP-1007',
+            dealId: 'D-MOCK-9',
+            contactId: 'C-009',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 48 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 48 * 86400000).toISOString().split('T')[0],
+            driver: 'Carlos Perea',
+            vehicle: 'Furgón NPR-450',
+            items: [
+                { sku: 'CLORO-01', productName: 'Cloro Industrial', orderedQty: 80, deliveredQty: 80 }
+            ]
+        },
+        {
+            id: 'DSP-1008',
+            dealId: 'D-MOCK-10',
+            contactId: 'C-010',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 62 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 62 * 86400000).toISOString().split('T')[0],
+            driver: 'Roberto Méndez',
+            vehicle: 'Camión NKR-123',
+            items: [
+                { sku: 'FG-AQ-003', productName: 'Laca Acrílica Transparente', orderedQty: 45, deliveredQty: 45 }
+            ]
+        },
+        {
+            id: 'DSP-1009',
+            dealId: 'D-MOCK-11',
+            contactId: 'C-011',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 80 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 80 * 86400000).toISOString().split('T')[0],
+            driver: 'Carlos Perea',
+            vehicle: 'Furgón NPR-450',
+            items: [
+                { sku: 'RM-SOL-005', productName: 'Solvente Universal', orderedQty: 35, deliveredQty: 35 }
+            ]
+        },
+        {
+            id: 'DSP-1010',
+            dealId: 'D-MOCK-12',
+            contactId: 'C-012',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 110 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 110 * 86400000).toISOString().split('T')[0],
+            driver: 'Roberto Méndez',
+            vehicle: 'Camión NKR-123',
+            items: [
+                { sku: 'FG-PU-001', productName: 'Fondo Poliuretano Blanco', orderedQty: 70, deliveredQty: 70 }
+            ]
+        },
+        {
+            id: 'DSP-1011',
+            dealId: 'D-MOCK-13',
+            contactId: 'C-013',
+            status: 'ENTREGADO',
+            promisedDate: new Date(Date.now() - 140 * 86400000).toISOString().split('T')[0],
+            actualDeliveryDate: new Date(Date.now() - 140 * 86400000).toISOString().split('T')[0],
+            driver: 'Carlos Perea',
+            vehicle: 'Furgón NPR-450',
+            items: [
+                { sku: 'RM-RES-001', productName: 'Resina Poliéster Ortoftálica 800', orderedQty: 15, deliveredQty: 15 }
             ]
         }
     ]);
@@ -436,7 +569,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         });
 
         // 2. Abiertos (Pipeline)
-        const numOpenDeals = 30;
+        const numOpenDeals = 25;
         const stages: ('LEAD'|'QUALIFIED'|'PROPOSAL'|'NEGOTIATION')[] = ['LEAD', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'];
         for (let i = 0; i < numOpenDeals; i++) {
             const ownerId = owners[Math.floor(Math.random() * owners.length)];
@@ -454,6 +587,57 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 probability: stage === 'LEAD' ? 10 : stage === 'QUALIFIED' ? 30 : stage === 'PROPOSAL' ? 50 : 80
             });
         }
+
+        // 3. Órdenes con Backlog Retrasado (Retrasos Reales de Cierre / Despacho)
+        const delayedSamples = [
+            { contact: cts[0], value: 7863920, daysLate: 4, notes: 'Esperando llegada de Lote Poliéster', sku: 'Resina Poliéster Ortoftálica 800 (55 Gal)' },
+            { contact: cts[1] || cts[0], value: 4520000, daysLate: 7, notes: 'Retraso de despacho por verificación de crédito', sku: 'Laca Acrílica Automotriz (Cuñetes 5 Gal)' },
+            { contact: cts[2] || cts[0], value: 12350000, daysLate: 11, notes: 'Quiebre temporal en envases tambor 55 gal', sku: 'Solvente Universal Grado Industrial' },
+            { contact: cts[3] || cts[0], value: 3180000, daysLate: 3, notes: 'Pendiente confirmación de entrega en Cali', sku: 'Barniz Poliuretano Mate 2K' }
+        ];
+
+        delayedSamples.forEach((item, idx) => {
+            const pastDate = new Date(Date.now() - item.daysLate * 86400000).toISOString().split('T')[0];
+            generatedDeals.push({
+                id: `D-${dealCounter++}`,
+                title: `Pedido ${item.contact.name}`,
+                contactId: item.contact.id,
+                value: item.value,
+                stage: 'NEGOTIATION',
+                expectedCloseDate: pastDate,
+                ownerId: owners[idx % owners.length],
+                notes: item.notes,
+                sku: item.sku,
+                probability: 75
+            });
+        });
+
+        // 4. Ventas Perdidas Históricas por Quiebre de Stock (CLOSED_LOST)
+        const lostSamples = [
+            { monthOffset: 0, value: 6850000, reason: 'Quiebre de Stock: Tambor Resina 800 no disponible' },
+            { monthOffset: 1, value: 9400000, reason: 'Stockout: Solvente Thinner Acrílico 5 Gal' },
+            { monthOffset: 2, value: 5200000, reason: 'Tiempo de Entrega: Cliente requería entrega el mismo día' },
+            { monthOffset: 3, value: 8100000, reason: 'Stockout: Falta de Lote Catalizador TV-10' },
+            { monthOffset: 4, value: 11200000, reason: 'Quiebre de Stock: Fondo Poliuretano Blanco agotado' },
+            { monthOffset: 5, value: 7500000, reason: 'Stockout: Disolvente Universal ILVA' }
+        ];
+
+        lostSamples.forEach((lost, idx) => {
+            const lostDate = new Date(Date.now() - (lost.monthOffset * 30 + 5) * 86400000).toISOString().split('T')[0];
+            const contact = cts[idx % cts.length];
+            generatedDeals.push({
+                id: `D-${dealCounter++}`,
+                title: `Oportunidad Perdida - ${contact.name}`,
+                contactId: contact.id,
+                value: lost.value,
+                stage: 'CLOSED_LOST',
+                expectedCloseDate: lostDate,
+                ownerId: owners[idx % owners.length],
+                notes: lost.reason,
+                lostReason: lost.reason,
+                probability: 0
+            });
+        });
 
         return { txs: generated, cts, deals: generatedDeals };
     }, []);
