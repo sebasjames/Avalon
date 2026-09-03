@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS, DEFAULT_SETTINGS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, NotificationRule, FloatingNote, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction, CommissionRule, ToastAlert, WarehouseLocation } from '../types';
+import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, NotificationRule, FloatingNote, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction, CommissionRule, ToastAlert, WarehouseLocation, WorldOfficeConfig, ChemicalPresentation } from '../types';
 import { NotificationService } from '../services/NotificationService';
 import { userService } from '../services/userService';
 import clientsData from '../data/clients.json';
@@ -8,6 +8,55 @@ import { KARDEX_TRANSACTIONS } from '../data/kardex_ledger';
 import { ACCOUNTING_TRANSACTIONS } from '../data/accounting_ledger';
 
 const CLIENTS_DATA = clientsData as CrmContact[];
+
+export const DEFAULT_WORLD_OFFICE_CONFIG: WorldOfficeConfig = {
+  companyName: 'PROCOQUINAL S.A.S.',
+  companyNit: '901.428.112-4',
+  regimen: 'RÉGIMEN COMÚN — RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001',
+  dianResolution: 'RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001',
+  dianPrefix: 'FVE',
+  dianFrom: 1,
+  dianTo: 50000,
+  dianDate: '2025-01-15',
+  address: 'Cra 10 # 15-28, Bogotá D.C., Colombia',
+  city: 'Bogotá D.C.',
+  phone: '(601) 745-8900',
+  email: 'info@procoquinal.co',
+
+  signatureGeneralManager: 'OMAR PROCOQUINAL',
+  signatureGeneralManagerRole: 'Gerencia General y Comercial',
+  signatureAccountant: 'CP. CLARA INÉS MENDOZA',
+  signatureAccountantRole: 'Contadora Pública — T.P. No. 182490-T',
+  signatureAuditor: 'REVISORÍA FISCAL & AUDITORÍA TRIBUTARIA',
+  signatureAuditorRole: 'Dictamen de Conformidad DIAN',
+
+  chemicalPresentations: [
+    { id: 'TAMBOR', name: 'Tambor 55 Gal', unit: 'TAMBOR', conversionToLiters: 208.19, active: true },
+    { id: 'CUNETE', name: 'Cuñete 5 Gal', unit: 'CUNETE', conversionToLiters: 18.92, active: true },
+    { id: 'GALON', name: 'Galón 3.785 L', unit: 'GL', conversionToLiters: 3.785, active: true },
+    { id: 'CUARTO', name: 'Cuarto 1/4 Gal', unit: '1/4 GL', conversionToLiters: 0.946, active: true },
+    { id: 'LITRO', name: 'Litro 1000 mL', unit: 'LT', conversionToLiters: 1.0, active: true },
+    { id: 'KILO', name: 'Kilo / Polvo', unit: 'KG', conversionToLiters: 0.95, active: true }
+  ],
+
+  pucMappings: {
+    ventasMostrador: '413505',
+    devolucionesVentas: '417505',
+    cajaGeneral: '110505',
+    bancosNacionales: '111005',
+    clientesNacionales: '130505',
+    inventarioMercancias: '143505',
+    ivaGenerado: '240801',
+    retencionFuente: '236540'
+  },
+
+  activeWarehouses: [
+    'Bodega 01 - Centenario (Principal)',
+    'Bodega 02 - Punto Norte',
+    'Bodega 03 - Barranquilla',
+    'Bodega 04 - Planta Químicos & Resinas'
+  ]
+};
 
 interface EnterpriseContextType {
     inventory: Product[];
@@ -145,6 +194,9 @@ interface EnterpriseContextType {
     deleteCommissionRule: (id: string) => void;
     // Kardex Management
     addKardexTransaction: (tx: KardexTransaction) => void;
+    // World Office ERP Configuration
+    worldOfficeConfig: WorldOfficeConfig;
+    updateWorldOfficeConfig: (updates: Partial<WorldOfficeConfig>) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -251,6 +303,23 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const addLocation = (loc: WarehouseLocation) => setLocations(prev => [...prev, loc]);
     const updateLocation = (id: string, updates: Partial<WarehouseLocation>) => setLocations(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
     const deleteLocation = (id: string) => setLocations(prev => prev.filter(l => l.id !== id));
+
+    // --- World Office ERP Settings ---
+    const [worldOfficeConfig, setWorldOfficeConfig] = useState<WorldOfficeConfig>(() => {
+        const saved = localStorage.getItem('procoquinal_world_office_config');
+        if (saved) {
+            try { return JSON.parse(saved); } catch (e) { }
+        }
+        return DEFAULT_WORLD_OFFICE_CONFIG;
+    });
+
+    const updateWorldOfficeConfig = (updates: Partial<WorldOfficeConfig>) => {
+        setWorldOfficeConfig(prev => {
+            const updated = { ...prev, ...updates };
+            localStorage.setItem('procoquinal_world_office_config', JSON.stringify(updated));
+            return updated;
+        });
+    };
 
     const addImportDossier = (importDossier: ImportDossier) => setImportDossiers(prev => [...prev, importDossier]);
 
@@ -1181,7 +1250,9 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             commissionRules,
             addCommissionRule,
             updateCommissionRule,
-            deleteCommissionRule
+            deleteCommissionRule,
+            worldOfficeConfig,
+            updateWorldOfficeConfig
         }}>
             {children}
         </EnterpriseContext.Provider>

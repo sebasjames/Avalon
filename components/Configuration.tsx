@@ -28,7 +28,8 @@ import {
   UserPlus,
   Truck,
   Sparkles,
-  MapPin
+  MapPin,
+  Building
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings, TaxRule, PricingRule, PaymentRule, Supplier } from '../types';
@@ -41,10 +42,11 @@ export const Configuration: React.FC = () => {
     systemUsers, addSystemUser, updateSystemUser, deleteSystemUser,
     suppliers, addSupplier, updateSupplier, deleteSupplier,
     locations, addLocation, updateLocation, deleteLocation,
-    crmSettings, updateCrmSettings
+    crmSettings, updateCrmSettings,
+    worldOfficeConfig, updateWorldOfficeConfig
   } = useEnterprise();
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'locaciones' | 'integraciones'>('integraciones');
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'locaciones' | 'integraciones' | 'worldoffice'>('worldoffice');
   const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const [supplierForm, setSupplierForm] = useState<Partial<Supplier>>({});
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
@@ -204,6 +206,7 @@ export const Configuration: React.FC = () => {
     { id: 'proveedores', label: 'Proveedores', icon: Truck },
     { id: 'locaciones', label: 'Locaciones', icon: MapPin },
     { id: 'integraciones', label: 'IA & Integraciones', icon: Sparkles },
+    { id: 'worldoffice', label: 'World Office ERP', icon: Building },
   ];
 
   return (
@@ -1894,6 +1897,304 @@ export const Configuration: React.FC = () => {
                       >
                         Vincular AI
                       </button>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === 'worldoffice' && (
+                <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+                  <header className="bg-gradient-to-r from-[#1c3b70] to-[#2a5298] text-white p-6 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Building className="w-6 h-6 text-amber-300" />
+                        <h2 className="text-xl font-black tracking-tight">Parámetros World Office ERP & Auditoría</h2>
+                        <span className="bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded">Procoquinal S.A.S.</span>
+                      </div>
+                      <p className="text-blue-100 text-xs max-w-2xl">
+                        Configura las reglas contables, resolución DIAN, presentaciones químicas de empaque y firmas legales que alimentan la vista clásica y los informes impresos oficiales de Omar.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          alert('¡Parámetros de World Office guardados exitosamente!');
+                        }}
+                        className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-2 rounded-xl text-xs font-black shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                      >
+                        <Save className="w-4 h-4" /> Guardar Cambios
+                      </button>
+                    </div>
+                  </header>
+
+                  {/* 1. Datos Institucionales & Facturación DIAN */}
+                  <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                      <Receipt className="w-5 h-5 text-blue-700" />
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                        1. Datos Institucionales & Facturación Electrónica DIAN
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Razón Social</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.companyName}
+                          onChange={e => updateWorldOfficeConfig({ companyName: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">NIT Empresa</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.companyNit}
+                          onChange={e => updateWorldOfficeConfig({ companyNit: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Resolución DIAN</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.dianResolution}
+                          onChange={e => updateWorldOfficeConfig({ dianResolution: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Prefijo Facturas</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.dianPrefix}
+                          onChange={e => updateWorldOfficeConfig({ dianPrefix: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono uppercase"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Dirección Sede Principal</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.address}
+                          onChange={e => updateWorldOfficeConfig({ address: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">PBX / Teléfono</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.phone}
+                          onChange={e => updateWorldOfficeConfig({ phone: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5"
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* 2. Firmas Legales de Informes */}
+                  <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-700" />
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                        2. Firmas Oficiales de Auditoría en Informes Impresos
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Estos nombres y cargos aparecen automáticamente en la última hoja de los informes oficiales y PDFs exportados.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <span className="font-black text-blue-900 block">Firma 1: Gerencia General</span>
+                        <input
+                          type="text"
+                          placeholder="Nombre Gerente"
+                          value={worldOfficeConfig.signatureGeneralManager}
+                          onChange={e => updateWorldOfficeConfig({ signatureGeneralManager: e.target.value })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-2 font-bold"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Cargo"
+                          value={worldOfficeConfig.signatureGeneralManagerRole}
+                          onChange={e => updateWorldOfficeConfig({ signatureGeneralManagerRole: e.target.value })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-600"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <span className="font-black text-blue-900 block">Firma 2: Contador Público</span>
+                        <input
+                          type="text"
+                          placeholder="Nombre Contador"
+                          value={worldOfficeConfig.signatureAccountant}
+                          onChange={e => updateWorldOfficeConfig({ signatureAccountant: e.target.value })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-2 font-bold"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Tarjeta Profesional / Cargo"
+                          value={worldOfficeConfig.signatureAccountantRole}
+                          onChange={e => updateWorldOfficeConfig({ signatureAccountantRole: e.target.value })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-600"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <span className="font-black text-blue-900 block">Firma 3: Revisor Fiscal</span>
+                        <input
+                          type="text"
+                          placeholder="Nombre Revisor Fiscal"
+                          value={worldOfficeConfig.signatureAuditor}
+                          onChange={e => updateWorldOfficeConfig({ signatureAuditor: e.target.value })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-2 font-bold"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Dictamen / Cargo"
+                          value={worldOfficeConfig.signatureAuditorRole}
+                          onChange={e => updateWorldOfficeConfig({ signatureAuditorRole: e.target.value })}
+                          className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-600"
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* 3. Presentaciones Químicas & Envases */}
+                  <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-5 h-5 text-purple-700" />
+                        <div>
+                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                            3. Presentaciones Químicas & Tipos de Empaque (Sustituye "Tallas y Colores")
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Procoquinal no vende ropa ni calzado; aquí se configuran los envases químicos y factores de conversión que alimentan la matriz clásica de World Office.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
+                          <tr>
+                            <th className="p-3">Estado</th>
+                            <th className="p-3">Identificador</th>
+                            <th className="p-3">Nombre del Empaque / Presentación</th>
+                            <th className="p-3">Unidad Base</th>
+                            <th className="p-3 text-right">Equivalencia en Litros</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {worldOfficeConfig.chemicalPresentations.map((pres, idx) => (
+                            <tr key={pres.id} className="hover:bg-slate-50">
+                              <td className="p-3">
+                                <input
+                                  type="checkbox"
+                                  checked={pres.active}
+                                  onChange={e => {
+                                    const updated = [...worldOfficeConfig.chemicalPresentations];
+                                    updated[idx] = { ...updated[idx], active: e.target.checked };
+                                    updateWorldOfficeConfig({ chemicalPresentations: updated });
+                                  }}
+                                  className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+                                />
+                              </td>
+                              <td className="p-3 font-mono font-bold text-slate-700">{pres.id}</td>
+                              <td className="p-3 font-bold text-slate-900">{pres.name}</td>
+                              <td className="p-3 font-mono text-slate-500">{pres.unit}</td>
+                              <td className="p-3 text-right font-mono font-bold text-indigo-700">{pres.conversionToLiters} L</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  {/* 4. Cuentas Contables PUC Oficiales */}
+                  <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                      <Wallet className="w-5 h-5 text-indigo-700" />
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                        4. Mapeo de Cuentas Contables PUC Oficiales
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Ventas Mostrador (Comercio)</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.ventasMostrador}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, ventasMostrador: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono font-bold text-blue-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Devoluciones en Ventas (NC)</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.devolucionesVentas}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, devolucionesVentas: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono font-bold text-rose-700"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Caja General Mostrador</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.cajaGeneral}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, cajaGeneral: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Bancos Nacionales</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.bancosNacionales}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, bancosNacionales: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Clientes Nacionales (CxC)</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.clientesNacionales}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, clientesNacionales: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Inventario de Mercancías</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.inventarioMercancias}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, inventarioMercancias: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">IVA Generado (19%)</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.ivaGenerado}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, ivaGenerado: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Retención en la Fuente</label>
+                        <input
+                          type="text"
+                          value={worldOfficeConfig.pucMappings.retencionFuente}
+                          onChange={e => updateWorldOfficeConfig({ pucMappings: { ...worldOfficeConfig.pucMappings, retencionFuente: e.target.value } })}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono"
+                        />
+                      </div>
                     </div>
                   </section>
                 </div>

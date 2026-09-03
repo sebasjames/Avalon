@@ -828,3 +828,48 @@ export interface CommissionRule {
   hasDiscountPenalty?: boolean;
   minVolumeThreshold?: number;
 }
+
+export interface ChemicalPresentation {
+  id: string;
+  name: string;
+  unit: string;
+  conversionToLiters: number;
+  active: boolean;
+}
+
+export interface WorldOfficeConfig {
+  companyName: string;
+  companyNit: string;
+  regimen: string;
+  dianResolution: string;
+  dianPrefix: string;
+  dianFrom: number;
+  dianTo: number;
+  dianDate: string;
+  address: string;
+  city: string;
+  phone: string;
+  email: string;
+
+  signatureGeneralManager: string;
+  signatureGeneralManagerRole: string;
+  signatureAccountant: string;
+  signatureAccountantRole: string;
+  signatureAuditor: string;
+  signatureAuditorRole: string;
+
+  chemicalPresentations: ChemicalPresentation[];
+
+  pucMappings: {
+    ventasMostrador: string;
+    devolucionesVentas: string;
+    cajaGeneral: string;
+    bancosNacionales: string;
+    clientesNacionales: string;
+    inventarioMercancias: string;
+    ivaGenerado: string;
+    retencionFuente: string;
+  };
+
+  activeWarehouses: string[];
+}

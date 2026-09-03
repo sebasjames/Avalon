@@ -217,8 +217,33 @@ export const REPORT_CATALOGS: Record<ErpModuleKey, string[]> = {
 
 export const InformesOmar: React.FC = () => {
   const enterprise = useEnterprise();
+  const { worldOfficeConfig, locations, pointsOfSale } = enterprise;
   const reportResultsRef = useRef<HTMLDivElement>(null);
   
+  // Selected Chemical Presentations (Reemplaza Tallas/Colores)
+  const [selectedPresentations, setSelectedPresentations] = useState<string[]>(() => 
+    worldOfficeConfig?.chemicalPresentations?.map(p => p.id) || ['TAMBOR', 'CUNETE', 'GALON', 'CUARTO', 'LITRO', 'KILO']
+  );
+
+  // Dynamic Warehouses list from locations & worldOfficeConfig
+  const availableWarehouses = useMemo(() => {
+    const list: string[] = [];
+    if (locations && locations.length > 0) {
+      locations.forEach(l => list.push(`Bodega ${l.name} (${l.type || 'Sede'})`));
+    }
+    if (worldOfficeConfig?.activeWarehouses) {
+      worldOfficeConfig.activeWarehouses.forEach(w => {
+        if (!list.includes(w)) list.push(w);
+      });
+    }
+    return list.length > 0 ? list : [
+      'Bodega 01 - Centenario (Principal)',
+      'Bodega 02 - Punto Norte',
+      'Bodega 03 - Barranquilla',
+      'Bodega 04 - Planta Químicos & Resinas'
+    ];
+  }, [locations, worldOfficeConfig]);
+
   // Live enterprise transactions or static ledger fallback
   const allRawTransactions = useMemo(() => {
     if (enterprise?.transactions && enterprise.transactions.length > 0) {
@@ -1064,12 +1089,12 @@ export const InformesOmar: React.FC = () => {
             <div className="border-b-2 border-slate-900 pb-4 mb-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h1 className="text-xl font-black text-slate-900 tracking-tight">PROCOQUINAL S.A.S.</h1>
+                  <h1 className="text-xl font-black text-slate-900 tracking-tight">{worldOfficeConfig.companyName}</h1>
                   <div className="text-xs text-slate-700 font-mono mt-0.5">
-                    NIT: 901.428.112-4 — RÉGIMEN COMÚN — RES. FACTURACIÓN ELECTRÓNICA DIAN No. 1876400001
+                    NIT: {worldOfficeConfig.companyNit} — {worldOfficeConfig.regimen} — {worldOfficeConfig.dianResolution}
                   </div>
                   <div className="text-[11px] text-slate-500 mt-0.5">
-                    Cra 10 # 15-28, Bogotá D.C., Colombia — PBX: (601) 745-8900 — info@procoquinal.co
+                    {worldOfficeConfig.address} — PBX: {worldOfficeConfig.phone} — {worldOfficeConfig.email}
                   </div>
                 </div>
 
@@ -1286,24 +1311,24 @@ export const InformesOmar: React.FC = () => {
                 </div>
               </div>
 
-              {/* Signatures */}
+              {/* Signatures from dynamic worldOfficeConfig */}
               <div className="pt-6 border-t border-slate-300 grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-xs text-slate-700">
                 <div>
-                  <div className="border-t border-slate-900 pt-2 font-bold font-mono">OMAR PROCOQUINAL</div>
-                  <div className="text-[11px] text-slate-500">Gerencia Comercial y Operativa</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">Firma de Emisión</div>
+                  <div className="border-t border-slate-900 pt-2 font-bold font-mono uppercase">{worldOfficeConfig.signatureGeneralManager}</div>
+                  <div className="text-[11px] text-slate-600 font-medium">{worldOfficeConfig.signatureGeneralManagerRole}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Firma de Emisión Gerencial</div>
                 </div>
 
                 <div>
-                  <div className="border-t border-slate-900 pt-2 font-bold font-mono">DEPARTAMENTO CONTABLE</div>
-                  <div className="text-[11px] text-slate-500">Revisión Cuentas PUC & Fiscales</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">Firma de Control</div>
+                  <div className="border-t border-slate-900 pt-2 font-bold font-mono uppercase">{worldOfficeConfig.signatureAccountant}</div>
+                  <div className="text-[11px] text-slate-600 font-medium">{worldOfficeConfig.signatureAccountantRole}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Revisión Cuentas PUC & Fiscales</div>
                 </div>
 
                 <div>
-                  <div className="border-t border-slate-900 pt-2 font-bold font-mono">REVISORÍA FISCAL & AUDITORÍA</div>
-                  <div className="text-[11px] text-slate-500">Conformidad Tributaria DIAN</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">Dictamen de Cierre</div>
+                  <div className="border-t border-slate-900 pt-2 font-bold font-mono uppercase">{worldOfficeConfig.signatureAuditor}</div>
+                  <div className="text-[11px] text-slate-600 font-medium">{worldOfficeConfig.signatureAuditorRole}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Dictamen de Auditoría Oficial</div>
                 </div>
               </div>
             </div>
@@ -1312,7 +1337,7 @@ export const InformesOmar: React.FC = () => {
 
         {/* Page Footer on EVERY PAGE */}
         <div className="mt-8 pt-3 border-t border-slate-300 text-[10.5px] text-slate-500 font-mono flex justify-between items-center">
-          <div>PROCOQUINAL S.A.S. — NIT: 901.428.112-4 — Software World Office ERP ({currentModuleDef.shortTitle})</div>
+          <div>{worldOfficeConfig.companyName} — NIT: {worldOfficeConfig.companyNit} — Software World Office ERP ({currentModuleDef.shortTitle})</div>
           <div>Usuario: OMAR (Terminal POS-01)</div>
           <div className="font-bold text-slate-900">Página {page.pageNumber} de {totalPagesCount}</div>
         </div>
@@ -2228,12 +2253,12 @@ export const InformesOmar: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Bodega / Almacén (NUEVO CONTROL CLÁSICO WORLD OFFICE) */}
+                {/* Bodega / Almacén (Conectado a locations de Avalon) */}
                 <div className="border border-[#7f9db9] bg-white">
                   <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                     <div className="flex items-center gap-1">
-                      <Package className="w-3 h-3 text-amber-300" />
-                      <span>Bodega / Almacén Químico</span>
+                      <Store className="w-3 h-3 text-amber-300" />
+                      <span>Bodega / Almacén Procoquinal</span>
                     </div>
                     <button 
                       onClick={() => setSelectedWarehouse(selectedWarehouse === 'ALL' ? '' : 'ALL')}
@@ -2243,7 +2268,7 @@ export const InformesOmar: React.FC = () => {
                     </button>
                   </div>
                   <div className="p-1 space-y-0.5 text-[11px] max-h-16 overflow-y-auto">
-                    {uniqueWarehouses.map(bod => (
+                    {availableWarehouses.map(bod => (
                       <label key={bod} className="flex items-center gap-1.5 cursor-pointer hover:bg-slate-100">
                         <input 
                           type="checkbox" 
@@ -2420,30 +2445,45 @@ export const InformesOmar: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Mas Opciones del Informe */}
+                      {/* Presentaciones Químicas & Envases (Sustituye Tallas y Colores) */}
                       <div className="border border-[#7f9db9] bg-white">
-                        <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px]">
-                          Mas Opciones del Informe
+                        <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px] flex justify-between items-center">
+                          <div className="flex items-center gap-1">
+                            <Package className="w-3 h-3 text-amber-300" />
+                            <span>Presentaciones Químicas & Envases</span>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const presList = worldOfficeConfig?.chemicalPresentations || [];
+                              const anyOff = presList.some(p => !selectedPresentations.includes(p.id));
+                              setSelectedPresentations(anyOff ? presList.map(p => p.id) : []);
+                            }} 
+                            className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[9.5px] cursor-pointer"
+                          >
+                            {selectedPresentations.length === (worldOfficeConfig?.chemicalPresentations?.length || 0) ? 'Desmarcar' : 'Marcar Todo'}
+                          </button>
                         </div>
-                        <div className="p-1.5 space-y-1 text-[10.5px]">
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input 
-                              type="radio" 
-                              name="convTipo" 
-                              checked={conversionTipo === 'MOVIMIENTO'} 
-                              onChange={() => setConversionTipo('MOVIMIENTO')} 
-                            />
-                            <span>Conversión a Fecha del movimiento</span>
-                          </label>
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input 
-                              type="radio" 
-                              name="convTipo" 
-                              checked={conversionTipo === 'CORTE'} 
-                              onChange={() => setConversionTipo('CORTE')} 
-                            />
-                            <span>Conversión a Fecha de Corte</span>
-                          </label>
+                        <div className="p-1 text-[10.5px] max-h-24 overflow-y-auto space-y-1">
+                          {(worldOfficeConfig?.chemicalPresentations || []).map(pres => (
+                            <label key={pres.id} className="flex items-center justify-between cursor-pointer hover:bg-slate-100 px-1 py-0.5 rounded-xs">
+                              <div className="flex items-center gap-1.5">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedPresentations.includes(pres.id)} 
+                                  onChange={() => {
+                                    setSelectedPresentations(prev => 
+                                      prev.includes(pres.id) ? prev.filter(x => x !== pres.id) : [...prev, pres.id]
+                                    );
+                                  }}
+                                />
+                                <span className="font-semibold text-slate-800">{pres.name}</span>
+                              </div>
+                              <span className="font-mono text-[9.5px] text-indigo-700 font-bold bg-indigo-50 px-1 rounded">
+                                {pres.conversionToLiters} L
+                              </span>
+                            </label>
+                          ))}
                         </div>
                       </div>
 
