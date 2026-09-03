@@ -611,9 +611,26 @@ export const InformesOmar: React.FC = () => {
     }, 300);
   };
 
-  // --- FILTER EXECUTION ---
+  // --- FILTER EXECUTION (TODOS LOS CRITERIOS 100% FUNCIONALES) ---
   const filteredData = useMemo(() => {
     if (!empresaActiva) return [];
+
+    // Si se desmarcaron todos los tipos de documento en Ventas
+    if (selectedModule === 'VENTAS' && !docTypeFVE && !docTypeNC && !docTypeCOT && !docTypeREM && !docTypeCE && !docTypeRC) {
+      return [];
+    }
+
+    // Si se desmarcaron todos los vendedores
+    if (selectedSeller === '') return [];
+
+    // Si se desmarcaron todas las bodegas
+    if (selectedWarehouse === '') return [];
+
+    // Si se desmarcaron todas las presentaciones químicas
+    if (selectedPresentations.length === 0) return [];
+
+    // Si se desmarcó la zona 1
+    if (selectedCity === '') return [];
 
     let result = allRawTransactions.filter(tx => {
       const txTypeStr = (tx.type || '') as string;
@@ -624,13 +641,13 @@ export const InformesOmar: React.FC = () => {
       const isCotizacion = txTypeStr === 'COTIZACION' || tx.id?.startsWith('COT');
       const isRemision = txTypeStr === 'REMISION' || tx.id?.startsWith('REM');
 
-      // Si el módulo es COMPRAS, enfocamos en compras y egresos
+      // Si el módulo es COMPRAS
       if (selectedModule === 'COMPRAS') {
         if (!isCompraEgreso && !isVenta) return false;
       }
-      // Si el módulo es TESORERÍA, enfocamos en formas de pago y recibos
+      // Si el módulo es TESORERÍA
       else if (selectedModule === 'TESORERIA') {
-        // acepta movimientos con medios de pago
+        // acepta movimientos de tesorería y medios de pago
       }
       // Si el módulo es VENTAS o CARTERA
       else {
@@ -644,35 +661,68 @@ export const InformesOmar: React.FC = () => {
         if (!matchesDocType) return false;
       }
 
-      // Fechas
+      // 1. Fechas
       if (dateFrom && tx.date < dateFrom) return false;
       if (dateTo && tx.date > dateTo) return false;
 
-      // Vendedor
+      // 2. Vendedor / Responsable
       const seller = getTxSeller(tx);
-      if (selectedSeller !== 'ALL' && !seller.toLowerCase().includes(selectedSeller.toLowerCase())) return false;
+      if (selectedSeller !== 'ALL') {
+        if (!seller.toLowerCase().includes(selectedSeller.toLowerCase())) return false;
+      }
       if (sellerFrom && seller.toLowerCase() < sellerFrom.toLowerCase()) return false;
       if (sellerTo && seller.toLowerCase() > sellerTo.toLowerCase()) return false;
 
-      // Sede
+      // 3. Sede / Centro de Costos
       if (selectedCostCenter !== 'ALL' && tx.posLocation && tx.posLocation !== selectedCostCenter) {
         return false;
       }
 
-      // Punto / Caja POS
+      // 4. Bodega / Almacén Procoquinal
+      if (selectedWarehouse && selectedWarehouse !== 'ALL') {
+        const wNorm = selectedWarehouse.toLowerCase();
+        const locNorm = (tx.posLocation || '').toLowerCase();
+        const match = locNorm.includes(wNorm) || wNorm.includes(locNorm) ||
+          (wNorm.includes('centenario') && (locNorm.includes('centenario') || locNorm.includes('centro') || locNorm.includes('principal'))) ||
+          (wNorm.includes('norte') && locNorm.includes('norte')) ||
+          (wNorm.includes('barranquilla') && locNorm.includes('barranquilla')) ||
+          (wNorm.includes('planta') && locNorm.includes('planta'));
+        if (!match) return false;
+      }
+
+      // 5. Presentaciones Químicas & Envases
+      const totalPresCount = worldOfficeConfig?.chemicalPresentations?.length || 6;
+      if (selectedPresentations.length > 0 && selectedPresentations.length < totalPresCount) {
+        const anyTx = tx as any;
+        const textToCheck = `${tx.productName || ''} ${anyTx.unit || ''} ${anyTx.baseUnit || ''} ${tx.sku || ''}`.toUpperCase();
+        const matchesAnyPres = selectedPresentations.some(pId => {
+          if (pId === 'TAMBOR') return textToCheck.includes('TAMBOR') || textToCheck.includes('55 GAL') || textToCheck.includes('208L');
+          if (pId === 'CUNETE') return textToCheck.includes('CUNETE') || textToCheck.includes('CUÑETE') || textToCheck.includes('5 GAL') || textToCheck.includes('19L');
+          if (pId === 'GALON') return textToCheck.includes('GALON') || textToCheck.includes('GALÓN') || textToCheck.includes('GL') || textToCheck.includes('3.785');
+          if (pId === 'CUARTO') return textToCheck.includes('CUARTO') || textToCheck.includes('1/4') || textToCheck.includes('0.94');
+          if (pId === 'LITRO') return textToCheck.includes('LITRO') || textToCheck.includes('LT') || textToCheck.includes('1000ML') || textToCheck.includes('1 L');
+          if (pId === 'KILO') return textToCheck.includes('KILO') || textToCheck.includes('KG') || textToCheck.includes('POLVO');
+          return false;
+        });
+        if (!matchesAnyPres) return false;
+      }
+
+      // 6. Punto / Caja POS
       const posPoint = getTxPosPoint(tx);
       if (selectedPosPoint !== 'ALL' && posPoint !== selectedPosPoint) return false;
 
-      // Ciudad
+      // 7. Ciudad / Zona 1
       const city = getTxCity(tx);
-      if (selectedCity !== 'ALL' && !city.toLowerCase().includes(selectedCity.toLowerCase())) return false;
+      if (selectedCity && selectedCity !== 'ALL') {
+        if (!city.toLowerCase().includes(selectedCity.toLowerCase())) return false;
+      }
 
-      // Medio de Pago
+      // 8. Medio de Pago
       if (selectedPaymentMethod !== 'ALL' && tx.paymentMethod && !tx.paymentMethod.toLowerCase().includes(selectedPaymentMethod.toLowerCase())) {
         return false;
       }
 
-      // Clientes: Búsqueda y Rango
+      // 9. Clientes: Búsqueda y Rango
       if (searchTerm) {
         const q = searchTerm.toLowerCase();
         const clientMatch = tx.client && tx.client.toLowerCase().includes(q);
@@ -682,32 +732,36 @@ export const InformesOmar: React.FC = () => {
         if (!clientMatch && !docMatch && !idMatch && !skuMatch) return false;
       }
 
-      // SKU Search
+      // 10. SKU / Producto Search
       if (skuSearch) {
         const s = skuSearch.toLowerCase();
         const skuMatches = (tx.sku && tx.sku.toLowerCase().includes(s)) || (tx.productName && tx.productName.toLowerCase().includes(s));
         if (!skuMatches) return false;
       }
 
-      // Anulados
-      if (filtrarAnulados && tx.id?.includes('ANUL')) return false;
+      // 11. Anulados
+      if (filtrarAnulados && (tx.id?.includes('ANUL') || tx.document?.includes('ANUL'))) return false;
 
       return true;
     });
 
-    // Ordenamiento
+    // 12. Ordenamiento Dinámico
     if (ordenarPorCantidad) {
       result = [...result].sort((a, b) => (b.qty || 1) - (a.qty || 1));
     } else if (ordenSeleccionado === 'Mayor Venta') {
       result = [...result].sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+    } else if (ordenSeleccionado === 'Descripción-Codigo') {
+      result = [...result].sort((a, b) => (a.productName || '').localeCompare(b.productName || ''));
+    } else {
+      result = [...result].sort((a, b) => (a.sku || a.id || '').localeCompare(b.sku || b.id || ''));
     }
 
     return result;
   }, [
     allRawTransactions, empresaActiva, selectedModule, docTypeFVE, docTypeNC, docTypeCE, docTypeRC, docTypeCOT, docTypeREM,
-    dateFrom, dateTo, selectedSeller, sellerFrom, sellerTo, selectedCostCenter,
+    dateFrom, dateTo, selectedSeller, sellerFrom, sellerTo, selectedCostCenter, selectedWarehouse, selectedPresentations,
     selectedPosPoint, selectedCity, selectedPaymentMethod, searchTerm, skuSearch,
-    filtrarAnulados, ordenarPorCantidad, ordenSeleccionado
+    filtrarAnulados, ordenarPorCantidad, ordenSeleccionado, worldOfficeConfig
   ]);
 
   // Compute KPIs
@@ -849,12 +903,31 @@ export const InformesOmar: React.FC = () => {
       const nit = tx.document || '222222222222';
       const city = getTxCity(tx);
       const seller = getTxSeller(tx).split(' (')[0];
+      const prodName = tx.productName || tx.sku || 'PRODUCTO GENERAL';
 
-      if (!map[clientName]) {
-        map[clientName] = {
-          groupKey: clientName,
-          groupTitle: `CLIENTE: ${nit} — ${clientName}`,
-          groupSub: `Ciudad: ${city} | Asesor Comercial: ${seller}`,
+      let gKey = clientName;
+      let gTitle = `CLIENTE: ${nit} — ${clientName}`;
+      let gSub = `Ciudad: ${city} | Asesor Comercial: ${seller}`;
+
+      if (agruparPorVendedor) {
+        gKey = seller;
+        gTitle = `ASESOR COMERCIAL / RESPONSABLE: ${seller.toUpperCase()}`;
+        gSub = `Comercial Asignado Procoquinal | Ciudad: ${city}`;
+      } else if (selectedReportType.includes('Por Producto')) {
+        gKey = prodName;
+        gTitle = `PRODUCTO QUÍMICO: [${tx.sku || 'REF'}] ${prodName}`;
+        gSub = `Línea Industrial Procoquinal | Unidad: ${(tx as any).baseUnit || 'GL/LT'}`;
+      } else if (agruparZona1) {
+        gKey = city;
+        gTitle = `ZONA 1 / RUTA LOGÍSTICA: ${city.toUpperCase()}`;
+        gSub = `Despacho y Flota Regional Procoquinal`;
+      }
+
+      if (!map[gKey]) {
+        map[gKey] = {
+          groupKey: gKey,
+          groupTitle: gTitle,
+          groupSub: gSub,
           items: [],
           totalQty: 0,
           totalNet: 0,
@@ -867,15 +940,15 @@ export const InformesOmar: React.FC = () => {
       const net = Math.abs(tx.total) - (tx.iva || 0);
       const qty = tx.qty || 1;
 
-      map[clientName].items.push(tx);
-      map[clientName].totalQty += isReturn ? -qty : qty;
-      map[clientName].totalNet += isReturn ? -net : net;
-      map[clientName].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
-      map[clientName].totalGross += tx.total;
+      map[gKey].items.push(tx);
+      map[gKey].totalQty += isReturn ? -qty : qty;
+      map[gKey].totalNet += isReturn ? -net : net;
+      map[gKey].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
+      map[gKey].totalGross += tx.total;
     });
 
     return { groupingType: 'VENTAS', groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet) };
-  }, [filteredData, selectedModule, inventorySource, kpis]);
+  }, [filteredData, selectedModule, inventorySource, kpis, agruparPorVendedor, selectedReportType, agruparZona1]);
 
   // Filter groups if live search in report is used
   const displayedGroups = useMemo(() => {
@@ -1187,7 +1260,7 @@ export const InformesOmar: React.FC = () => {
                               <th className="py-1.5 px-2.5 text-right">Total Facturado</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-200">
+                          <tbody className={sinLineas ? '' : 'divide-y divide-slate-200'}>
                             {group.items.map((tx: any, itemIdx: number) => {
                               const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
                               const netAmount = Math.abs(tx.total) - (tx.iva || 0);
