@@ -424,6 +424,14 @@ export const SalesPerformance: React.FC = () => {
                                         <td className="px-6 py-3 text-xs text-slate-500">{order.reason}</td>
                                     </tr>
                                 ))}
+                                {delayedOrders.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="p-8 text-center text-slate-400 text-xs">
+                                            <CheckCircle2 className="w-6 h-6 mx-auto mb-1 text-emerald-500 opacity-80" />
+                                            No hay órdenes retrasadas en este ciclo. Todo el backlog de pedidos está al día.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
