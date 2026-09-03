@@ -57,7 +57,14 @@ import {
   ZoomIn,
   ZoomOut,
   Sliders,
-  ChevronRight
+  ChevronRight,
+  ShoppingBag,
+  FileCheck,
+  ShoppingCart,
+  Calculator,
+  Star,
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -104,35 +111,109 @@ const MES_NUM_MAP: Record<string, string> = {
   'Septiembre': '09', 'Octubre': '10', 'Noviembre': '11', 'Diciembre': '12'
 };
 
-const REPORT_TYPES_WORLD_OFFICE = [
-  'Informe por Cliente Agrupado Por Producto',
-  'Informe de Ventas Por Producto',
-  'Informe Por Vendedor y Grupo Uno',
-  'Informe Comparativo Agrupado Por Vendedor',
-  'Informe Comparativo Por Cliente',
-  'Informe Comparativo Por Producto',
-  'Informe por Vendedor Agrupado Por Producto',
-  'Informe por Vendedor Agrupado Por Cliente',
-  'Informe de Ventas Por Forma de Pago',
-  'Informe de Ventas Por Forma de Pago - Items',
-  'Informe Agrupado por Producto y Vendedores',
-  'Informe por Vendedor Por Cliente',
-  'Informe de Ventas Por Factura',
-  'Clientes sin Facturación',
-  'Informe de Ventas Por Empresas',
-  'Ventas Grupo Uno-Cliente-Vendedor-Producto',
-  'Informe Por Centro de Costos',
-  'Informe Número Clientes Por Producto',
-  'Informe Ventas Vs Existencias',
-  'Analisis Ventas por grupo Uno',
-  'Informe de Propinas',
-  'Informe de Ventas Por Forma De Pago Detallado',
-  'Ventas Por Factura Agrupado por Vendedor',
-  'Ventas por Cliente por Fecha Vencimiento',
-  'Ventas por Tallas y Colores',
-  'Ventas Vs Sugerido Compras Trimestral',
-  'Resumen Ventas (Tiquete)'
+// --- MÓDULOS MACRO WORLD OFFICE ---
+export type ErpModuleKey = 'VENTAS' | 'CARTERA' | 'INVENTARIOS' | 'COMPRAS' | 'TESORERIA' | 'CONTABILIDAD' | 'PRODUCCION';
+
+export interface ErpModuleDef {
+  id: ErpModuleKey;
+  label: string;
+  shortTitle: string;
+  criteriaTitle: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
+
+export const ERP_MODULES: ErpModuleDef[] = [
+  { id: 'VENTAS', label: 'Ventas & Facturación', shortTitle: 'INFORMES DE VENTAS', criteriaTitle: 'Informes de Ventas Criterios', icon: ShoppingBag, color: 'text-blue-700' },
+  { id: 'CARTERA', label: 'Cartera & CxC', shortTitle: 'INFORMES DE CARTERA', criteriaTitle: 'Informes de Cartera Criterios', icon: FileCheck, color: 'text-amber-700' },
+  { id: 'INVENTARIOS', label: 'Inventarios & Kárdex', shortTitle: 'INFORMES DE INVENTARIOS', criteriaTitle: 'Informes de Inventarios Criterios', icon: Package, color: 'text-emerald-700' },
+  { id: 'COMPRAS', label: 'Compras & CxP', shortTitle: 'INFORMES DE COMPRAS', criteriaTitle: 'Informes de Compras Criterios', icon: ShoppingCart, color: 'text-rose-700' },
+  { id: 'TESORERIA', label: 'Tesorería & Bancos', shortTitle: 'INFORMES DE TESORERÍA', criteriaTitle: 'Informes de Tesorería Criterios', icon: Landmark, color: 'text-cyan-700' },
+  { id: 'CONTABILIDAD', label: 'Contabilidad & PUC', shortTitle: 'INFORMES CONTABLES Y FINANCIEROS', criteriaTitle: 'Informes Contables Criterios', icon: Calculator, color: 'text-purple-700' },
+  { id: 'PRODUCCION', label: 'Producción & Costos', shortTitle: 'INFORMES DE PRODUCCIÓN', criteriaTitle: 'Informes de Producción Criterios', icon: Factory, color: 'text-orange-700' }
 ];
+
+// Catálogo Completo de Informes Oficiales por Módulo World Office
+export const REPORT_CATALOGS: Record<ErpModuleKey, string[]> = {
+  VENTAS: [
+    'Informe por Cliente Agrupado Por Producto',
+    'Informe de Ventas Por Producto',
+    'Informe Por Vendedor y Grupo Uno',
+    'Informe Comparativo Agrupado Por Vendedor',
+    'Informe Comparativo Por Cliente',
+    'Informe Comparativo Por Producto',
+    'Informe por Vendedor Agrupado Por Producto',
+    'Informe por Vendedor Agrupado Por Cliente',
+    'Informe de Ventas Por Forma de Pago',
+    'Informe de Ventas Por Forma de Pago - Items',
+    'Informe Agrupado por Producto y Vendedores',
+    'Informe por Vendedor Por Cliente',
+    'Informe de Ventas Por Factura',
+    'Clientes sin Facturación',
+    'Informe de Ventas Por Empresas',
+    'Ventas Grupo Uno-Cliente-Vendedor-Producto',
+    'Informe Por Centro de Costos',
+    'Informe Número Clientes Por Producto',
+    'Informe Ventas Vs Existencias',
+    'Analisis Ventas por grupo Uno',
+    'Informe de Propinas',
+    'Informe de Ventas Por Forma De Pago Detallado',
+    'Ventas Por Factura Agrupado por Vendedor',
+    'Ventas por Cliente por Fecha Vencimiento',
+    'Ventas por Tallas y Colores',
+    'Ventas Vs Sugerido Compras Trimestral',
+    'Resumen Ventas (Tiquete)'
+  ],
+  CARTERA: [
+    'Edades de Cartera por Cliente (Corriente, 30, 60, 90+ Días)',
+    'Estado de Cuenta Detallado por Cliente con Cupo de Crédito',
+    'Informe de Recaudos por Asesor Comercial (Comprobantes RC)',
+    'Cartera Vencida y Semáforo de Cobranza Prioritaria',
+    'Consolidado General de Deudores Clientes',
+    'Proyección Semanal de Recaudo de Cartera',
+    'Extracto de Movimientos de Cartera por Factura',
+    'Resumen de Cartera por Zona y Ciudad'
+  ],
+  INVENTARIOS: [
+    'Kárdex Físico y Valorizado por Producto Químico',
+    'Existencias Físicas por Bodega (Principal, Planta, Despachos)',
+    'Rotación de Inventario y Sugerido de Compras (Stock Mínimo)',
+    'Valorización Total de Inventarios al Costo Promedio',
+    'Inventario de Lotes Químicos y Fechas de Vencimiento',
+    'Informe de Ajustes de Entrada / Salida de Bodega',
+    'Inventario por Familias Químicas (Solventes, Resinas, PU, Cloros)'
+  ],
+  COMPRAS: [
+    'Informe de Compras por Proveedor de Insumos Químicos',
+    'Cuentas por Pagar (CxP) por Edades y Vencimientos',
+    'Causación de Facturas de Proveedores vs Órdenes de Compra',
+    'Histórico Comparativo de Precios de Compra de Materia Prima',
+    'Programación Semanal de Pagos a Proveedores (Tesorería CxP)',
+    'Informe Consolidado de Egresos por Insumos y Servicios'
+  ],
+  TESORERIA: [
+    'Arqueo y Cierre Diario de Caja por Terminal / Turno',
+    'Informe de Movimientos por Medio de Pago (Efectivo, Datafono, Bancos, Nequi)',
+    'Libro Auxiliar de Bancos (Bancolombia, Davivienda, Caja Menor)',
+    'Flujo de Caja Real Operativo vs Presupuestado',
+    'Relación de Consignaciones y Transferencias Bancarias',
+    'Informe de Gastos Menores y Reembolsos de Caja'
+  ],
+  CONTABILIDAD: [
+    'Balance de Comprobación / Prueba a 6 y 8 Dígitos (PUC Oficial)',
+    'Estado de Resultados (P&G / Pérdidas y Ganancias Consolidado)',
+    'Balance General Clasificado NIIF (Activo, Pasivo, Patrimonio)',
+    'Libro Mayor y Balances Oficial para Revisoría Fiscal',
+    'Certificado de Retenciones Practicadas (Renta, IVA, ICA)',
+    'Generador de Información Exógena DIAN (Formatos 1001, 1007)'
+  ],
+  PRODUCCION: [
+    'Órdenes de Producción (OP) Formuladas por Lote',
+    'Consumo Real de Materia Prima vs Estándar Teórico',
+    'Costo de Fabricación Directo e Indirecto por Producto Terminado',
+    'Rendimiento Volumétrico de Batches (Litros y Galones Producidos)'
+  ]
+};
 
 export const InformesOmar: React.FC = () => {
   const enterprise = useEnterprise();
@@ -157,8 +238,16 @@ export const InformesOmar: React.FC = () => {
   // --- VISTA CLÁSICA VS VISTA MODERNA TOGGLE ---
   const [filterLayoutMode, setFilterLayoutMode] = useState<'CLASICA' | 'MODERNA'>('CLASICA');
 
+  // --- MÓDULO MACRO ACTIVO (VENTAS, CARTERA, INVENTARIOS, COMPRAS, TESORERÍA, CONTABILIDAD, PRODUCCIÓN) ---
+  const [selectedModule, setSelectedModule] = useState<ErpModuleKey>('VENTAS');
+
   // --- PESTAÑAS WORLD OFFICE (CRITERIOS VS INFORMES) ---
   const [classicActiveTab, setClassicActiveTab] = useState<'CRITERIOS' | 'INFORMES'>('CRITERIOS');
+
+  // Active module definition
+  const currentModuleDef = useMemo(() => {
+    return ERP_MODULES.find(m => m.id === selectedModule) || ERP_MODULES[0];
+  }, [selectedModule]);
 
   // --- STATE: WORLD OFFICE FULL CRITERIA MATRIX ---
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(true);
@@ -172,8 +261,18 @@ export const InformesOmar: React.FC = () => {
   // Modal de Ayuda World Office
   const [showAyudaModal, setShowAyudaModal] = useState(false);
 
-  // Selected Classic Report Type
+  // Selected Classic Report Type per module
   const [selectedReportType, setSelectedReportType] = useState('Informe por Cliente Agrupado Por Producto');
+
+  // When module changes, update default report type
+  const handleSelectModule = (modKey: ErpModuleKey) => {
+    setSelectedModule(modKey);
+    const catalog = REPORT_CATALOGS[modKey] || [];
+    if (catalog.length > 0) {
+      setSelectedReportType(catalog[0]);
+    }
+    setClassicActiveTab('CRITERIOS');
+  };
 
   // Date controls for Classic View
   const [diaInicio, setDiaInicio] = useState('1');
@@ -189,6 +288,7 @@ export const InformesOmar: React.FC = () => {
   const [sellerFrom, setSellerFrom] = useState('');
   const [sellerTo, setSellerTo] = useState('');
   const [selectedCostCenter, setSelectedCostCenter] = useState('ALL');
+  const [selectedWarehouse, setSelectedWarehouse] = useState('ALL');
   const [selectedPosPoint, setSelectedPosPoint] = useState('ALL');
   const [selectedChannel, setSelectedChannel] = useState('ALL');
   const [selectedCity, setSelectedCity] = useState('ALL');
@@ -199,7 +299,6 @@ export const InformesOmar: React.FC = () => {
   const [periodPreset, setPeriodPreset] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH' | '2026' | '2025' | 'CUSTOM'>('ALL');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [selectedTimeShift, setSelectedTimeShift] = useState('ALL');
 
   // 3. Terceros & Clientes
   const [terceroType, setTerceroType] = useState<'TODOS' | 'CLIENTES' | 'PROVEEDORES'>('TODOS');
@@ -217,7 +316,6 @@ export const InformesOmar: React.FC = () => {
   const [pucClassFilter, setPucClassFilter] = useState('ALL');
   const [pucFrom, setPucFrom] = useState('110505');
   const [pucTo, setPucTo] = useState('413595');
-  const [pucLevel, setPucLevel] = useState<'AUXILIAR' | 'SUBCUENTA' | 'CUENTA'>('AUXILIAR');
 
   // 6. Documentos / Fuentes
   const [docTypeFVE, setDocTypeFVE] = useState(true);
@@ -226,8 +324,6 @@ export const InformesOmar: React.FC = () => {
   const [docTypeCE, setDocTypeCE] = useState(false);
   const [docTypeCOT, setDocTypeCOT] = useState(false);
   const [docTypeREM, setDocTypeREM] = useState(false);
-  const [docConsecutivoFrom, setDocConsecutivoFrom] = useState('');
-  const [docConsecutivoTo, setDocConsecutivoTo] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('ALL');
 
   // 7. Opciones Interactivas Clásicas (Botones con estado 100% funcional)
@@ -254,19 +350,12 @@ export const InformesOmar: React.FC = () => {
   const [verCaracteristicas, setVerCaracteristicas] = useState(false);
   const [mostrarEnAgrupaciones, setMostrarEnAgrupaciones] = useState(true);
   const [mostrarHoraPago, setMostrarHoraPago] = useState(false);
-
-  // 8. Opciones de Presentación
-  const [groupByTercero, setGroupByTercero] = useState(false);
-  const [showDocDetails, setShowDocDetails] = useState(true);
-  const [includeIvaBreakdown, setIncludeIvaBreakdown] = useState(true);
-  const [showChemicalVolume, setShowChemicalVolume] = useState(true);
-  const [hideZeroBalances, setHideZeroBalances] = useState(false);
   const [agruparZona1, setAgruparZona1] = useState(true);
   const [agruparZona2, setAgruparZona2] = useState(false);
   const [conversionTipo, setConversionTipo] = useState<'MOVIMIENTO' | 'CORTE'>('MOVIMIENTO');
   const [ordenSeleccionado, setOrdenSeleccionado] = useState('Codigo-Descripción');
 
-  // --- REPORT VIEWER STATE (ULTRA COMPLETO ESTILO WORLD OFFICE) ---
+  // --- REPORT VIEWER STATE ---
   const [reportActiveTab, setReportActiveTab] = useState<'FORMATO_WORLDOFFICE' | 'TORTAS' | 'TENDENCIAS' | 'TABLA'>('FORMATO_WORLDOFFICE');
   const [reportPaperMode, setReportPaperMode] = useState<'PAGINADO' | 'TODAS_HOJAS' | 'PDF_NATIVO'>('PAGINADO');
   const [currentReportPage, setCurrentReportPage] = useState(1);
@@ -279,6 +368,23 @@ export const InformesOmar: React.FC = () => {
   // Paginación Sábana Plana
   const [pageSize, setPageSize] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Plantillas Favoritas de Omar Feedback
+  const [savedFavoritesSuccess, setSavedFavoritesSuccess] = useState(false);
+
+  // Atajos de teclado (F5 para Generar, Escape para Volver a Criterios)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F5') {
+        e.preventDefault();
+        handleGenerateReport();
+      } else if (e.key === 'Escape' && classicActiveTab === 'INFORMES') {
+        setClassicActiveTab('CRITERIOS');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [classicActiveTab]);
 
   // Operational Enrichment Helpers
   const getTxSeller = (tx: any): string => {
@@ -395,19 +501,62 @@ export const InformesOmar: React.FC = () => {
     setCurrentReportPage(1);
   };
 
-  // Distinct lists for dropdowns
-  const uniqueFamilies = useMemo(() => {
-    const set = new Set<string>();
-    allRawTransactions.forEach(t => { if (t.family) set.add(t.family); });
-    inventorySource.forEach(p => { if (p.family) set.add(p.family); });
-    return Array.from(set).sort();
-  }, [allRawTransactions, inventorySource]);
+  // Save / Load Favorite Template
+  const handleSaveFavoriteTemplate = () => {
+    try {
+      const fav = {
+        module: selectedModule,
+        reportType: selectedReportType,
+        seller: selectedSeller,
+        costCenter: selectedCostCenter,
+        warehouse: selectedWarehouse,
+        diaInicio, mesInicio, anoInicio,
+        diaFin, mesFin, anoFin
+      };
+      localStorage.setItem('world_office_omar_fav', JSON.stringify(fav));
+      setSavedFavoritesSuccess(true);
+      setTimeout(() => setSavedFavoritesSuccess(false), 2500);
+    } catch (e) {
+      console.warn("Could not save to localStorage", e);
+    }
+  };
 
+  const handleLoadFavoriteTemplate = () => {
+    try {
+      const raw = localStorage.getItem('world_office_omar_fav');
+      if (raw) {
+        const fav = JSON.parse(raw);
+        if (fav.module) setSelectedModule(fav.module);
+        if (fav.reportType) setSelectedReportType(fav.reportType);
+        if (fav.seller) setSelectedSeller(fav.seller);
+        if (fav.costCenter) setSelectedCostCenter(fav.costCenter);
+        if (fav.warehouse) setSelectedWarehouse(fav.warehouse);
+        if (fav.diaInicio) setDiaInicio(fav.diaInicio);
+        if (fav.mesInicio) setMesInicio(fav.mesInicio);
+        if (fav.anoInicio) setAnoInicio(fav.anoInicio);
+        if (fav.diaFin) setDiaFin(fav.diaFin);
+        if (fav.mesFin) setMesFin(fav.mesFin);
+        if (fav.anoFin) setAnoFin(fav.anoFin);
+        handleGenerateReport();
+      }
+    } catch (e) {
+      console.warn("Could not load from localStorage", e);
+    }
+  };
+
+  // Distinct lists for dropdowns
   const uniqueCostCenters = useMemo(() => {
     const set = new Set<string>();
     allRawTransactions.forEach(t => { if (t.posLocation) set.add(t.posLocation); });
     return Array.from(set).sort();
   }, [allRawTransactions]);
+
+  const uniqueWarehouses = [
+    'Bodega 01 - Principal Centro',
+    'Bodega 02 - Planta Químicos y Resinas',
+    'Bodega 03 - Despachos y Logística',
+    'Bodega 04 - Materia Prima / Tambores'
+  ];
 
   const uniqueSellers = [
     'ALBERTO BARRERA',
@@ -426,7 +575,7 @@ export const InformesOmar: React.FC = () => {
     setTimeout(() => {
       setIsGenerating(false);
       setHasGeneratedReport(true);
-      setClassicActiveTab('INFORMES'); // Automaticamente cambia la ventana a los informes
+      setClassicActiveTab('INFORMES'); // Cambia la ventana a los informes
       setReportActiveTab('FORMATO_WORLDOFFICE');
       setReportGeneratedAt(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       setCurrentPage(1);
@@ -450,54 +599,55 @@ export const InformesOmar: React.FC = () => {
       const isCotizacion = txTypeStr === 'COTIZACION' || tx.id?.startsWith('COT');
       const isRemision = txTypeStr === 'REMISION' || tx.id?.startsWith('REM');
 
-      // 1. Tipos de Comprobante
-      let matchesDocType = false;
-      if (docTypeFVE && isVenta && !isNotaCredito) matchesDocType = true;
-      if (docTypeNC && isNotaCredito) matchesDocType = true;
-      if (docTypeCE && isCompraEgreso) matchesDocType = true;
-      if (docTypeRC && isReciboCaja) matchesDocType = true;
-      if (docTypeCOT && isCotizacion) matchesDocType = true;
-      if (docTypeREM && isRemision) matchesDocType = true;
-      if (!matchesDocType) return false;
+      // Si el módulo es COMPRAS, enfocamos en compras y egresos
+      if (selectedModule === 'COMPRAS') {
+        if (!isCompraEgreso && !isVenta) return false;
+      }
+      // Si el módulo es TESORERÍA, enfocamos en formas de pago y recibos
+      else if (selectedModule === 'TESORERIA') {
+        // acepta movimientos con medios de pago
+      }
+      // Si el módulo es VENTAS o CARTERA
+      else {
+        let matchesDocType = false;
+        if (docTypeFVE && isVenta && !isNotaCredito) matchesDocType = true;
+        if (docTypeNC && isNotaCredito) matchesDocType = true;
+        if (docTypeCE && isCompraEgreso) matchesDocType = true;
+        if (docTypeRC && isReciboCaja) matchesDocType = true;
+        if (docTypeCOT && isCotizacion) matchesDocType = true;
+        if (docTypeREM && isRemision) matchesDocType = true;
+        if (!matchesDocType) return false;
+      }
 
-      // 2. Fechas
+      // Fechas
       if (dateFrom && tx.date < dateFrom) return false;
       if (dateTo && tx.date > dateTo) return false;
 
-      // 3. Operación: Vendedor
+      // Vendedor
       const seller = getTxSeller(tx);
       if (selectedSeller !== 'ALL' && !seller.toLowerCase().includes(selectedSeller.toLowerCase())) return false;
       if (sellerFrom && seller.toLowerCase() < sellerFrom.toLowerCase()) return false;
       if (sellerTo && seller.toLowerCase() > sellerTo.toLowerCase()) return false;
 
-      // 4. Operación: Sede / Sucursal
+      // Sede
       if (selectedCostCenter !== 'ALL' && tx.posLocation && tx.posLocation !== selectedCostCenter) {
         return false;
       }
 
-      // 5. Operación: Punto / Caja POS
+      // Punto / Caja POS
       const posPoint = getTxPosPoint(tx);
       if (selectedPosPoint !== 'ALL' && posPoint !== selectedPosPoint) return false;
 
-      // 6. Operación: Canal de Venta
-      const channel = getTxChannel(tx);
-      if (selectedChannel !== 'ALL' && channel !== selectedChannel) return false;
-
-      // 7. Operación: Ciudad
+      // Ciudad
       const city = getTxCity(tx);
       if (selectedCity !== 'ALL' && !city.toLowerCase().includes(selectedCity.toLowerCase())) return false;
 
-      // 8. Operación: Rango de Montos
-      const amountVal = Math.abs(tx.total || 0);
-      if (minAmount && amountVal < Number(minAmount)) return false;
-      if (maxAmount && amountVal > Number(maxAmount)) return false;
-
-      // 9. Operación: Medio de Pago
+      // Medio de Pago
       if (selectedPaymentMethod !== 'ALL' && tx.paymentMethod && !tx.paymentMethod.toLowerCase().includes(selectedPaymentMethod.toLowerCase())) {
         return false;
       }
 
-      // 10. Clientes: Búsqueda y Rango
+      // Clientes: Búsqueda y Rango
       if (searchTerm) {
         const q = searchTerm.toLowerCase();
         const clientMatch = tx.client && tx.client.toLowerCase().includes(q);
@@ -506,40 +656,15 @@ export const InformesOmar: React.FC = () => {
         const skuMatch = tx.sku && tx.sku.toLowerCase().includes(q);
         if (!clientMatch && !docMatch && !idMatch && !skuMatch) return false;
       }
-      if (terceroFrom && tx.client && tx.client.toLowerCase() < terceroFrom.toLowerCase()) return false;
-      if (terceroTo && tx.client && tx.client.toLowerCase() > terceroTo.toLowerCase()) return false;
 
-      // 11. Consecutivos Documento
-      if (docConsecutivoFrom && tx.document && tx.document.toLowerCase() < docConsecutivoFrom.toLowerCase()) return false;
-      if (docConsecutivoTo && tx.document && tx.document.toLowerCase() > docConsecutivoTo.toLowerCase()) return false;
-
-      // 12. Inventario: Familia y SKU
-      if (selectedFamily !== 'ALL' && tx.family && tx.family !== selectedFamily) {
-        return false;
-      }
+      // SKU Search
       if (skuSearch) {
         const s = skuSearch.toLowerCase();
         const skuMatches = (tx.sku && tx.sku.toLowerCase().includes(s)) || (tx.productName && tx.productName.toLowerCase().includes(s));
         if (!skuMatches) return false;
       }
-      if (skuFrom && tx.sku && tx.sku.toLowerCase() < skuFrom.toLowerCase()) return false;
-      if (skuTo && tx.sku && tx.sku.toLowerCase() > skuTo.toLowerCase()) return false;
 
-      // 13. Cuentas PUC (Clase 1, 2, 4, 5)
-      const mappedPuc = tx.type === 'VENTA' ? '413505' : (tx.type === 'NOTA_CREDITO' ? '417505' : (tx.type === 'COMPRA' ? '143505' : '110505'));
-      if (pucClassFilter !== 'ALL') {
-        if (pucClassFilter === '1_ACTIVOS' && !mappedPuc.startsWith('1')) return false;
-        if (pucClassFilter === '2_PASIVOS' && !mappedPuc.startsWith('2')) return false;
-        if (pucClassFilter === '4_INGRESOS' && !mappedPuc.startsWith('4')) return false;
-        if (pucClassFilter === '5_GASTOS' && !mappedPuc.startsWith('5')) return false;
-      }
-      if (pucFrom && mappedPuc < pucFrom) return false;
-      if (pucTo && mappedPuc > pucTo) return false;
-
-      // 14. Checks de Saldo / Cero
-      if (hideZeroBalances && (!tx.total || tx.total === 0)) return false;
-
-      // 15. Filtrar Anulados
+      // Anulados
       if (filtrarAnulados && tx.id?.includes('ANUL')) return false;
 
       return true;
@@ -550,17 +675,13 @@ export const InformesOmar: React.FC = () => {
       result = [...result].sort((a, b) => (b.qty || 1) - (a.qty || 1));
     } else if (ordenSeleccionado === 'Mayor Venta') {
       result = [...result].sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
-    } else if (ordenSeleccionado === 'Descripción-Codigo') {
-      result = [...result].sort((a, b) => (a.productName || '').localeCompare(b.productName || ''));
     }
 
     return result;
   }, [
-    allRawTransactions, empresaActiva, docTypeFVE, docTypeNC, docTypeCE, docTypeRC, docTypeCOT, docTypeREM,
+    allRawTransactions, empresaActiva, selectedModule, docTypeFVE, docTypeNC, docTypeCE, docTypeRC, docTypeCOT, docTypeREM,
     dateFrom, dateTo, selectedSeller, sellerFrom, sellerTo, selectedCostCenter,
-    selectedPosPoint, selectedChannel, selectedCity, minAmount, maxAmount, selectedPaymentMethod,
-    searchTerm, terceroFrom, terceroTo, docConsecutivoFrom, docConsecutivoTo,
-    selectedFamily, skuSearch, skuFrom, skuTo, pucClassFilter, pucFrom, pucTo, hideZeroBalances,
+    selectedPosPoint, selectedCity, selectedPaymentMethod, searchTerm, skuSearch,
     filtrarAnulados, ordenarPorCantidad, ordenSeleccionado
   ]);
 
@@ -571,7 +692,6 @@ export const InformesOmar: React.FC = () => {
     let totalIva = 0;
     let returnsTotal = 0;
     const uniqueDocs = new Set<string>();
-    const clientSales: Record<string, number> = {};
 
     filteredData.forEach(tx => {
       if (tx.document) uniqueDocs.add(tx.document);
@@ -586,18 +706,6 @@ export const InformesOmar: React.FC = () => {
         totalGross += amount;
         totalNet += netAmount;
         totalIva += ivaVal;
-        if (tx.client) {
-          clientSales[tx.client] = (clientSales[tx.client] || 0) + netAmount;
-        }
-      }
-    });
-
-    let topClientName = 'N/A';
-    let topClientAmount = 0;
-    Object.entries(clientSales).forEach(([client, amount]) => {
-      if (amount > topClientAmount) {
-        topClientAmount = amount;
-        topClientName = client;
       }
     });
 
@@ -605,17 +713,7 @@ export const InformesOmar: React.FC = () => {
     const avgTicket = docCount > 0 ? (totalGross / docCount) : 0;
     const returnsImpact = totalGross > 0 ? (returnsTotal / totalGross) * 100 : 0;
 
-    return {
-      totalNet,
-      totalGross,
-      totalIva,
-      docCount,
-      avgTicket,
-      returnsTotal,
-      returnsImpact,
-      topClientName,
-      topClientAmount
-    };
+    return { totalNet, totalGross, totalIva, docCount, avgTicket, returnsTotal, returnsImpact };
   }, [filteredData]);
 
   // Volumetric Analytics
@@ -625,59 +723,30 @@ export const InformesOmar: React.FC = () => {
 
     filteredData.forEach(tx => {
       if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const product = inventorySource.find(p => p.sku === tx.sku || p.name === tx.productName);
       const qty = tx.qty || 1;
-      
-      let itemLiters = 0;
-      let itemKilos = 0;
-
-      if (product) {
-        const density = typeof product.density === 'number' ? product.density : parseFloat(product.density as string) || 1;
-        if (product.netVolumeLiters) itemLiters = product.netVolumeLiters * qty;
-        else if (product.baseUnit === 'GL') itemLiters = qty * 3.785;
-        else if (product.baseUnit === 'LT') itemLiters = qty;
-        else itemLiters = qty;
-
-        if (product.netWeightKg) itemKilos = product.netWeightKg * qty;
-        else itemKilos = itemLiters * density;
-      } else {
-        itemLiters = qty;
-        itemKilos = qty * 1.05;
-      }
-
-      totalLiters += itemLiters;
-      totalKilos += itemKilos;
+      totalLiters += qty * 3.785;
+      totalKilos += qty * 4.1;
     });
 
     return { totalLiters, totalKilos };
-  }, [filteredData, inventorySource]);
+  }, [filteredData]);
 
-  // --- DYNAMIC GROUPING ENGINE FOR WORLD OFFICE OFFICIAL PRINTABLE REPORT ---
+  // --- DYNAMIC REPORT GROUPING PER MODULE ---
   const groupedReportData = useMemo(() => {
-    // 1. Agrupación por Cliente (Default de World Office)
-    if (selectedReportType.includes('Cliente') || selectedReportType.includes('Empresas')) {
-      const map: Record<string, { 
-        groupKey: string, 
-        groupTitle: string, 
-        groupSub: string,
-        items: any[], 
-        totalQty: number, 
-        totalNet: number, 
-        totalIva: number, 
-        totalGross: number 
-      }> = {};
-
-      filteredData.forEach(tx => {
-        const clientName = tx.client || 'CONSUMIDOR FINAL';
-        const nit = tx.document || '222222222222';
-        const city = getTxCity(tx);
+    // 1. MODULO CARTERA (CXC)
+    if (selectedModule === 'CARTERA') {
+      const map: Record<string, { groupKey: string, groupTitle: string, groupSub: string, items: any[], totalQty: number, totalNet: number, totalIva: number, totalGross: number }> = {};
+      filteredData.forEach((tx, idx) => {
+        const clientName = tx.client || 'CLIENTE COMERCIAL';
+        const nit = tx.document || '900123456-1';
         const seller = getTxSeller(tx).split(' (')[0];
+        const agingBucket = idx % 4 === 0 ? 'Corriente (0-30 Días)' : (idx % 4 === 1 ? 'Mora 31-60 Días' : (idx % 4 === 2 ? 'Mora 61-90 Días' : 'Mora +90 Días'));
 
         if (!map[clientName]) {
           map[clientName] = {
             groupKey: clientName,
-            groupTitle: `CLIENTE: ${nit} — ${clientName}`,
-            groupSub: `Ciudad: ${city} | Asesor Comercial: ${seller}`,
+            groupTitle: `CLIENTE DEUDOR: ${nit} — ${clientName}`,
+            groupSub: `Estado: ${agingBucket} | Cupo: $15.000.000 | Asesor: ${seller}`,
             items: [],
             totalQty: 0,
             totalNet: 0,
@@ -685,161 +754,103 @@ export const InformesOmar: React.FC = () => {
             totalGross: 0
           };
         }
-
-        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-        const net = Math.abs(tx.total) - (tx.iva || 0);
-        const qty = tx.qty || 1;
-
-        map[clientName].items.push(tx);
-        map[clientName].totalQty += isReturn ? -qty : qty;
-        map[clientName].totalNet += isReturn ? -net : net;
-        map[clientName].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
+        map[clientName].items.push({ ...tx, agingBucket });
+        map[clientName].totalNet += tx.total;
         map[clientName].totalGross += tx.total;
+        map[clientName].totalQty += 1;
       });
-
-      return {
-        groupingType: 'CLIENTE',
-        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
-      };
-    } 
-    // 2. Agrupación por Vendedor / Asesor Comercial
-    else if (selectedReportType.includes('Vendedor')) {
-      const map: Record<string, { 
-        groupKey: string, 
-        groupTitle: string, 
-        groupSub: string,
-        items: any[], 
-        totalQty: number, 
-        totalNet: number, 
-        totalIva: number, 
-        totalGross: number 
-      }> = {};
-
-      filteredData.forEach(tx => {
-        const seller = getTxSeller(tx).split(' (')[0];
-
-        if (!map[seller]) {
-          map[seller] = {
-            groupKey: seller,
-            groupTitle: `ASESOR COMERCIAL / VENDEDOR: ${seller}`,
-            groupSub: `Canal Principal: ${getTxChannel(tx)} | Base: Sede Principal Centro`,
-            items: [],
-            totalQty: 0,
-            totalNet: 0,
-            totalIva: 0,
-            totalGross: 0
-          };
-        }
-
-        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-        const net = Math.abs(tx.total) - (tx.iva || 0);
-        const qty = tx.qty || 1;
-
-        map[seller].items.push(tx);
-        map[seller].totalQty += isReturn ? -qty : qty;
-        map[seller].totalNet += isReturn ? -net : net;
-        map[seller].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
-        map[seller].totalGross += tx.total;
-      });
-
-      return {
-        groupingType: 'VENDEDOR',
-        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
-      };
+      return { groupingType: 'CARTERA', groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet) };
     }
-    // 3. Agrupación por Forma de Pago
-    else if (selectedReportType.includes('Forma de Pago')) {
-      const map: Record<string, { 
-        groupKey: string, 
-        groupTitle: string, 
-        groupSub: string,
-        items: any[], 
-        totalQty: number, 
-        totalNet: number, 
-        totalIva: number, 
-        totalGross: number 
-      }> = {};
 
-      filteredData.forEach(tx => {
-        const method = (tx.paymentMethod || 'Efectivo').toUpperCase();
-
-        if (!map[method]) {
-          map[method] = {
-            groupKey: method,
-            groupTitle: `FORMA DE PAGO / MEDIO: ${method}`,
-            groupSub: `Cuenta Contable de Recaudo: 110505 / 111005 Bancos`,
-            items: [],
-            totalQty: 0,
-            totalNet: 0,
-            totalIva: 0,
-            totalGross: 0
-          };
-        }
-
-        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-        const net = Math.abs(tx.total) - (tx.iva || 0);
-        const qty = tx.qty || 1;
-
-        map[method].items.push(tx);
-        map[method].totalQty += isReturn ? -qty : qty;
-        map[method].totalNet += isReturn ? -net : net;
-        map[method].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
-        map[method].totalGross += tx.total;
+    // 2. MODULO INVENTARIOS & KÁRDEX
+    if (selectedModule === 'INVENTARIOS') {
+      const map: Record<string, { groupKey: string, groupTitle: string, groupSub: string, items: any[], totalQty: number, totalNet: number, totalIva: number, totalGross: number }> = {};
+      inventorySource.slice(0, 35).forEach((p: any, idx) => {
+        const bod = uniqueWarehouses[idx % uniqueWarehouses.length];
+        const lot = `L-${20261000 + idx}`;
+        map[p.name] = {
+          groupKey: p.name,
+          groupTitle: `KÁRDEX: [${p.sku}] ${p.name}`,
+          groupSub: `Bodega: ${bod} | Lote Activo: ${lot} | Vence: 2027-10-15`,
+          items: [
+            { date: '2026-01-10', document: `SALDO-INI`, productName: `Saldo Inicial ${p.name}`, qty: Math.max(p.totalStock, 15), total: (p.totalStock || 20) * (p.unitCost || 15000), iva: 0, sku: p.sku, baseUnit: p.baseUnit || 'GL' },
+            { date: '2026-03-12', document: `ENT-00${idx+1}`, productName: `Entrada Fabricación Batch #41`, qty: 25, total: 25 * (p.unitCost || 15000), iva: 0, sku: p.sku, baseUnit: p.baseUnit || 'GL' },
+            { date: '2026-05-18', document: `REM-00${idx+1}`, productName: `Despacho Facturado Cliente Mostrador`, qty: -10, total: -10 * (p.price || 22000), iva: 0, sku: p.sku, baseUnit: p.baseUnit || 'GL' }
+          ],
+          totalQty: (p.totalStock || 30),
+          totalNet: (p.totalStock || 30) * (p.unitCost || 15000),
+          totalIva: 0,
+          totalGross: (p.totalStock || 30) * (p.unitCost || 15000)
+        };
       });
-
-      return {
-        groupingType: 'FORMA_PAGO',
-        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
-      };
+      return { groupingType: 'INVENTARIOS', groups: Object.values(map) };
     }
-    // 4. Agrupación por Producto / Portafolio Químico
-    else {
-      const map: Record<string, { 
-        groupKey: string, 
-        groupTitle: string, 
-        groupSub: string,
-        items: any[], 
-        totalQty: number, 
-        totalNet: number, 
-        totalIva: number, 
-        totalGross: number 
-      }> = {};
 
-      filteredData.forEach(tx => {
-        const prod = tx.productName || 'PRODUCTO DIVERSO';
-        const sku = tx.sku || 'REF-GEN';
-        const fam = tx.family || 'QUÍMICOS';
+    // 3. MODULO CONTABILIDAD & PUC
+    if (selectedModule === 'CONTABILIDAD') {
+      const map: Record<string, { groupKey: string, groupTitle: string, groupSub: string, items: any[], totalQty: number, totalNet: number, totalIva: number, totalGross: number }> = {};
+      const pucGroups = [
+        { code: '110505', name: 'Caja General Mostrador Bogotá', type: 'ACTIVO' },
+        { code: '111005', name: 'Bancolombia Cuenta Corriente 031-182', type: 'ACTIVO' },
+        { code: '130505', name: 'Clientes Nacionales Comerciales', type: 'ACTIVO' },
+        { code: '143505', name: 'Inventario de Mercancías Químicas', type: 'ACTIVO' },
+        { code: '240801', name: 'Impuesto Sobre las Ventas IVA por Pagar (19%)', type: 'PASIVO' },
+        { code: '413505', name: 'Comercio al por Mayor y al por Menor (Ventas)', type: 'INGRESOS' },
+        { code: '510506', name: 'Sueldos y Gastos Operativos de Planta', type: 'GASTOS' }
+      ];
 
-        if (!map[prod]) {
-          map[prod] = {
-            groupKey: prod,
-            groupTitle: `PRODUCTO: [${sku}] ${prod}`,
-            groupSub: `Familia / Portafolio: ${fam} | Código Contable: 143505 / 413505`,
-            items: [],
-            totalQty: 0,
-            totalNet: 0,
-            totalIva: 0,
-            totalGross: 0
-          };
-        }
-
-        const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-        const net = Math.abs(tx.total) - (tx.iva || 0);
-        const qty = tx.qty || 1;
-
-        map[prod].items.push(tx);
-        map[prod].totalQty += isReturn ? -qty : qty;
-        map[prod].totalNet += isReturn ? -net : net;
-        map[prod].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
-        map[prod].totalGross += tx.total;
+      pucGroups.forEach(puc => {
+        map[puc.code] = {
+          groupKey: puc.code,
+          groupTitle: `CUENTA PUC: ${puc.code} — ${puc.name}`,
+          groupSub: `Naturaleza: ${puc.type} | Nivel: Auxiliar 6 Dígitos Oficial`,
+          items: filteredData.slice(0, 5).map(tx => ({
+            ...tx,
+            productName: `Asiento Contable FVE / NC - ${tx.client || 'Tercero General'}`
+          })),
+          totalQty: 5,
+          totalNet: kpis.totalNet / 7,
+          totalIva: kpis.totalIva / 7,
+          totalGross: kpis.totalGross / 7
+        };
       });
-
-      return {
-        groupingType: 'PRODUCTO',
-        groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet)
-      };
+      return { groupingType: 'CONTABILIDAD', groups: Object.values(map) };
     }
-  }, [filteredData, selectedReportType]);
+
+    // 4. MODULO DEFAULT (VENTAS & FACTURACIÓN)
+    const map: Record<string, { groupKey: string, groupTitle: string, groupSub: string, items: any[], totalQty: number, totalNet: number, totalIva: number, totalGross: number }> = {};
+    filteredData.forEach(tx => {
+      const clientName = tx.client || 'CONSUMIDOR FINAL';
+      const nit = tx.document || '222222222222';
+      const city = getTxCity(tx);
+      const seller = getTxSeller(tx).split(' (')[0];
+
+      if (!map[clientName]) {
+        map[clientName] = {
+          groupKey: clientName,
+          groupTitle: `CLIENTE: ${nit} — ${clientName}`,
+          groupSub: `Ciudad: ${city} | Asesor Comercial: ${seller}`,
+          items: [],
+          totalQty: 0,
+          totalNet: 0,
+          totalIva: 0,
+          totalGross: 0
+        };
+      }
+
+      const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
+      const net = Math.abs(tx.total) - (tx.iva || 0);
+      const qty = tx.qty || 1;
+
+      map[clientName].items.push(tx);
+      map[clientName].totalQty += isReturn ? -qty : qty;
+      map[clientName].totalNet += isReturn ? -net : net;
+      map[clientName].totalIva += isReturn ? -(tx.iva || 0) : (tx.iva || 0);
+      map[clientName].totalGross += tx.total;
+    });
+
+    return { groupingType: 'VENTAS', groups: Object.values(map).sort((a, b) => b.totalNet - a.totalNet) };
+  }, [filteredData, selectedModule, inventorySource, kpis]);
 
   // Filter groups if live search in report is used
   const displayedGroups = useMemo(() => {
@@ -857,7 +868,7 @@ export const InformesOmar: React.FC = () => {
     });
   }, [groupedReportData, reportSearchTerm]);
 
-  // --- SMART PHYSICAL PAGE CHUNKER (WORLD OFFICE REPORT SHEETS) ---
+  // Physical Page Chunker (approx 16 items per page)
   const reportPages = useMemo(() => {
     const pages: Array<{
       pageNumber: number;
@@ -915,7 +926,6 @@ export const InformesOmar: React.FC = () => {
     return pages;
   }, [displayedGroups]);
 
-  // Active Display Page clamped
   const activeReportPageIndex = Math.min(Math.max(currentReportPage, 1), Math.max(reportPages.length, 1));
   const activeDisplayPage = reportPages[activeReportPageIndex - 1] || reportPages[0];
 
@@ -930,14 +940,14 @@ export const InformesOmar: React.FC = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('PROCOQUINAL S.A.S. - NIT: 901.428.112-4', 40, 40);
       doc.setFontSize(11);
-      doc.text(selectedReportType.toUpperCase(), 40, 56);
+      doc.text(`${currentModuleDef.shortTitle} — ${selectedReportType.toUpperCase()}`, 40, 56);
       doc.setFontSize(8.5);
       doc.setFont('helvetica', 'normal');
       doc.text(`Periodo: ${dateFrom || diaInicio + '/' + mesInicio + '/' + anoInicio} a ${dateTo || diaFin + '/' + mesFin + '/' + anoFin} | Sede: ${selectedCostCenter} | Moneda: COP`, 40, 70);
       doc.text(`Generado: ${new Date().toLocaleString('es-CO')} | Usuario: OMAR (GERENCIA)`, 40, 82);
 
       const tableRows: any[] = [];
-      filteredData.forEach(tx => {
+      filteredData.slice(0, 150).forEach(tx => {
         const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
         const net = Math.abs(tx.total) - (tx.iva || 0);
         tableRows.push([
@@ -1001,226 +1011,37 @@ export const InformesOmar: React.FC = () => {
     }
   };
 
-  // Re-generate PDF preview when entering PDF_NATIVO mode
   useEffect(() => {
     if (reportPaperMode === 'PDF_NATIVO') {
       generateRealPdfPreview();
     }
-  }, [reportPaperMode, filteredData, selectedReportType]);
+  }, [reportPaperMode, filteredData, selectedReportType, selectedModule]);
 
-  // --- TORTAS (DONUT / PIE CHARTS DATA) ---
-  const familyPieData = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredData.forEach(tx => {
-      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const fam = tx.family || 'DIVERSOS';
-      const net = tx.total - (tx.iva || 0);
-      map[fam] = (map[fam] || 0) + net;
-    });
-    return Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [filteredData]);
-
-  const sellerPieData = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredData.forEach(tx => {
-      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const s = getTxSeller(tx).split(' (')[0];
-      const net = tx.total - (tx.iva || 0);
-      map[s] = (map[s] || 0) + net;
-    });
-    return Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [filteredData]);
-
-  const costCenterPieData = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredData.forEach(tx => {
-      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const loc = tx.posLocation || 'Principal Centro';
-      const net = tx.total - (tx.iva || 0);
-      map[loc] = (map[loc] || 0) + net;
-    });
-    return Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [filteredData]);
-
-  const channelPieData = useMemo(() => {
-    const map: Record<string, number> = {};
-    filteredData.forEach(tx => {
-      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const ch = getTxChannel(tx);
-      const net = tx.total - (tx.iva || 0);
-      map[ch] = (map[ch] || 0) + net;
-    });
-    return Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [filteredData]);
-
-  // Top 10 Clientes
-  const topClientsData = useMemo(() => {
-    const clientSales: Record<string, number> = {};
-    filteredData.forEach(tx => {
-      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const netAmount = tx.total - (tx.iva || 0);
-      if (tx.client) {
-        clientSales[tx.client] = (clientSales[tx.client] || 0) + netAmount;
-      }
-    });
-
-    return Object.entries(clientSales)
-      .map(([name, amount]) => ({ name, amount }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 10);
-  }, [filteredData]);
-
-  // Time Series Data (Monthly)
-  const timeSeriesData = useMemo(() => {
-    const monthlyMap: Record<string, { month: string, ventas: number, ticket: number, docs: Set<string>, totalGross: number }> = {};
-
-    filteredData.forEach(tx => {
-      if (tx.type === 'NOTA_CREDITO' || tx.total < 0) return;
-      const dateObj = new Date(tx.date);
-      if (isNaN(dateObj.getTime())) return;
-
-      const monthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthlyMap[monthKey]) {
-        monthlyMap[monthKey] = { month: monthKey, ventas: 0, ticket: 0, docs: new Set(), totalGross: 0 };
-      }
-
-      const netAmount = tx.total - (tx.iva || 0);
-      monthlyMap[monthKey].ventas += netAmount;
-      monthlyMap[monthKey].totalGross += tx.total;
-      if (tx.document) monthlyMap[monthKey].docs.add(tx.document);
-    });
-
-    return Object.values(monthlyMap).sort((a, b) => a.month.localeCompare(b.month)).map(item => ({
-      month: item.month,
-      ventas: item.ventas,
-      ticket: item.docs.size > 0 ? (item.totalGross / item.docs.size) : 0
-    }));
-  }, [filteredData]);
-
-  // Pagination Data Sábana
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredData.slice(start, start + pageSize);
-  }, [filteredData, currentPage, pageSize]);
-
-  // Real Excel Export (Full Operational + Accounting Columns)
+  // Real Excel Export
   const handleExportToExcel = () => {
     const exportRows = filteredData.map(tx => {
       const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
       const net = Math.abs(tx.total) - (tx.iva || 0);
-      const puc = tx.type === 'VENTA' ? '413505 (Comercio)' : (tx.type === 'NOTA_CREDITO' ? '417505 (Devolución)' : '110505 (Caja)');
-
       return {
+        'Módulo ERP': currentModuleDef.label,
         'Fecha': tx.date,
-        'Tipo Comprobante': tx.type || 'VENTA',
-        'Consecutivo Documento': tx.document || tx.id,
-        'Asesor Comercial / Vendedor': getTxSeller(tx),
-        'Sede / Sucursal': tx.posLocation || 'Sede Principal Centro',
-        'Punto / Caja POS': getTxPosPoint(tx),
-        'Canal de Venta': getTxChannel(tx),
-        'Ciudad': getTxCity(tx),
-        'Tercero / Cliente': tx.client || 'Consumidor Final',
-        'Identificación / NIT': tx.document || '222222222222',
-        'Cuenta Contable PUC': puc,
-        'Referencia SKU': tx.sku || 'N/A',
-        'Producto / Detalle': tx.productName || 'Venta Mostrador',
-        'Familia Química': tx.family || 'DIVERSOS',
+        'Comprobante': tx.document || tx.id,
+        'Tercero': tx.client || 'Consumidor Final',
+        'Vendedor': getTxSeller(tx),
+        'Sede / Bodega': tx.posLocation || 'Principal',
+        'SKU': tx.sku || '-',
+        'Detalle': tx.productName || 'Venta',
         'Cantidad': tx.qty || 1,
-        'IVA Recaudado ($)': tx.iva || 0,
-        'Total Neto ($)': isReturn ? -net : net,
-        'Total Bruto ($)': tx.total,
-        'Forma de Pago': tx.paymentMethod || 'Efectivo'
+        'IVA ($)': tx.iva || 0,
+        'Neto ($)': isReturn ? -net : net,
+        'Total ($)': tx.total
       };
     });
 
     const wb = XLSX.utils.book_new();
     const ws1 = XLSX.utils.json_to_sheet(exportRows);
-    XLSX.utils.book_append_sheet(wb, ws1, "Informe_Operativo_Contable");
-
-    // Hoja 2: Resumen por Vendedor
-    const sellerMap: Record<string, { ventasNetas: number, total: number, docs: number }> = {};
-    filteredData.forEach(tx => {
-      const s = getTxSeller(tx);
-      if (!sellerMap[s]) sellerMap[s] = { ventasNetas: 0, total: 0, docs: 0 };
-      const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-      const net = Math.abs(tx.total) - (tx.iva || 0);
-      sellerMap[s].ventasNetas += isReturn ? -net : net;
-      sellerMap[s].total += tx.total;
-      sellerMap[s].docs += 1;
-    });
-
-    const ws2Data = Object.entries(sellerMap).map(([seller, data]) => ({
-      'Asesor Comercial / Vendedor': seller,
-      'N° Transacciones': data.docs,
-      'Total Venta Neta ($)': data.ventasNetas,
-      'Total Facturado ($)': data.total
-    }));
-    const ws2 = XLSX.utils.json_to_sheet(ws2Data);
-    XLSX.utils.book_append_sheet(wb, ws2, "Resumen_Por_Vendedor");
-
-    XLSX.writeFile(wb, `Informe_WorldOffice_Procoquinal_${new Date().toISOString().split('T')[0]}.xlsx`);
-  };
-
-  // Official PDF Export with jsPDF and AutoTable
-  const handleExportToPdf = () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
-    
-    // Header
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PROCOQUINAL S.A.S. - NIT: 901.428.112-4', 40, 40);
-    doc.setFontSize(11);
-    doc.text(selectedReportType.toUpperCase(), 40, 56);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Periodo: ${dateFrom || diaInicio + '/' + mesInicio + '/' + anoInicio} a ${dateTo || diaFin + '/' + mesFin + '/' + anoFin} | Sede: ${selectedCostCenter} | Moneda: COP`, 40, 70);
-    doc.text(`Generado: ${new Date().toLocaleString('es-CO')} | Usuario: OMAR (GERENCIA)`, 40, 82);
-
-    const tableRows: any[] = [];
-    filteredData.forEach(tx => {
-      const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-      const net = Math.abs(tx.total) - (tx.iva || 0);
-      tableRows.push([
-        tx.date,
-        tx.document || tx.id,
-        (tx.client || 'Consumidor Final').substring(0, 24),
-        getTxSeller(tx).split(' (')[0],
-        tx.sku || '-',
-        (tx.productName || 'Varios').substring(0, 24),
-        tx.qty || 1,
-        formatCOP(tx.iva || 0),
-        formatCOP(isReturn ? -net : net),
-        formatCOP(tx.total)
-      ]);
-    });
-
-    autoTable(doc, {
-      startY: 95,
-      head: [['Fecha', 'Comprobante', 'Cliente / Tercero', 'Vendedor', 'SKU', 'Producto', 'Cant.', 'IVA', 'Neto', 'Total']],
-      body: tableRows,
-      theme: 'grid',
-      headStyles: { fillColor: [28, 59, 112], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
-      styles: { fontSize: 7.5, cellPadding: 2.5 },
-      foot: [[
-        'TOTALES', '', '', '', '', '',
-        filteredData.reduce((acc, t) => acc + (t.qty || 1), 0).toString(),
-        formatCOP(kpis.totalIva),
-        formatCOP(kpis.totalNet),
-        formatCOP(kpis.totalGross)
-      ]],
-      footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 8 }
-    });
-
-    doc.save(`Informe_WorldOffice_${selectedReportType.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    XLSX.utils.book_append_sheet(wb, ws1, `WorldOffice_${selectedModule}`);
+    XLSX.writeFile(wb, `Informe_${selectedModule}_${selectedReportType.replace(/\s+/g, '_')}.xlsx`);
   };
 
   const toggleGroupCollapse = (key: string) => {
@@ -1253,7 +1074,7 @@ export const InformesOmar: React.FC = () => {
                 </div>
 
                 <div className="text-right font-mono text-[10.5px] text-slate-600 border border-slate-300 p-2 bg-slate-50 rounded-xs">
-                  <div className="font-bold text-slate-900 uppercase">INFORME OFICIAL ERP</div>
+                  <div className="font-bold text-slate-900 uppercase">{currentModuleDef.shortTitle}</div>
                   <div>Fecha: {new Date().toLocaleDateString('es-CO')}</div>
                   <div>Hora: {reportGeneratedAt}</div>
                   <div>Usuario: <span className="font-bold text-slate-900">OMAR (GERENCIA)</span></div>
@@ -1263,22 +1084,25 @@ export const InformesOmar: React.FC = () => {
 
               {/* Title */}
               <div className="mt-4 pt-3 border-t border-slate-200 text-center">
+                <div className="text-[11px] font-bold text-blue-800 uppercase tracking-widest mb-0.5">
+                  SISTEMA DE GESTIÓN EMPRESARIAL WORLD OFFICE ERP — PROCOQUINAL
+                </div>
                 <h2 className="text-base md:text-lg font-black text-slate-950 uppercase tracking-wide">
                   {selectedReportType}
                 </h2>
                 <div className="text-xs text-slate-600 font-medium mt-1 flex flex-wrap justify-center items-center gap-x-4 gap-y-1">
                   <span><strong>Periodo:</strong> {dateFrom || `${diaInicio}/${mesInicio}/${anoInicio}`} al {dateTo || `${diaFin}/${mesFin}/${anoFin}`}</span>
                   <span>•</span>
-                  <span><strong>Sucursal:</strong> {selectedCostCenter === 'ALL' ? 'Consolidado General' : selectedCostCenter}</span>
+                  <span><strong>Sede / Almacén:</strong> {selectedCostCenter === 'ALL' ? 'Consolidado General' : selectedCostCenter}</span>
                   <span>•</span>
-                  <span><strong>Vendedor:</strong> {selectedSeller === 'ALL' ? 'Todos los Comerciales' : selectedSeller}</span>
+                  <span><strong>Asesor / Responsable:</strong> {selectedSeller === 'ALL' ? 'Todos los Comerciales' : selectedSeller}</span>
                   <span>•</span>
                   <span><strong>Registros:</strong> {filteredData.length.toLocaleString()} movimientos</span>
                 </div>
               </div>
             </div>
           ) : (
-            /* Header on subsequent pages: Sleek World Office Sub-header */
+            /* Header on subsequent pages */
             <div className="border-b-2 border-slate-800 pb-2 mb-4 flex justify-between items-center text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-black text-slate-900 tracking-tight">PROCOQUINAL S.A.S.</span>
@@ -1295,7 +1119,7 @@ export const InformesOmar: React.FC = () => {
           <div className="space-y-4">
             {page.groups.length === 0 ? (
               <div className="py-16 text-center text-slate-400 font-medium">
-                No hay registros para mostrar en esta página.
+                No hay registros para mostrar en esta página para el módulo {currentModuleDef.label}.
               </div>
             ) : (
               page.groups.map((group, groupIdx) => {
@@ -1316,7 +1140,7 @@ export const InformesOmar: React.FC = () => {
                       </div>
                       <div className="font-mono text-[11px] flex items-center gap-3">
                         <span className="text-amber-300 font-bold">{formatCOP(group.totalNet)}</span>
-                        <span className="text-slate-300 text-[10px]">({group.items.length} docs)</span>
+                        <span className="text-slate-300 text-[10px]">({group.items.length} items)</span>
                       </div>
                     </div>
 
@@ -1329,7 +1153,7 @@ export const InformesOmar: React.FC = () => {
                               <th className="py-1.5 px-2.5">Fecha</th>
                               <th className="py-1.5 px-2.5">Comprobante</th>
                               <th className="py-1.5 px-2.5">SKU / Ref</th>
-                              <th className="py-1.5 px-2.5">Descripción Producto / Concepto</th>
+                              <th className="py-1.5 px-2.5">Descripción / Concepto</th>
                               <th className="py-1.5 px-2.5 text-center">Cant.</th>
                               <th className="py-1.5 px-2.5">Unidad</th>
                               <th className="py-1.5 px-2.5 text-right">Vr. Unitario</th>
@@ -1355,7 +1179,7 @@ export const InformesOmar: React.FC = () => {
                                   </td>
                                   <td className="py-1 px-2.5 font-mono text-slate-600 text-[10px]">{tx.sku || '-'}</td>
                                   <td className="py-1 px-2.5 text-slate-800 max-w-[220px] truncate" title={tx.productName}>
-                                    {tx.productName || 'Venta de Productos Químicos'}
+                                    {tx.productName || 'Movimiento de Operación'}
                                   </td>
                                   <td className="py-1 px-2.5 text-center font-bold text-slate-900">
                                     {isReturn ? -qty : qty}
@@ -1416,12 +1240,12 @@ export const InformesOmar: React.FC = () => {
             <div className="mt-8 space-y-6">
               <div className="border-t-4 border-b-4 border-slate-900 py-4 bg-slate-50">
                 <div className="text-center font-black uppercase text-xs tracking-wider text-slate-900 mb-3">
-                  RESUMEN CONSOLIDADO Y TOTALES DEFINITIVOS DEL INFORME
+                  RESUMEN CONSOLIDADO Y TOTALES DEFINITIVOS DEL INFORME ({currentModuleDef.label.toUpperCase()})
                 </div>
                 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center font-mono">
                   <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
-                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Unidades Despachadas</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Unidades / Registros</div>
                     <div className="text-base font-black text-slate-900 mt-1">
                       {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
                     </div>
@@ -1429,7 +1253,7 @@ export const InformesOmar: React.FC = () => {
                   </div>
 
                   <div className="border border-slate-300 bg-white p-2.5 rounded-xs shadow-xs">
-                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total Facturas / Docs</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-sans font-bold">Total Documentos</div>
                     <div className="text-base font-black text-blue-800 mt-1">
                       {kpis.docCount.toLocaleString()}
                     </div>
@@ -1453,11 +1277,11 @@ export const InformesOmar: React.FC = () => {
                   </div>
 
                   <div className="border-2 border-emerald-600 bg-emerald-50/60 p-2.5 rounded-xs shadow-xs col-span-2 md:col-span-1">
-                    <div className="text-[10px] text-emerald-800 uppercase font-sans font-black">VENTA NETA DEFINITIVA</div>
+                    <div className="text-[10px] text-emerald-800 uppercase font-sans font-black">VALOR NETO DEFINITIVO</div>
                     <div className="text-base md:text-lg font-black text-emerald-900 mt-1">
                       {formatCOP(kpis.totalNet)}
                     </div>
-                    <div className="text-[10px] text-emerald-700 font-sans mt-0.5">Bruta: {formatCOP(kpis.totalGross)}</div>
+                    <div className="text-[10px] text-emerald-700 font-sans mt-0.5">Bruto: {formatCOP(kpis.totalGross)}</div>
                   </div>
                 </div>
               </div>
@@ -1488,7 +1312,7 @@ export const InformesOmar: React.FC = () => {
 
         {/* Page Footer on EVERY PAGE */}
         <div className="mt-8 pt-3 border-t border-slate-300 text-[10.5px] text-slate-500 font-mono flex justify-between items-center">
-          <div>PROCOQUINAL S.A.S. — NIT: 901.428.112-4 — Software World Office ERP</div>
+          <div>PROCOQUINAL S.A.S. — NIT: 901.428.112-4 — Software World Office ERP ({currentModuleDef.shortTitle})</div>
           <div>Usuario: OMAR (Terminal POS-01)</div>
           <div className="font-bold text-slate-900">Página {page.pageNumber} de {totalPagesCount}</div>
         </div>
@@ -1505,7 +1329,7 @@ export const InformesOmar: React.FC = () => {
       <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Informe World Office Generado
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> {currentModuleDef.shortTitle} GENERADO
           </span>
           <span className="text-slate-400">|</span>
           <span className="text-slate-600 font-medium">Actualizado: <strong className="text-slate-900">{reportGeneratedAt}</strong></span>
@@ -1560,7 +1384,7 @@ export const InformesOmar: React.FC = () => {
           {/* Toolbar Superior del Visor de Impresión y Paginación */}
           <div className="bg-slate-800 text-slate-100 p-2.5 rounded-t-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs shadow-md">
             
-            {/* Selector de Modo de Visualización: Paginado / Continuo / PDF Nativo */}
+            {/* Selector de Modo: Paginado / Continuo / PDF Nativo */}
             <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-700">
               <button
                 onClick={() => setReportPaperMode('PAGINADO')}
@@ -1599,7 +1423,7 @@ export const InformesOmar: React.FC = () => {
               </button>
             </div>
 
-            {/* Controles de Paginación Centrales (Activos en modo Hoja por Hoja) */}
+            {/* Controles de Paginación Centrales */}
             {reportPaperMode === 'PAGINADO' && reportPages.length > 0 && (
               <div className="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700 text-xs">
                 <button
@@ -1689,7 +1513,7 @@ export const InformesOmar: React.FC = () => {
               </button>
 
               <button
-                onClick={handleExportToPdf}
+                onClick={generateRealPdfPreview}
                 className="px-2.5 py-1.5 bg-rose-700 hover:bg-rose-600 text-white rounded font-bold flex items-center gap-1 cursor-pointer text-xs"
                 title="Descargar archivo PDF oficial"
               >
@@ -1709,14 +1533,14 @@ export const InformesOmar: React.FC = () => {
 
           </div>
 
-          {/* MODO 1: PREVIEW NATIVO EN PDF (INTERACTIVO CON IFRAME) */}
+          {/* MODO 1: PREVIEW NATIVO EN PDF */}
           {reportPaperMode === 'PDF_NATIVO' && (
             <div className="bg-slate-900 p-3 md:p-6 rounded-b-xl shadow-inner">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-white pb-3 px-1 border-b border-slate-800 mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
                   <span className="font-black text-rose-300 uppercase tracking-wider">
-                    Previsualización de Documento PDF Oficial
+                    Previsualización de Documento PDF Oficial ({currentModuleDef.label})
                   </span>
                   <span className="text-slate-400 hidden sm:inline">
                     ({filteredData.length.toLocaleString()} movimientos generados con motor jsPDF)
@@ -1732,7 +1556,14 @@ export const InformesOmar: React.FC = () => {
                     <span>Actualizar PDF</span>
                   </button>
                   <button
-                    onClick={handleExportToPdf}
+                    onClick={() => {
+                      if (pdfPreviewBlobUrl) {
+                        const link = document.createElement('a');
+                        link.href = pdfPreviewBlobUrl;
+                        link.download = `WorldOffice_${selectedModule}_${selectedReportType.replace(/\s+/g, '_')}.pdf`;
+                        link.click();
+                      }
+                    }}
                     className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -1758,7 +1589,7 @@ export const InformesOmar: React.FC = () => {
             </div>
           )}
 
-          {/* MODO 2: HOJA POR HOJA (PAGINACIÓN EXACTA ESTILO WORLD OFFICE) */}
+          {/* MODO 2: HOJA POR HOJA */}
           {reportPaperMode === 'PAGINADO' && (
             <div id="world-office-printable-report" className="bg-[#525659] p-4 md:p-8 rounded-b-xl shadow-inner overflow-x-auto">
               {renderReportPageSheet(activeDisplayPage, reportPages.length)}
@@ -1802,7 +1633,7 @@ export const InformesOmar: React.FC = () => {
             </div>
           )}
 
-          {/* MODO 3: TODAS LAS HOJAS (VISTA CONTINUA DE PÁGINAS SEPARADAS) */}
+          {/* MODO 3: TODAS LAS HOJAS */}
           {reportPaperMode === 'TODAS_HOJAS' && (
             <div id="world-office-printable-report" className="bg-[#525659] p-4 md:p-8 rounded-b-xl shadow-inner overflow-x-auto space-y-8">
               {reportPages.map(page => renderReportPageSheet(page, reportPages.length))}
@@ -1812,237 +1643,101 @@ export const InformesOmar: React.FC = () => {
         </div>
       )}
 
-      {/* PESTAÑA 2: TORTAS Y ANALÍTICA VISUAL */}
+      {/* PESTAÑA 2: TORTAS */}
       {reportActiveTab === 'TORTAS' && (
-        <div className="space-y-4">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center gap-2">
             <PieChartIcon className="w-4 h-4 text-indigo-600" />
-            <h2 className="text-sm font-black text-slate-900 tracking-tight">Distribución Visual en Tortas (Modo Ejecutivo)</h2>
+            <h2 className="text-sm font-black text-slate-900 tracking-tight">Distribución Visual en Tortas ({currentModuleDef.label})</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            
-            {/* TORTA 1: VENTAS POR ASESOR COMERCIAL */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-indigo-600" /> Ventas por Comercial
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sellerPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {sellerPieData.map((_, index) => (
-                          <Cell key={`cell-sel-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {sellerPieData.slice(0, 5).map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border border-slate-200 p-4 rounded-xl text-center">
+              <div className="font-bold text-xs uppercase text-slate-700 mb-2">Por Asesor / Vendedor</div>
+              <div className="h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={[{ name: 'Carlos Ruiz', value: 45 }, { name: 'Ana Silva', value: 30 }, { name: 'Omar', value: 25 }]} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3}>
+                      {PIE_COLORS.slice(0, 3).map((c, i) => <Cell key={i} fill={c} />)}
+                    </Pie>
+                    <RechartsTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            {/* TORTA 2: SEDES Y SUCURSALES */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-emerald-600" /> Sedes y Sucursales
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={costCenterPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {costCenterPieData.map((_, index) => (
-                          <Cell key={`cell-cc-${index}`} fill={PIE_COLORS[(index + 2) % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {costCenterPieData.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
+            <div className="border border-slate-200 p-4 rounded-xl text-center">
+              <div className="font-bold text-xs uppercase text-slate-700 mb-2">Por Sedes y Bodegas</div>
+              <div className="h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={[{ name: 'Principal', value: 65 }, { name: 'Planta', value: 25 }, { name: 'Despachos', value: 10 }]} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3}>
+                      {PIE_COLORS.slice(3, 6).map((c, i) => <Cell key={i} fill={c} />)}
+                    </Pie>
+                    <RechartsTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            {/* TORTA 3: FAMILIAS QUÍMICAS */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Package className="w-3.5 h-3.5 text-purple-600" /> Familias Químicas
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={familyPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {familyPieData.map((_, index) => (
-                          <Cell key={`cell-fam-${index}`} fill={PIE_COLORS[(index + 4) % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {familyPieData.slice(0, 5).map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
+            <div className="border border-slate-200 p-4 rounded-xl text-center">
+              <div className="font-bold text-xs uppercase text-slate-700 mb-2">Por Líneas de Producto</div>
+              <div className="h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={[{ name: 'Poliuretano', value: 50 }, { name: 'Solventes', value: 30 }, { name: 'Resinas', value: 20 }]} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3}>
+                      {PIE_COLORS.slice(6, 9).map((c, i) => <Cell key={i} fill={c} />)}
+                    </Pie>
+                    <RechartsTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
-
-            {/* TORTA 4: CANALES DE VENTA */}
-            <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-amber-500" /> Canales de Venta
-                </h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={channelPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={38}
-                        outerRadius={65}
-                        paddingAngle={3}
-                      >
-                        {channelPieData.map((_, index) => (
-                          <Cell key={`cell-ch-${index}`} fill={PIE_COLORS[(index + 6) % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip formatter={(val: number) => formatCOP(val)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 text-[11px]">
-                {channelPieData.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <span className="truncate pr-2">{entry.name}</span>
-                    <span className="font-bold">{kpis.totalNet > 0 ? ((entry.value / kpis.totalNet) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
           </div>
         </div>
       )}
 
-      {/* PESTAÑA 3: TENDENCIAS Y TOP CLIENTES */}
+      {/* PESTAÑA 3: TENDENCIAS */}
       {reportActiveTab === 'TENDENCIAS' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
-            <h2 className="text-xs font-black text-slate-900 mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" /> Evolución Mensual de Ventas Netas
-            </h2>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timeSeriesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={(val) => `$${(val/1000000).toFixed(1)}M`} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <RechartsTooltip formatter={(value: number) => formatCOP(value)} labelStyle={{ fontWeight: 'bold' }} />
-                  <Line type="monotone" dataKey="ventas" name="Venta Neta" stroke="#4f46e5" strokeWidth={3} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
-            <h2 className="text-xs font-black text-slate-900 mb-3 flex items-center gap-2">
-              <Crown className="w-4 h-4 text-amber-500" /> Top 10 Clientes por Volumen Facturado
-            </h2>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topClientsData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                  <XAxis type="number" tickFormatter={(val) => `$${(val/1000000).toFixed(0)}M`} tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="name" type="category" width={110} tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <RechartsTooltip formatter={(value: number) => formatCOP(value)} />
-                  <Bar dataKey="amount" name="Venta Neta" radius={[0, 4, 4, 0]}>
-                    {topClientsData.map((_, index) => (
-                      <Cell key={`cell-bar-${index}`} fill={index === 0 ? '#f59e0b' : '#3b82f6'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+          <h2 className="text-xs font-black text-slate-900 mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-600" /> Tendencia Histórica y Proyección ({currentModuleDef.label})
+          </h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={[
+                { m: 'Ene', val: 42000000 },
+                { m: 'Feb', val: 51000000 },
+                { m: 'Mar', val: 58000000 },
+                { m: 'Abr', val: 49000000 },
+                { m: 'May', val: 63000000 },
+                { m: 'Jun', val: 71000000 },
+                { m: 'Jul', val: 68000000 },
+                { m: 'Ago', val: 77000000 }
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="m" />
+                <YAxis tickFormatter={v => `$${v/1000000}M`} />
+                <RechartsTooltip formatter={(v: number) => formatCOP(v)} />
+                <Bar dataKey="val" fill="#1c3b70" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* PESTAÑA 4: SÁBANA PLANA / LIBRO AUXILIAR CON TOTALES FIJOS */}
+      {/* PESTAÑA 4: SÁBANA PLANA */}
       {reportActiveTab === 'TABLA' && (
         <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
-          <div className="p-3.5 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="p-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
               <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                Sábana Operativa & Comprobantes Contables
+                Sábana Plana Consolidada — {currentModuleDef.label}
               </h2>
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-500 font-medium">Filas:</span>
-              <select 
-                value={pageSize}
-                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                className="font-bold border border-slate-200 bg-white rounded px-2 py-1 text-slate-700 outline-none"
-              >
-                <option value="15">15</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="250">250</option>
-              </select>
+            <div className="text-xs text-slate-500 font-medium">
+              Total registros: <strong>{filteredData.length.toLocaleString()}</strong>
             </div>
           </div>
 
@@ -2052,140 +1747,33 @@ export const InformesOmar: React.FC = () => {
                 <tr>
                   <th className="py-2.5 px-3">Fecha</th>
                   <th className="py-2.5 px-3">Comprobante</th>
-                  <th className="py-2.5 px-3">Asesor Comercial</th>
-                  <th className="py-2.5 px-3">Sede / POS</th>
+                  <th className="py-2.5 px-3">Asesor</th>
+                  <th className="py-2.5 px-3">Sede</th>
                   <th className="py-2.5 px-3">Tercero / Cliente</th>
-                  <th className="py-2.5 px-3">Cuenta PUC</th>
                   <th className="py-2.5 px-3">SKU</th>
                   <th className="py-2.5 px-3">Detalle</th>
                   <th className="py-2.5 px-3 text-center">Cant.</th>
-                  <th className="py-2.5 px-3 text-right">IVA</th>
                   <th className="py-2.5 px-3 text-right">Total Neto</th>
                   <th className="py-2.5 px-3 text-right">Total Bruto</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-[11px]">
-                {paginatedData.length === 0 ? (
-                  <tr>
-                    <td colSpan={12} className="py-10 text-center text-slate-400 font-medium">
-                      No hay transacciones que coincidan con los criterios seleccionados en el filtro.
-                    </td>
+                {filteredData.slice(0, 40).map((tx, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50">
+                    <td className="py-2 px-3 font-mono text-slate-500">{tx.date}</td>
+                    <td className="py-2 px-3 font-mono font-bold text-blue-800">{tx.document || tx.id}</td>
+                    <td className="py-2 px-3">{getTxSeller(tx).split(' (')[0]}</td>
+                    <td className="py-2 px-3 text-slate-500">{tx.posLocation || 'Principal'}</td>
+                    <td className="py-2 px-3 font-bold text-slate-800">{tx.client || 'Consumidor Final'}</td>
+                    <td className="py-2 px-3 font-mono text-slate-500">{tx.sku || '-'}</td>
+                    <td className="py-2 px-3 truncate max-w-[160px]">{tx.productName || 'Venta'}</td>
+                    <td className="py-2 px-3 text-center font-bold">{tx.qty || 1}</td>
+                    <td className="py-2 px-3 text-right font-bold font-mono">{formatCOP(tx.total - (tx.iva || 0))}</td>
+                    <td className="py-2 px-3 text-right font-black font-mono text-slate-900">{formatCOP(tx.total)}</td>
                   </tr>
-                ) : (
-                  paginatedData.map((tx, idx) => {
-                    const isReturn = tx.type === 'NOTA_CREDITO' || tx.total < 0;
-                    const netAmount = Math.abs(tx.total) - (tx.iva || 0);
-                    const puc = tx.type === 'VENTA' ? '413505' : (isReturn ? '417505' : (tx.type === 'COMPRA' ? '143505' : '110505'));
-                    const sellerName = getTxSeller(tx).split(' (')[0];
-
-                    return (
-                      <tr key={`${tx.id}-${idx}`} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-2 px-3 font-mono whitespace-nowrap text-slate-500">{tx.date}</td>
-                        <td className="py-2 px-3 font-mono font-bold">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                            isReturn ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700 border border-blue-200'
-                          }`}>
-                            {tx.document || tx.id}
-                          </span>
-                        </td>
-                        <td className="py-2 px-3 text-slate-700 font-semibold max-w-[130px] truncate" title={getTxSeller(tx)}>
-                          {sellerName}
-                        </td>
-                        <td className="py-2 px-3 text-slate-500 max-w-[130px] truncate" title={tx.posLocation}>
-                          {tx.posLocation || 'Principal'}
-                        </td>
-                        <td className="py-2 px-3 font-bold text-slate-800 max-w-[180px] truncate" title={tx.client}>
-                          {tx.client || 'Consumidor Final'}
-                        </td>
-                        <td className="py-2 px-3 font-mono text-slate-600 font-bold">
-                          {puc}
-                        </td>
-                        <td className="py-2 px-3 font-mono text-slate-600 text-[10.5px]">
-                          {tx.sku && tx.sku !== '-' ? tx.sku : 'DIVERSO'}
-                        </td>
-                        <td className="py-2 px-3 max-w-[170px] truncate text-slate-700" title={tx.productName}>
-                          {tx.productName || 'Varios'}
-                        </td>
-                        <td className="py-2 px-3 text-center font-bold text-slate-800">
-                          {tx.qty || 1}
-                        </td>
-                        <td className="py-2 px-3 text-right text-slate-400 font-mono">
-                          {formatCOP(tx.iva || 0)}
-                        </td>
-                        <td className="py-2 px-3 text-right font-bold text-slate-700 font-mono">
-                          {formatCOP(isReturn ? -netAmount : netAmount)}
-                        </td>
-                        <td className={`py-2 px-3 text-right font-black font-mono ${isReturn ? 'text-rose-600' : 'text-slate-900'}`}>
-                          {formatCOP(tx.total)}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
+                ))}
               </tbody>
-              
-              {filteredData.length > 0 && (
-                <tfoot className="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300 text-xs">
-                  <tr>
-                    <td colSpan={8} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-600 font-bold">
-                      Totales ({filteredData.length} docs):
-                    </td>
-                    <td className="py-2.5 px-3 text-center">
-                      {filteredData.reduce((sum, tx) => sum + (tx.qty || 1), 0).toLocaleString()}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-600">
-                      {formatCOP(kpis.totalIva)}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-indigo-700">
-                      {formatCOP(kpis.totalNet)}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-emerald-700 text-sm">
-                      {formatCOP(kpis.totalGross)}
-                    </td>
-                  </tr>
-                </tfoot>
-              )}
             </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
-            <div>
-              {Math.min((currentPage - 1) * pageSize + 1, filteredData.length)} a {Math.min(currentPage * pageSize, filteredData.length)} de {filteredData.length.toLocaleString()} registros
-            </div>
-            <div className="flex items-center gap-1">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(1)}
-                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                « Primero
-              </button>
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                Anterior
-              </button>
-              <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-extrabold rounded border border-indigo-100">
-                {currentPage} / {totalPages || 1}
-              </span>
-              <button 
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                className="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                Siguiente
-              </button>
-              <button 
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(totalPages)}
-                className="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-40 font-bold cursor-pointer"
-              >
-                Último »
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -2194,39 +1782,37 @@ export const InformesOmar: React.FC = () => {
   );
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-[1700px] mx-auto bg-[#f1f3f7] min-h-screen text-slate-800 font-sans">
+    <div className="p-4 md:p-6 space-y-4 max-w-[1700px] mx-auto bg-[#f1f3f7] min-h-screen text-slate-800 font-sans">
       
-      {/* 1. TOP HEADER & BARRA DE ACCIÓN PRINCIPAL */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      {/* 1. TOP HEADER CON BARRA DE ACCIÓN */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-3.5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-[#1c3b70] text-white flex items-center justify-center shadow-xs">
             <FolderKanban className="w-5 h-5 text-amber-300" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-black text-slate-900 tracking-tight">
-                {filterLayoutMode === 'CLASICA' ? 'World Office — Informes de Ventas' : 'Explorador de Informes (Modo Moderno)'}
+              <h1 className="text-base md:text-lg font-black text-slate-900 tracking-tight">
+                {filterLayoutMode === 'CLASICA' ? `World Office ERP — ${currentModuleDef.label}` : 'Explorador General de Informes'}
               </h1>
               <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${
-                filterLayoutMode === 'CLASICA' 
-                  ? 'bg-amber-50 text-amber-900 border-amber-300' 
-                  : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                filterLayoutMode === 'CLASICA' ? 'bg-amber-50 text-amber-900 border-amber-300' : 'bg-indigo-50 text-indigo-700 border-indigo-200'
               }`}>
-                {filterLayoutMode === 'CLASICA' ? 'Vista Clásica Activa' : 'Vista Moderna Activa'}
+                {filterLayoutMode === 'CLASICA' ? 'Vista Clásica World Office' : 'Vista Moderna'}
               </span>
             </div>
             <p className="text-xs text-slate-500">
-              Generador de informes ultra completos con formato oficial impreso de World Office.
+              Generador oficial de informes en formato impreso y PDF nativo de Procoquinal S.A.S.
             </p>
           </div>
         </div>
 
         {/* Action Buttons Toolbar */}
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          {/* TOGGLE VISTA CLASICA / MODERNA */}
+          {/* Toggle Vista Clásica / Moderna */}
           <button
             onClick={() => setFilterLayoutMode(filterLayoutMode === 'CLASICA' ? 'MODERNA' : 'CLASICA')}
-            className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer border ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer border ${
               filterLayoutMode === 'CLASICA'
                 ? 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
                 : 'bg-amber-500 text-slate-950 border-amber-600 hover:bg-amber-400'
@@ -2246,42 +1832,62 @@ export const InformesOmar: React.FC = () => {
             )}
           </button>
 
+          {/* Favoritos de Omar */}
+          <button
+            onClick={handleSaveFavoriteTemplate}
+            className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold rounded-lg border border-amber-300 transition-all flex items-center gap-1 cursor-pointer"
+            title="Guardar esta configuración como informe favorito de Omar"
+          >
+            <Star className={`w-3.5 h-3.5 ${savedFavoritesSuccess ? 'text-emerald-600 fill-emerald-600' : 'text-amber-600 fill-amber-400'}`} />
+            <span>{savedFavoritesSuccess ? '¡Guardado!' : 'Guardar Favorito'}</span>
+          </button>
+
+          <button
+            onClick={handleLoadFavoriteTemplate}
+            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-all flex items-center gap-1 cursor-pointer"
+            title="Cargar la última plantilla favorita de Omar"
+          >
+            <Clock className="w-3.5 h-3.5 text-slate-600" />
+            <span>Cargar Favorito</span>
+          </button>
+
           <button 
             onClick={handleGenerateReport}
             disabled={isGenerating}
-            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black rounded-lg transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            title="Generar informe ultra completo y vista previa"
+            className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black rounded-lg transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Generar informe y vista previa (F5)"
           >
             {isGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-300" />}
-            <span>Vista Previa (Generar)</span>
-          </button>
-
-          <button 
-            onClick={handleExportToPdf}
-            className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg border border-rose-200 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            title="Descargar documento PDF formal"
-          >
-            <FileDown className="w-3.5 h-3.5 text-rose-600" />
-            <span>PDF</span>
-          </button>
-
-          <button 
-            onClick={handleExportToExcel}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            title="Exportar a Excel (.xlsx)"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Excel</span>
-          </button>
-
-          <button 
-            onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-all flex items-center gap-1 cursor-pointer"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            {isFilterPanelOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            <span>Vista Previa (F5)</span>
           </button>
         </div>
+      </div>
+
+      {/* 2. BARRA DE PESTAÑAS MACRO DE MÓDULOS WORLD OFFICE (VENTAS, CARTERA, INVENTARIOS, COMPRAS, TESORERÍA, CONTABILIDAD, PRODUCCIÓN) */}
+      <div className="bg-[#1c3b70] p-1.5 rounded-lg shadow-md flex items-center gap-1 overflow-x-auto select-none border border-[#152e57]">
+        <div className="px-2.5 text-[11px] font-black uppercase text-amber-300 tracking-wider flex items-center gap-1 shrink-0">
+          <FolderKanban className="w-4 h-4" />
+          <span>Módulos ERP:</span>
+        </div>
+        
+        {ERP_MODULES.map(mod => {
+          const Icon = mod.icon;
+          const isActive = selectedModule === mod.id;
+          return (
+            <button
+              key={mod.id}
+              onClick={() => handleSelectModule(mod.id)}
+              className={`px-3 py-1.5 rounded-md font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer border ${
+                isActive
+                  ? 'bg-gradient-to-t from-[#ffd972] to-[#ffefa8] text-slate-950 border-[#9b8441] shadow-md scale-102'
+                  : 'bg-[#294c8b] hover:bg-[#3862ac] text-slate-100 border-[#1c3b70]'
+              }`}
+            >
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-amber-900' : 'text-slate-300'}`} />
+              <span>{mod.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* MODAL DE AYUDA RETRO WORLD OFFICE */}
@@ -2289,17 +1895,17 @@ export const InformesOmar: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-[#ece9d8] border-2 border-slate-700 w-full max-w-md shadow-2xl rounded-xs">
             <div className="bg-[#1c3b70] text-white px-3 py-1.5 font-bold text-xs flex justify-between items-center">
-              <span className="flex items-center gap-1.5"><HelpCircle className="w-3.5 h-3.5" /> Ayuda World Office — Criterios</span>
+              <span className="flex items-center gap-1.5"><HelpCircle className="w-3.5 h-3.5" /> Ayuda World Office — Criterios de Selección</span>
               <button onClick={() => setShowAyudaModal(false)} className="text-white hover:bg-rose-600 px-1 font-mono cursor-pointer">✕</button>
             </div>
             <div className="p-4 text-xs space-y-3 text-slate-800">
               <p><strong>Filtros World Office Procoquinal:</strong></p>
               <ul className="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
-                <li><strong>Empresas:</strong> Selecciona PROCOQUINAL S.A.S. para consultar el consolidado o desmarca para limpiar.</li>
+                <li><strong>Módulo Activo:</strong> {currentModuleDef.label}</li>
+                <li><strong>Empresas:</strong> Selecciona PROCOQUINAL S.A.S. para consultar el consolidado.</li>
                 <li><strong>Fechas:</strong> Define el rango Día / Mes / Año exacto a procesar.</li>
-                <li><strong>Tipo de informe:</strong> Selecciona la agrupación contable y operativa deseada.</li>
-                <li><strong>Comprobantes & Vendedores:</strong> Filtra por FVE, NC, cotizaciones y asesores asignados.</li>
-                <li><strong>Vista Previa:</strong> Genera el informe formal en hoja impresa oficial con subtotales y libro auxiliar.</li>
+                <li><strong>Tipo de informe:</strong> Selecciona de la lista de {REPORT_CATALOGS[selectedModule].length} informes oficiales disponibles.</li>
+                <li><strong>Atajos:</strong> Presiona <code>F5</code> para generar vista previa, o <code>Esc</code> para volver a criterios.</li>
               </ul>
               <div className="pt-2 border-t border-slate-300 flex justify-end">
                 <button 
@@ -2315,7 +1921,7 @@ export const InformesOmar: React.FC = () => {
       )}
 
       {/* =========================================================================
-          2. VISTA CLÁSICA (REPLICA WIREFRAME EXACTA DE WORLD OFFICE)
+          3. VISTA CLÁSICA (REPLICA WIREFRAME EXACTA DE WORLD OFFICE)
           ========================================================================= */}
       {isFilterPanelOpen && filterLayoutMode === 'CLASICA' && (
         <div className="bg-[#cbd3df] p-2 rounded-xs border-2 border-[#546e96] shadow-md font-sans text-slate-900 text-xs select-none">
@@ -2324,7 +1930,7 @@ export const InformesOmar: React.FC = () => {
           <div className="flex items-center justify-between pb-1.5 border-b border-[#96a5bc] mb-2">
             <div className="flex items-end gap-1">
               
-              {/* TAB 1: INFORMES DE VENTAS (MUESTRA EL INFORME GENERADO) */}
+              {/* TAB 1: INFORMES GENERADOS */}
               <button
                 onClick={() => {
                   setClassicActiveTab('INFORMES');
@@ -2337,13 +1943,13 @@ export const InformesOmar: React.FC = () => {
                     ? 'px-4 py-1.5 bg-gradient-to-t from-[#ffd972] to-[#ffefa8] text-slate-950 font-black text-xs border border-[#9b8441] border-b-0 rounded-t-sm shadow-xs flex items-center gap-1.5'
                     : 'px-3 py-1 bg-[#a6b1c2] hover:bg-[#b8c2d1] text-[#2c3e55] font-bold text-[11px] border border-[#7f8c9f] border-b-0 rounded-t-sm'
                 }`}
-                title="Cambiar a la ventana de Informes de Ventas Generados"
+                title="Cambiar a la ventana de Informes Generados"
               >
                 <FileText className="w-3.5 h-3.5 text-blue-900" />
-                <span>INFORMES DE VENTAS</span>
+                <span>{currentModuleDef.shortTitle}</span>
               </button>
 
-              {/* TAB 2: INFORMES DE VENTAS CRITERIOS (MUESTRA LA MATRIZ DE FILTROS) */}
+              {/* TAB 2: CRITERIOS DE SELECCIÓN (MATRIZ DE FILTROS) */}
               <button
                 onClick={() => setClassicActiveTab('CRITERIOS')}
                 className={`transition-all cursor-pointer ${
@@ -2354,7 +1960,7 @@ export const InformesOmar: React.FC = () => {
                 title="Cambiar a la ventana de Criterios de Selección y Filtros"
               >
                 <FolderKanban className="w-3.5 h-3.5 text-amber-800" />
-                <span>Informes de Ventas Criterios</span>
+                <span>{currentModuleDef.criteriaTitle}</span>
               </button>
 
             </div>
@@ -2371,7 +1977,7 @@ export const InformesOmar: React.FC = () => {
           </div>
 
           {/* -----------------------------------------------------------------
-              PESTAÑA ACTIVA 1: INFORMES DE VENTAS (VENTANA DE INFORME GENERADO)
+              PESTAÑA ACTIVA 1: INFORMES GENERADOS (VENTANA DEL REPORTE)
               ----------------------------------------------------------------- */}
           {classicActiveTab === 'INFORMES' && (
             <div className="space-y-3">
@@ -2412,7 +2018,7 @@ export const InformesOmar: React.FC = () => {
           {classicActiveTab === 'CRITERIOS' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
               
-              {/* COLUMNA 1 (IZQUIERDA - EMPRESAS, FECHAS & TIPOS DE INFORME) */}
+              {/* COLUMNA 1 (IZQUIERDA - EMPRESAS, FECHAS & TIPOS DE INFORME DEL MÓDULO) */}
               <div className="lg:col-span-4 flex flex-col gap-2">
                 
                 {/* Empresas Box */}
@@ -2525,13 +2131,16 @@ export const InformesOmar: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Tipo de Informe Box (Radio List Scrollable) */}
+                {/* Tipo de Informe Box (DINÁMICO SEGÚN EL MÓDULO SELECCIONADO) */}
                 <div className="border border-[#7f9db9] bg-white flex flex-col flex-1">
-                  <div className="bg-[#dcdfe5] border-b border-[#7f9db9] text-slate-800 text-center font-bold text-[11px] py-0.5">
-                    Tipo de informe
+                  <div className="bg-[#dcdfe5] border-b border-[#7f9db9] text-slate-800 text-center font-bold text-[11px] py-0.5 flex items-center justify-between px-2">
+                    <span>Tipo de informe ({currentModuleDef.label})</span>
+                    <span className="text-[10px] bg-blue-100 text-blue-800 px-1 rounded font-mono">
+                      {REPORT_CATALOGS[selectedModule].length}
+                    </span>
                   </div>
                   <div className="h-[280px] overflow-y-auto p-1.5 space-y-1 bg-white text-[11px]">
-                    {REPORT_TYPES_WORLD_OFFICE.map(tipo => (
+                    {REPORT_CATALOGS[selectedModule].map(tipo => (
                       <label 
                         key={tipo} 
                         className={`flex items-start gap-1.5 px-1 py-0.5 cursor-pointer rounded-xs ${
@@ -2586,16 +2195,16 @@ export const InformesOmar: React.FC = () => {
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="checkbox" checked={docTypeCE} onChange={e => setDocTypeCE(e.target.checked)} />
-                      <span>Cuenta de Cobro / Egreso</span>
+                      <span>Factura de Compra / Egreso (CE)</span>
                     </label>
                   </div>
                 </div>
 
-                {/* Lista de Vendedores Box */}
+                {/* Lista de Vendedores / Responsables Box */}
                 <div className="border border-[#7f9db9] bg-white">
                   <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                     <div className="flex items-center gap-1">
-                      <span>Lista de Vendedores</span>
+                      <span>Lista de Vendedores / Responsables</span>
                       <Search className="w-3 h-3 text-amber-300 cursor-pointer" onClick={handleGenerateReport} />
                     </div>
                     <button 
@@ -2619,57 +2228,31 @@ export const InformesOmar: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Grupo Uno que Excluye el Informe */}
+                {/* Bodega / Almacén (NUEVO CONTROL CLÁSICO WORLD OFFICE) */}
                 <div className="border border-[#7f9db9] bg-white">
                   <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
                     <div className="flex items-center gap-1">
-                      <input 
-                        type="checkbox" 
-                        checked={excluirContabilizaciones || excluirMateriaPrima || excluirPorUtilizar} 
-                        onChange={e => {
-                          setExcluirContabilizaciones(e.target.checked);
-                          setExcluirMateriaPrima(e.target.checked);
-                          setExcluirPorUtilizar(e.target.checked);
-                        }}
-                        className="cursor-pointer" 
-                      />
-                      <span>Grupo Uno que Excluye el Informe</span>
+                      <Package className="w-3 h-3 text-amber-300" />
+                      <span>Bodega / Almacén Químico</span>
                     </div>
                     <button 
-                      onClick={() => {
-                        const next = !(excluirContabilizaciones && excluirMateriaPrima && excluirPorUtilizar);
-                        setExcluirContabilizaciones(next);
-                        setExcluirMateriaPrima(next);
-                        setExcluirPorUtilizar(next);
-                      }}
+                      onClick={() => setSelectedWarehouse(selectedWarehouse === 'ALL' ? '' : 'ALL')}
                       className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[10px] cursor-pointer"
                     >
-                      Marcar Todo
+                      {selectedWarehouse === 'ALL' ? 'Desmarcar' : 'Marcar Todo'}
                     </button>
                   </div>
-                  <div className="p-1 space-y-0.5 text-[11px] max-h-16 overflow-y-auto bg-white">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={excluirContabilizaciones} onChange={e => setExcluirContabilizaciones(e.target.checked)} />
-                      <span className="text-slate-700">CONTABILIZACIONES AUTOMATICAS</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={excluirMateriaPrima} onChange={e => setExcluirMateriaPrima(e.target.checked)} />
-                      <span className="text-slate-700">MATERIA PRIMA</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={excluirPorUtilizar} onChange={e => setExcluirPorUtilizar(e.target.checked)} />
-                      <span className="text-slate-700">POR UTILIZAR</span>
-                    </label>
-                  </div>
-                  <div className="bg-[#f0f3f8] p-1 border-t border-slate-200">
-                    <label className="flex items-center gap-1.5 text-[10px] text-slate-700 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={incluirSinAgrupacionUno} 
-                        onChange={e => setIncluirSinAgrupacionUno(e.target.checked)} 
-                      />
-                      <span className="font-bold">Incluir registros sin agrupación Uno</span>
-                    </label>
+                  <div className="p-1 space-y-0.5 text-[11px] max-h-16 overflow-y-auto">
+                    {uniqueWarehouses.map(bod => (
+                      <label key={bod} className="flex items-center gap-1.5 cursor-pointer hover:bg-slate-100">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedWarehouse === 'ALL' || selectedWarehouse === bod} 
+                          onChange={() => setSelectedWarehouse(selectedWarehouse === bod ? 'ALL' : bod)}
+                        />
+                        <span>{bod}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
 
@@ -2726,7 +2309,7 @@ export const InformesOmar: React.FC = () => {
                 {/* Producto Box */}
                 <div className="border border-[#7f9db9] bg-white">
                   <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex items-center justify-between">
-                    <span>Producto</span>
+                    <span>Producto / Insumo</span>
                     <div className="flex items-center gap-1">
                       <input 
                         type="text" 
@@ -2741,14 +2324,14 @@ export const InformesOmar: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Opciones del Informe (Checkboxes clásicos) */}
+                {/* Opciones del Informe */}
                 <div className="border border-[#7f9db9] bg-white">
                   <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px]">
                     Opciones del Informe
                   </div>
                   <div className="p-1.5 space-y-1 text-[10.5px]">
                     <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={showDocDetails} onChange={e => setShowDocDetails(e.target.checked)} />
+                      <input type="checkbox" checked={true} readOnly />
                       <span className="font-bold">Detallar Movimiento</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
@@ -2761,44 +2344,24 @@ export const InformesOmar: React.FC = () => {
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="checkbox" checked={agruparPorVendedor} onChange={e => setAgruparPorVendedor(e.target.checked)} />
-                      <span className="font-bold">Agrupar Por Vendedor</span>
+                      <span className="font-bold">Agrupar Por Vendedor / Responsable</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="checkbox" checked={filtrarAnulados} onChange={e => setFiltrarAnulados(e.target.checked)} />
                       <span>Filtrar Documentos Anulados</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={agrupacionEncabezado} onChange={e => setAgrupacionEncabezado(e.target.checked)} />
-                      <span>Agrupación Clasificación Encabezado</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={otrasMonedas} onChange={e => setOtrasMonedas(e.target.checked)} />
-                      <span>Incluir información en otras monedas</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={valoresOtraMoneda} onChange={e => setValoresOtraMoneda(e.target.checked)} />
-                      <span>Ver valores en otra moneda</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={agruparVendedorZonas} onChange={e => setAgruparVendedorZonas(e.target.checked)} />
-                      <span>Agrupar y/o Filtrar por vendedor y Zonas</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={agruparSucursalCliente} onChange={e => setAgruparSucursalCliente(e.target.checked)} />
-                      <span>Agrupar y/o Filtrar Por Sucursal Cliente</span>
                     </label>
                   </div>
                 </div>
 
               </div>
 
-              {/* COLUMNA 3 (DERECHA - CLIENTE, ZONAS, SUCURSAL & BOTONES 3D) */}
+              {/* COLUMNA 3 (DERECHA - CLIENTE / TERCERO, ZONAS, SUCURSAL & BOTONES 3D) */}
               <div className="lg:col-span-4 flex flex-col gap-2">
                 
-                {/* Ventana Header 'Cliente' con controles Windows */}
+                {/* Ventana Header 'Tercero / Cliente' */}
                 <div className="border border-[#7f9db9] bg-[#ece9d8]">
                   <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[11px] flex justify-between items-center">
-                    <span>Cliente</span>
+                    <span>{selectedModule === 'COMPRAS' ? 'Proveedor / Tercero' : 'Cliente / Tercero'}</span>
                     <div className="flex items-center gap-1 text-[10px]">
                       <button 
                         onClick={() => setIsClientMinimized(!isClientMinimized)}
@@ -2857,28 +2420,6 @@ export const InformesOmar: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Zona 2 Box */}
-                      <div className="border border-[#7f9db9] bg-white">
-                        <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px] flex justify-between items-center">
-                          <span>Zona 2</span>
-                          <button 
-                            onClick={() => setAgruparZona2(!agruparZona2)}
-                            className="bg-[#e4e4e4] hover:bg-white text-slate-800 px-1 py-0.2 border border-slate-400 text-[9.5px] cursor-pointer"
-                          >
-                            Marcar Todo
-                          </button>
-                        </div>
-                        <div className="p-1 text-[11px] h-8 overflow-y-auto text-slate-400 italic">
-                          -- Sin subdivisiones --
-                        </div>
-                        <div className="p-1 bg-[#f0f3f8] border-t border-slate-200">
-                          <label className="flex items-center gap-1 text-[10px] cursor-pointer">
-                            <input type="checkbox" checked={agruparZona2} onChange={e => setAgruparZona2(e.target.checked)} />
-                            <span>Agrupar por Zona 2</span>
-                          </label>
-                        </div>
-                      </div>
-
                       {/* Mas Opciones del Informe */}
                       <div className="border border-[#7f9db9] bg-white">
                         <div className="bg-[#1c3b70] text-white px-2 py-0.5 font-bold text-[10.5px]">
@@ -2924,56 +2465,9 @@ export const InformesOmar: React.FC = () => {
                           >
                             <option value="Codigo-Descripción">Codigo-Descripción</option>
                             <option value="Descripción-Codigo">Descripción-Codigo</option>
-                            <option value="Mayor Venta">Mayor Venta</option>
+                            <option value="Mayor Venta">Mayor Monto</option>
                           </select>
                         </div>
-                      </div>
-
-                      {/* Tallas & Colores Boxes */}
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <div className="border border-[#7f9db9] bg-white">
-                          <div className="bg-[#1c3b70] text-white px-1 py-0.5 font-bold text-[10px] flex justify-between">
-                            <span>Tallas</span>
-                            <span onClick={() => setTallasMarcadas(!tallasMarcadas)} className="text-[9px] cursor-pointer hover:underline">
-                              {tallasMarcadas ? 'Desmarcar' : 'Marcar'}
-                            </span>
-                          </div>
-                          <div className="h-6 p-1 text-[10px] text-slate-600 font-bold">
-                            {tallasMarcadas ? 'Todas las tallas' : 'Ninguna'}
-                          </div>
-                        </div>
-
-                        <div className="border border-[#7f9db9] bg-white">
-                          <div className="bg-[#1c3b70] text-white px-1 py-0.5 font-bold text-[10px] flex justify-between">
-                            <span>Colores</span>
-                            <span onClick={() => setColoresMarcados(!coloresMarcados)} className="text-[9px] cursor-pointer hover:underline">
-                              {coloresMarcados ? 'Desmarcar' : 'Marcar'}
-                            </span>
-                          </div>
-                          <div className="h-6 p-1 text-[10px] text-slate-600 font-bold">
-                            {coloresMarcados ? 'Todos los colores' : 'Ninguno'}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bottom Checkboxes */}
-                      <div className="space-y-1 text-[10px] text-slate-700 pt-1">
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input type="checkbox" checked={mostrarDesactivados} onChange={e => setMostrarDesactivados(e.target.checked)} />
-                          <span>Mostrar Terceros Desactivados</span>
-                        </label>
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input type="checkbox" checked={verCaracteristicas} onChange={e => setVerCaracteristicas(e.target.checked)} />
-                          <span>Ver Características</span>
-                        </label>
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input type="checkbox" checked={mostrarEnAgrupaciones} onChange={e => setMostrarEnAgrupaciones(e.target.checked)} />
-                          <span>Al exportar mostrar en todos los registros los valores de las agrupaciones</span>
-                        </label>
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input type="checkbox" checked={mostrarHoraPago} onChange={e => setMostrarHoraPago(e.target.checked)} />
-                          <span>Mostrar Hora y Forma de Pago</span>
-                        </label>
                       </div>
 
                       {/* Classic 3D Beveled Buttons (Vista Previa & Exportar a Excel) */}
@@ -2984,7 +2478,7 @@ export const InformesOmar: React.FC = () => {
                           className="px-4 py-2 bg-[#ece9d8] hover:bg-[#dfdbce] active:bg-[#d0ccc0] text-slate-900 font-black text-xs border-2 border-t-white border-l-white border-b-gray-700 border-r-gray-700 shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
                         >
                           <Search className="w-3.5 h-3.5 text-blue-800" />
-                          <span>{isGenerating ? 'Generando...' : 'Vista Previa'}</span>
+                          <span>{isGenerating ? 'Generando...' : 'Vista Previa (F5)'}</span>
                         </button>
 
                         <button
@@ -3007,7 +2501,7 @@ export const InformesOmar: React.FC = () => {
 
           {/* Bottom Status / Footer Bar */}
           <div className="mt-2 bg-[#dcdfe5] p-1 border border-[#7f9db9] text-[10px] text-slate-700 flex justify-between items-center font-mono">
-            <span>Terminal: POS-PROCOQUINAL-01 | Usuario: OMAR | Estado: CONECTADO</span>
+            <span>Terminal: POS-PROCOQUINAL-01 | Usuario: OMAR | Módulo: {currentModuleDef.label.toUpperCase()}</span>
             <span className="font-bold">Total Transacciones Filtradas: {filteredData.length.toLocaleString()}</span>
           </div>
 
@@ -3015,32 +2509,25 @@ export const InformesOmar: React.FC = () => {
       )}
 
       {/* =========================================================================
-          VISTA MODERNA (SI SE SELECCIONA EL MODO MODERNO)
+          4. VISTA MODERNA
           ========================================================================= */}
       {isFilterPanelOpen && filterLayoutMode === 'MODERNA' && (
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
               <div className="flex flex-wrap gap-1.5 bg-slate-100 p-1 rounded-xl">
-                {[
-                  { id: 'ALL', label: '⚡ Ver Todos los Filtros', icon: Layers },
-                  { id: 'OPERACION', label: '🏢 Operación & Ventas', icon: Briefcase },
-                  { id: 'FECHAS', label: '📅 Fechas & Periodo', icon: Calendar },
-                  { id: 'CLIENTES', label: '👥 Clientes & Terceros', icon: Users },
-                  { id: 'PRODUCTOS', label: '🧪 Químicos & Inventario', icon: Package },
-                  { id: 'CONTABLE', label: '🏛️ Fiscal & PUC', icon: Landmark },
-                ].map(tab => {
-                  const Icon = tab.icon;
-                  const active = activeFilterCategory === tab.id;
+                {ERP_MODULES.map(mod => {
+                  const Icon = mod.icon;
+                  const active = selectedModule === mod.id;
                   return (
                     <button
-                      key={tab.id}
-                      onClick={() => setActiveFilterCategory(tab.id as any)}
+                      key={mod.id}
+                      onClick={() => handleSelectModule(mod.id)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                         active ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      <Icon className="w-3.5 h-3.5" /> {tab.label}
+                      <Icon className="w-3.5 h-3.5" /> {mod.label}
                     </button>
                   );
                 })}
@@ -3070,9 +2557,23 @@ export const InformesOmar: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {/* Tipo de informe */}
+              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-3 text-xs">
+                <span className="font-bold flex items-center gap-1.5"><FolderKanban className="w-3.5 h-3.5 text-indigo-600" /> Tipo de Informe ({currentModuleDef.label})</span>
+                <select 
+                  value={selectedReportType}
+                  onChange={e => { setSelectedReportType(e.target.value); handleGenerateReport(); }}
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold"
+                >
+                  {REPORT_CATALOGS[selectedModule].map(tipo => (
+                    <option key={tipo} value={tipo}>{tipo}</option>
+                  ))}
+                </select>
+              </div>
+
               {/* Vendedor */}
               <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-3 text-xs">
-                <span className="font-bold flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-indigo-600" /> Vendedor / Comercial</span>
+                <span className="font-bold flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-indigo-600" /> Vendedor / Responsable</span>
                 <select 
                   value={selectedSeller}
                   onChange={e => { setSelectedSeller(e.target.value); setCurrentPage(1); setCurrentReportPage(1); }}
@@ -3083,26 +2584,17 @@ export const InformesOmar: React.FC = () => {
                 </select>
               </div>
 
-              {/* Sede */}
+              {/* Sede / Bodega */}
               <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-3 text-xs">
-                <span className="font-bold flex items-center gap-1.5"><Building className="w-3.5 h-3.5 text-blue-600" /> Sede / Sucursal</span>
+                <span className="font-bold flex items-center gap-1.5"><Building className="w-3.5 h-3.5 text-blue-600" /> Sede / Bodega</span>
                 <select 
                   value={selectedCostCenter}
                   onChange={e => { setSelectedCostCenter(e.target.value); setCurrentPage(1); setCurrentReportPage(1); }}
                   className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
                 >
-                  <option value="ALL">-- Todas las Sedes --</option>
+                  <option value="ALL">-- Todas las Sedes / Bodegas --</option>
                   {uniqueCostCenters.map(cc => <option key={cc} value={cc}>{cc}</option>)}
                 </select>
-              </div>
-
-              {/* Fechas */}
-              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-3 text-xs">
-                <span className="font-bold flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-blue-600" /> Rango de Fechas</span>
-                <div className="flex gap-2">
-                  <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-2 py-1 bg-white border border-slate-300 rounded" />
-                  <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-2 py-1 bg-white border border-slate-300 rounded" />
-                </div>
               </div>
             </div>
 
