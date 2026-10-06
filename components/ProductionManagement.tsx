@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useEnterprise } from '../context/EnterpriseContext';
 import { MOCK_PRODUCTION } from '../constants';
 import { BatchStatus, ProductionBatch } from '../types';
 import { 
     Factory, FlaskConical, AlertTriangle, CheckCircle2, 
-    Activity, GitMerge, ChevronDown, ChevronRight, Fingerprint, Box, ArrowDown
+    Activity, GitMerge, ChevronDown, ChevronRight, Fingerprint, Box, ArrowDown, Plus, X
 } from 'lucide-react';
 
 const StatusBadge = ({ status }: { status: BatchStatus }) => {
@@ -21,10 +22,11 @@ interface BomNodeProps {
     ingredient: any;
 }
 
+import { TintometricEngine } from '../utils/TintometricEngine';
+
 const BomNode: React.FC<BomNodeProps> = ({ ingredient }) => {
-    // Detect brand based on common keywords for visual styling
-    const nameUpper = ingredient.name.toUpperCase();
-    const brand = nameUpper.includes('ILVA') ? 'ILVA' : nameUpper.includes('CARPOLY') ? 'Carpoly' : nameUpper.includes('BARPIMO') ? 'Barpimo' : 'Generico';
+    // Detect brand dynamically using TintometricEngine
+    const brand = TintometricEngine.detectBrand(ingredient.name);
     
     return (
         <div className="relative pl-8 py-2">
@@ -114,9 +116,12 @@ const BomTree = ({ batch }: { batch: ProductionBatch }) => {
 };
 
 export const ProductionManagement: React.FC = () => {
+    const { productionOrders, addProductionOrder } = useEnterprise();
     const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
     const [selectedStatuses, setSelectedStatuses] = useState<BatchStatus[]>([]);
-
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [newOrderName, setNewOrderName] = useState('');
+    const [newOrderQty, setNewOrderQty] = useState('');
     const toggleBatch = (id: string) => {
         setExpandedBatch(expandedBatch === id ? null : id);
     };
@@ -129,20 +134,36 @@ export const ProductionManagement: React.FC = () => {
         );
     };
 
-    // Replace the mock ingredients to sound more like chemical paints
-    const tailoredMocks = MOCK_PRODUCTION.map(batch => ({
-        ...batch,
-        productName: batch.productName.replace('Laptop', 'Pasta').replace('Server', 'Base').replace('Smartphone', 'Laca'),
-        ingredients: [
-            { name: 'ILVA TZ 5900 (Catalizador)', plannedQty: 10, actualQty: 10.5, unit: 'GL', costImpact: 45 },
-            { name: 'Carpoly IME 80 (Resina Base)', plannedQty: 50, actualQty: 48, unit: 'LT', costImpact: 0 },
-            { name: 'Barpimo A-402 (Tinte Limón)', plannedQty: 2, actualQty: 2.2, unit: 'GL', costImpact: 15 }
-        ]
-    }));
+    const handleCreateOrder = (e: React.FormEvent) => {
+        e.preventDefault();
+        const qty = parseFloat(newOrderQty) || 1;
+        const newBatch: ProductionBatch = {
+            id: `ORD-00${productionOrders.length + 2}`,
+            batchNumber: `LOTE-2026-${String.fromCharCode(66 + productionOrders.length)}`,
+            productName: newOrderName || 'Mezcla Personalizada',
+            sku: 'MIX-CUST',
+            status: BatchStatus.PLANNING,
+            startDate: new Date().toISOString().split('T')[0],
+            plannedOutput: qty,
+            actualOutput: 0,
+            waste: 0,
+            rework: false,
+            standardUnitCost: 12000,
+            realUnitCost: 0,
+            ingredients: [
+                { name: 'Base Acrílica Procoquinal', plannedQty: qty * 0.8, actualQty: 0, unit: 'GL', costImpact: 0 },
+                { name: 'Tinte Universal', plannedQty: qty * 0.2, actualQty: 0, unit: 'LT', costImpact: 0 }
+            ]
+        };
+        addProductionOrder(newBatch);
+        setIsCreateModalOpen(false);
+        setNewOrderName('');
+        setNewOrderQty('');
+    };
 
     const filteredMocks = selectedStatuses.length > 0 
-        ? tailoredMocks.filter(batch => selectedStatuses.includes(batch.status))
-        : tailoredMocks;
+        ? productionOrders.filter(batch => selectedStatuses.includes(batch.status))
+        : productionOrders;
 
     return (
         <div className="p-6 bg-slate-50 min-h-screen space-y-6">
@@ -150,9 +171,9 @@ export const ProductionManagement: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center">
                         <Factory className="w-6 h-6 mr-3 text-slate-700"/>
-                        Manufactura y Fórmulas
+                        Historial de Producción y Lotes
                     </h1>
-                    <p className="text-slate-500 text-sm mt-1">Consumo de materias primas (ETL) y conversión a producto terminado Procoquinal.</p>
+                    <p className="text-slate-500 text-sm mt-1">Archivo maestro de auditoría y trazabilidad de lotes terminados.</p>
                 </div>
             </header>
 
@@ -242,6 +263,80 @@ export const ProductionManagement: React.FC = () => {
                     })}
                 </div>
             </div>
+
+            {/* Modal Nueva Mezcla */}
+            {isCreateModalOpen && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="font-bold text-slate-800 text-lg flex items-center">
+                                <Factory className="w-5 h-5 mr-2 text-indigo-600" />
+                                Crear Orden de Mezcla
+                            </h3>
+                            <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleCreateOrder} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Producto a Preparar (Fórmula)</label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    value={newOrderName}
+                                    onChange={e => setNewOrderName(e.target.value)}
+                                    placeholder="Ej: Laca Poliuretano Transparente..." 
+                                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Cantidad a Producir</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="number" 
+                                        required
+                                        min="1"
+                                        step="0.1"
+                                        value={newOrderQty}
+                                        onChange={e => setNewOrderQty(e.target.value)}
+                                        placeholder="0.0" 
+                                        className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    />
+                                    <select className="border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-50 outline-none">
+                                        <option>Galones</option>
+                                        <option>Litros</option>
+                                        <option>Cuñetes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-blue-50 text-blue-800 p-4 rounded-xl flex gap-3 mt-4 text-sm">
+                                <Activity className="w-5 h-5 text-blue-600 shrink-0" />
+                                <div>
+                                    <span className="font-bold block mb-1">Reserva de Inventario</span>
+                                    Al crear la orden, el sistema reservará los ingredientes automáticamente de la <b>Bodega Centenario</b> según la receta.
+                                </div>
+                            </div>
+
+                            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setIsCreateModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-800"
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm"
+                                >
+                                    Crear y Reservar Material
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

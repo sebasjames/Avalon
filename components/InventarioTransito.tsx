@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { suggestTransitDistribution } from '../services/geminiService';
 import { INVENTORY_DATA } from '../constants';
 
-const LOCATIONS = ['Centenario', 'Gaitán', 'Barranquilla'];
+const LOCATIONS = ['Centenario', 'Gaitán', 'Barranquilla', 'Transito'];
 
 interface SplitItem {
     id: string;
@@ -429,7 +429,7 @@ export const InventarioTransito: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
                     >
                         <motion.div
                             initial={{ scale: 0.95, y: 20 }}
@@ -493,7 +493,7 @@ export const InventarioTransito: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
                     >
                         <motion.div
                             initial={{ scale: 0.95, y: 20 }}

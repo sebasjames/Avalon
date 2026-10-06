@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Settings,
@@ -29,11 +30,13 @@ import {
   Truck,
   Sparkles,
   MapPin,
-  Building
+  Building,
+  Target
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings, TaxRule, PricingRule, PaymentRule, Supplier } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { DemoPanel } from './DemoPanel';
 
 export const Configuration: React.FC = () => {
   const {
@@ -43,10 +46,24 @@ export const Configuration: React.FC = () => {
     suppliers, addSupplier, updateSupplier, deleteSupplier,
     locations, addLocation, updateLocation, deleteLocation,
     crmSettings, updateCrmSettings,
-    worldOfficeConfig, updateWorldOfficeConfig
+    worldOfficeConfig, updateWorldOfficeConfig,
+    systemSettings, updateSystemSettings
   } = useEnterprise();
-  const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'locaciones' | 'integraciones' | 'worldoffice'>('worldoffice');
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const initialTab = (searchParams.get('tab') || location.state?.tab || 'worldoffice') as any;
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'locaciones' | 'integraciones' | 'worldoffice' | 'demo'>(initialTab);
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') || location.state?.tab;
+    if (tabParam) {
+      setActiveTab(tabParam as any);
+      if (tabParam === 'locaciones' && searchParams.get('new') === 'true') {
+        setEditingLocationId('NEW');
+        setLocationForm({ status: 'Activa', type: 'Punto de Venta' });
+      }
+    }
+  }, [searchParams, location.state]);
   const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
   const [supplierForm, setSupplierForm] = useState<Partial<Supplier>>({});
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
@@ -86,23 +103,13 @@ export const Configuration: React.FC = () => {
   const cuneteRuleSuggestions = useMemo(() => getSuggestions(newCuneteRule), [newCuneteRule, inventory]);
   const fractionalRuleSuggestions = useMemo(() => getSuggestions(newFractionalRule), [newFractionalRule, inventory]);
 
-  // Load settings from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('procoquinal_settings');
-    if (saved) {
-      try {
-        setSettings(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse saved settings', e);
-      }
-    }
-  }, []);
+  // Settings are now loaded directly from EnterpriseContext
+
 
   const handleSave = () => {
     setIsSaving(true);
     // Simulate API call
     setTimeout(() => {
-      localStorage.setItem('procoquinal_settings', JSON.stringify(settings));
       setIsSaving(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
@@ -111,86 +118,79 @@ export const Configuration: React.FC = () => {
 
   const handleReset = () => {
     if (window.confirm('¿Estás seguro de que deseas restablecer todos los valores a los predeterminados?')) {
-      setSettings(DEFAULT_SETTINGS);
+      updateSystemSettings(DEFAULT_SETTINGS);
     }
   };
 
   const updateSetting = (category: keyof SystemSettings, key: string, value: any) => {
-    setSettings(prev => {
-      const categoryData = prev[category] as any;
-      if (typeof categoryData[key] === 'object' && !Array.isArray(categoryData[key])) {
-        // Handle nested objects like priorityWeights
-        return {
-          ...prev,
-          [category]: {
-            ...categoryData,
-            [key]: { ...categoryData[key], ...value }
-          }
-        };
-      }
-      return {
-        ...prev,
+    const categoryData = systemSettings[category] as any;
+    if (typeof categoryData[key] === 'object' && !Array.isArray(categoryData[key])) {
+      // Handle nested objects like priorityWeights
+      updateSystemSettings({
+        [category]: {
+          ...categoryData,
+          [key]: { ...categoryData[key], ...value }
+        }
+      });
+    } else {
+      updateSystemSettings({
         [category]: {
           ...categoryData,
           [key]: value
         }
-      };
-    });
+      });
+    }
   };
 
   const handleAddVendorPrefix = (vendorId: string, prefix: string, meaning: string) => {
     if (!prefix.trim() || !meaning.trim()) return;
-    setSettings(prev => ({
-      ...prev,
+    updateSystemSettings({
       formulation: {
-        ...prev.formulation,
-        vendorRules: prev.formulation.vendorRules.map(r =>
+        ...systemSettings.formulation,
+        vendorRules: systemSettings.formulation.vendorRules.map(r =>
           r.id === vendorId
             ? { ...r, prefixRules: [...r.prefixRules, { id: Date.now().toString(), prefix: prefix.trim(), meaning: meaning.trim() }] }
             : r
         )
       }
-    }));
+    });
   };
 
   const handleRemoveVendorPrefix = (vendorId: string, prefixId: string) => {
-    setSettings(prev => ({
-      ...prev,
+    updateSystemSettings({
       formulation: {
-        ...prev.formulation,
-        vendorRules: prev.formulation.vendorRules.map(r =>
+        ...systemSettings.formulation,
+        vendorRules: systemSettings.formulation.vendorRules.map(r =>
           r.id === vendorId
             ? { ...r, prefixRules: r.prefixRules.filter(p => p.id !== prefixId) }
             : r
         )
       }
-    }));
+    });
   };
 
   const handleAddVendor = () => {
     const brand = prompt("Nombre del Proveedor / Marca:");
     if (!brand) return;
-    setSettings(prev => ({
-      ...prev,
+    updateSystemSettings({
       formulation: {
-        ...prev.formulation,
+        ...systemSettings.formulation,
         vendorRules: [
-          ...prev.formulation.vendorRules,
+          ...systemSettings.formulation.vendorRules,
           { id: Date.now().toString(), brand, prefixRules: [], categoryName: `Materia Prima (${brand})` }
         ]
       }
-    }));
+    });
   };
 
   const handleRemoveVendor = (vendorId: string) => {
     if (!window.confirm("¿Eliminar este proveedor y todas sus reglas?")) return;
-    setSettings(prev => ({
-      ...prev,
+    updateSystemSettings({
       formulation: {
-        ...prev.formulation,
-        vendorRules: prev.formulation.vendorRules.filter(r => r.id !== vendorId)
+        ...systemSettings.formulation,
+        vendorRules: systemSettings.formulation.vendorRules.filter(r => r.id !== vendorId)
       }
-    }));
+    });
   };
 
   const tabs = [
@@ -205,8 +205,9 @@ export const Configuration: React.FC = () => {
     { id: 'usuarios', label: 'Usuarios y Permisos', icon: Users },
     { id: 'proveedores', label: 'Proveedores', icon: Truck },
     { id: 'locaciones', label: 'Locaciones', icon: MapPin },
-    { id: 'integraciones', label: 'IA & Integraciones', icon: Sparkles },
+    { id: 'integraciones', label: 'Integraciones', icon: Database },
     { id: 'worldoffice', label: 'World Office ERP', icon: Building },
+    { id: 'demo', label: 'Entorno Demo', icon: Beaker },
   ];
 
   return (
@@ -292,19 +293,19 @@ export const Configuration: React.FC = () => {
                       <ConfigInput
                         label="Inventario Lento"
                         description="Días para marcar como 'Lento'"
-                        value={settings.inventory.slowAgingDays}
+                        value={systemSettings.inventory.slowAgingDays}
                         onChange={(v) => updateSetting('inventory', 'slowAgingDays', parseInt(v))}
                       />
                       <ConfigInput
                         label="Inventario Silencioso"
                         description="Días para marcar como 'Silencioso'"
-                        value={settings.inventory.silentAgingDays}
+                        value={systemSettings.inventory.silentAgingDays}
                         onChange={(v) => updateSetting('inventory', 'silentAgingDays', parseInt(v))}
                       />
                       <ConfigInput
                         label="Inventario Obsoleto"
                         description="Días para marcar como 'Muerto'"
-                        value={settings.inventory.deadAgingDays}
+                        value={systemSettings.inventory.deadAgingDays}
                         onChange={(v) => updateSetting('inventory', 'deadAgingDays', parseInt(v))}
                       />
                     </div>
@@ -318,14 +319,14 @@ export const Configuration: React.FC = () => {
                       <ConfigInput
                         label="Umbral Clase A"
                         description="% de valor total acumulado"
-                        value={settings.inventory.abcThresholdA}
+                        value={systemSettings.inventory.abcThresholdA}
                         suffix="%"
                         onChange={(v) => updateSetting('inventory', 'abcThresholdA', parseInt(v))}
                       />
                       <ConfigInput
                         label="Umbral Clase B"
                         description="% de valor adicional"
-                        value={settings.inventory.abcThresholdB}
+                        value={systemSettings.inventory.abcThresholdB}
                         suffix="%"
                         onChange={(v) => updateSetting('inventory', 'abcThresholdB', parseInt(v))}
                       />
@@ -629,7 +630,7 @@ export const Configuration: React.FC = () => {
                       <ConfigInput
                         label="Tolerancia de Merma"
                         description="Desviación máxima permitida"
-                        value={settings.production.wasteTolerancePercent}
+                        value={systemSettings.production.wasteTolerancePercent}
                         suffix="%"
                         onChange={(v) => updateSetting('production', 'wasteTolerancePercent', parseFloat(v))}
                       />
@@ -637,7 +638,7 @@ export const Configuration: React.FC = () => {
                       <ConfigInput
                         label="Tasa de Gastos Indirectos (Overhead)"
                         description="Porcentaje sobre costo directo"
-                        value={settings.production.overheadRate}
+                        value={systemSettings.production.overheadRate}
                         suffix="%"
                         onChange={(v) => updateSetting('production', 'overheadRate', parseFloat(v))}
                       />
@@ -661,14 +662,14 @@ export const Configuration: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                       <div className="lg:col-span-8">
                         <div className="bg-slate-950/50 min-h-[100px] rounded-2xl border-2 border-dashed border-slate-800 p-6 flex flex-wrap items-center gap-3">
-                          {(settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).map((token, idx) => (
+                          {(systemSettings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).map((token, idx) => (
                               <div key={idx} className="flex items-center gap-3 animate-in zoom-in-95 duration-200">
                                 <div className="relative group/chip">
                                   <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-black text-sm shadow-xl flex items-center gap-2 border border-indigo-400/50">
                                     {token.replace('[', '').replace(']', '')}
                                     <button
                                       onClick={() => {
-                                        const currentTokens = settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || [];
+                                        const currentTokens = systemSettings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || [];
                                         currentTokens.splice(idx, 1);
                                         updateSetting('formulation', 'globalSkuPattern', currentTokens.join(''));
                                       }}
@@ -679,14 +680,14 @@ export const Configuration: React.FC = () => {
                                   </div>
                                 </div>
                                 {/* Separador Visual */}
-                                {idx < (settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length - 1 && (
-                                  <div className="text-slate-700 font-black text-xl italic">{settings.formulation.skuSeparator}</div>
+                                {idx < (systemSettings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length - 1 && (
+                                  <div className="text-slate-700 font-black text-xl italic">{systemSettings.formulation.skuSeparator}</div>
                                 )}
                               </div>
                             ))}
 
                             {/* Botón de Ayuda / Placeholder */}
-                            {(settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length === 0 && (
+                            {(systemSettings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length === 0 && (
                               <div className="text-slate-600 text-sm italic py-2">Agrega bloques abajo para empezar a construir...</div>
                             )}
                           </div>
@@ -707,7 +708,7 @@ export const Configuration: React.FC = () => {
                                 <button
                                   key={block.id}
                                   onClick={() => {
-                                    const currentPattern = settings.formulation.globalSkuPattern;
+                                    const currentPattern = systemSettings.formulation.globalSkuPattern;
                                     updateSetting('formulation', 'globalSkuPattern', currentPattern + block.id);
                                   }}
                                   className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
@@ -727,10 +728,10 @@ export const Configuration: React.FC = () => {
                             <div>
                               <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-4">Resultado Avalon SKU</span>
                               <div className="text-2xl font-black font-mono text-white tracking-[0.2em] break-all leading-relaxed">
-                                {(settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length > 0 ? (
-                                  (settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).map((t, i) => {
+                                {(systemSettings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length > 0 ? (
+                                  (systemSettings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).map((t, i) => {
                                     const val = t === '[BRAND]' ? 'ILVA' : t === '[PREFIX]' ? 'TZ' : t === '[ORIGINAL]' ? '110' : t === '[PQ]' ? 'PQ' : t === '[CATEGORY]' ? 'LIM' : t === '[AUTO_NUM]' ? '001' : 'SOLVENTE';
-                                    return val + (i < (settings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length - 1 ? settings.formulation.skuSeparator : '');
+                                    return val + (i < (systemSettings.formulation.globalSkuPattern.match(/\[[A-Z_]+\]/g) || []).length - 1 ? systemSettings.formulation.skuSeparator : '');
                                   })
                                 ) : (
                                   <span className="text-slate-700">ESPERANDO BLOQUES...</span>
@@ -818,14 +819,14 @@ export const Configuration: React.FC = () => {
                       <ConfigInput
                         label="Margen Objetivo Predeterminado"
                         description="Margen mínimo esperado"
-                        value={settings.sales.defaultTargetMargin}
+                        value={systemSettings.sales.defaultTargetMargin}
                         suffix="%"
                         onChange={(v) => updateSetting('sales', 'defaultTargetMargin', parseFloat(v))}
                       />
                       <ConfigInput
                         label="Descuento Cliente Estratégico"
                         description="Descuento base para Tier Gold"
-                        value={settings.sales.strategicCustomerDiscount}
+                        value={systemSettings.sales.strategicCustomerDiscount}
                         suffix="%"
                         onChange={(v) => updateSetting('sales', 'strategicCustomerDiscount', parseFloat(v))}
                       />
@@ -835,26 +836,48 @@ export const Configuration: React.FC = () => {
                   <div className="h-px bg-slate-100" />
 
                   <section>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Pesos de Prioridad (ATP Allocation)</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <ConfigInput
-                        label="Peso Margen"
-                        description="Importancia del margen (0-1)"
-                        value={settings.sales.priorityWeights.margin}
-                        onChange={(v) => updateSetting('sales', 'priorityWeights', { margin: parseFloat(v) })}
-                      />
-                      <ConfigInput
-                        label="Peso Tier Cliente"
-                        description="Importancia del nivel de cliente"
-                        value={settings.sales.priorityWeights.customerTier}
-                        onChange={(v) => updateSetting('sales', 'priorityWeights', { customerTier: parseFloat(v) })}
-                      />
-                      <ConfigInput
-                        label="Peso Urgencia"
-                        description="Importancia de fecha requerida"
-                        value={settings.sales.priorityWeights.urgency}
-                        onChange={(v) => updateSetting('sales', 'priorityWeights', { urgency: parseFloat(v) })}
-                      />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                      <Target size={18} className="text-indigo-500" />
+                      Etapas del Pipeline CRM y Probabilidad de Cierre
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Configura el nombre de cada etapa del embudo de ventas y su probabilidad implícita de cierre para el cálculo de forecast ponderado.
+                    </p>
+
+                    <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      {(crmSettings?.stages || []).map((stage, idx) => (
+                        <div key={stage.id} className="flex items-center gap-4 bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+                          <div className="w-8 font-bold text-xs text-slate-400">#{idx + 1}</div>
+                          <div className="flex-1">
+                            <label className="text-xs font-bold text-slate-500 block mb-1">Nombre de la Etapa</label>
+                            <input
+                              type="text"
+                              value={stage.label}
+                              onChange={(e) => {
+                                const newStages = [...crmSettings.stages];
+                                newStages[idx] = { ...newStages[idx], label: e.target.value };
+                                updateCrmSettings({ stages: newStages });
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 text-sm font-bold text-slate-800 rounded px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="w-36">
+                            <label className="text-xs font-bold text-slate-500 block mb-1">Probabilidad (%)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={stage.defaultProbability}
+                              onChange={(e) => {
+                                const newStages = [...crmSettings.stages];
+                                newStages[idx] = { ...newStages[idx], defaultProbability: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) };
+                                updateCrmSettings({ stages: newStages });
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 text-sm font-bold text-indigo-700 rounded px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 text-right"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </section>
                 </div>
@@ -871,21 +894,21 @@ export const Configuration: React.FC = () => {
                       <ConfigInput
                         label="Buffer Stock de Seguridad"
                         description="Días adicionales de cobertura"
-                        value={settings.purchasing.safetyStockBufferDays}
+                        value={systemSettings.purchasing.safetyStockBufferDays}
                         suffix="días"
                         onChange={(v) => updateSetting('purchasing', 'safetyStockBufferDays', parseInt(v))}
                       />
                       <ConfigInput
                         label="Confiabilidad Mínima Proveedor"
                         description="Score mínimo para sugerencia automática"
-                        value={settings.purchasing.minVendorReliability}
+                        value={systemSettings.purchasing.minVendorReliability}
                         suffix="/100"
                         onChange={(v) => updateSetting('purchasing', 'minVendorReliability', parseInt(v))}
                       />
                       <ConfigInput
                         label="Umbral Auto-Aprobación"
                         description="Monto máximo para aprobación directa"
-                        value={settings.purchasing.autoApproveThreshold}
+                        value={systemSettings.purchasing.autoApproveThreshold}
                         prefix="$"
                         onChange={(v) => updateSetting('purchasing', 'autoApproveThreshold', parseFloat(v))}
                       />
@@ -905,20 +928,20 @@ export const Configuration: React.FC = () => {
                       <ConfigInput
                         label="Moneda Base"
                         description="Moneda principal del sistema"
-                        value={settings.finance.currency}
+                        value={systemSettings.finance.currency}
                         onChange={(v) => updateSetting('finance', 'currency', v)}
                       />
                       <ConfigInput
                         label="Tasa de Impuestos (IVA)"
                         description="Porcentaje impositivo estándar"
-                        value={settings.finance.taxRate}
+                        value={systemSettings.finance.taxRate}
                         suffix="%"
                         onChange={(v) => updateSetting('finance', 'taxRate', parseFloat(v))}
                       />
                       <ConfigInput
                         label="Costo de Mantenimiento Anual"
                         description="% de valor de inventario (Holding Cost)"
-                        value={settings.finance.annualHoldingCostPercent}
+                        value={systemSettings.finance.annualHoldingCostPercent}
                         suffix="%"
                         onChange={(v) => updateSetting('finance', 'annualHoldingCostPercent', parseFloat(v))}
                       />
@@ -1900,6 +1923,10 @@ export const Configuration: React.FC = () => {
                     </div>
                   </section>
                 </div>
+              )}
+
+              {activeTab === 'demo' && (
+                <DemoPanel />
               )}
 
               {activeTab === 'worldoffice' && (

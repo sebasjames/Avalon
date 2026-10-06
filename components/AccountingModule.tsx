@@ -713,7 +713,7 @@ export const AccountingModule: React.FC = () => {
                     const diff = invoiceTotal - paidAmount;
 
                     return (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+                        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
                             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col border border-slate-200">
                                 {/* Header */}
                                 <div className="bg-slate-900 px-6 py-4 flex justify-between items-center shrink-0">
@@ -923,7 +923,7 @@ export const AccountingModule: React.FC = () => {
             {/* MODAL: REGISTRAR COMPROBANTE DE EGRESO (PAGO A PROVEEDOR) */}
             <AnimatePresence>
                 {showCxPPaymentModal && selectedCxPInvoice && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
                         <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col border border-slate-200">
                             {/* Header */}
                             <div className="bg-rose-900 px-6 py-4 flex justify-between items-center shrink-0">
@@ -1025,7 +1025,7 @@ export const AccountingModule: React.FC = () => {
             {/* MODAL: CONTABILIZAR FACTURA PROVEEDOR CON IA */}
             <AnimatePresence>
                 {showAiFormModal && selectedEmail && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
                         <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col border border-slate-200 max-h-[90vh]">
                             {/* Header */}
                             <div className="bg-slate-900 px-6 py-4 flex justify-between items-center shrink-0">

@@ -7,13 +7,13 @@ import {
     DollarSign, Wallet, TrendingUp, AlertOctagon, 
     ArrowUpRight, ArrowDownRight, Coins, PieChart as PieChartIcon, Activity
 } from 'lucide-react';
-import { MOCK_PRODUCTION, SALES_DATA, MOCK_FORECAST_DATA } from '../constants';
 import { InventoryStatus, Category } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { formatCOP } from '../utils/format';
+import { FinancialEngine } from '../utils/FinancialEngine';
 
 export const FinancialImpact: React.FC = () => {
-    const { inventory } = useEnterprise();
+    const { inventory, productionOrders = [], kardexTransactions = [], systemSettings } = useEnterprise();
 
     // --- 1. Calculations & Logic ---
 
@@ -23,6 +23,12 @@ export const FinancialImpact: React.FC = () => {
         const cost = item.category === Category.RAW_MATERIAL ? item.unitCost : (item.unitCost * 0.8); // Estimate internal cost for FG if not explicit
         return acc + (item.totalStock * cost);
     }, 0);
+
+    // Dynamic Inventory Holding Cost (Costo por Inmovilización de Inventario)
+    const holdingCost = React.useMemo(() => {
+        const rate = systemSettings?.finance?.annualHoldingCostPercent ?? 25;
+        return FinancialEngine.calculateHoldingCost(totalInventoryValue, rate);
+    }, [totalInventoryValue, systemSettings]);
 
     // Cash at Risk (Silent + Slow Moving Value)
     const silentInventoryValue = inventory
@@ -45,37 +51,23 @@ export const FinancialImpact: React.FC = () => {
     
     const totalCashAtRisk = silentInventoryValue + expiringValue;
 
-    // Consolidated Real Margin
-    // Weighted average of production batches (Standard vs Real Cost)
-    const marginMetrics = MOCK_PRODUCTION.reduce((acc, batch) => {
-        if (batch.status === 'Completado' || batch.status === 'Control Calidad') {
-            acc.totalStdCost += (batch.standardUnitCost * batch.actualOutput);
-            acc.totalRealCost += (batch.realUnitCost * batch.actualOutput);
-            // Assuming a theoretical sales price of cost * 1.4 for the calculation
-            acc.totalRevenue += ((batch.standardUnitCost * 1.4) * batch.actualOutput);
-        }
-        return acc;
-    }, { totalStdCost: 0, totalRealCost: 0, totalRevenue: 0 });
+    // Consolidated Real Margin (Delegated to Domain Engine with dynamic target margin)
+    const targetMargin = systemSettings?.sales?.defaultTargetMargin ?? 30;
+    const { projectedMarginPercent, marginErosion } = React.useMemo(() => {
+        return FinancialEngine.calculateRealMargin(productionOrders, targetMargin);
+    }, [productionOrders, targetMargin]);
 
-    const projectedMarginPercent = ((marginMetrics.totalRevenue - marginMetrics.totalRealCost) / marginMetrics.totalRevenue) * 100;
-    const marginErosion = ((marginMetrics.totalRealCost - marginMetrics.totalStdCost) / marginMetrics.totalRevenue) * 100;
-
-    // Inventory as % of Cash (Mocking Company Cash Position)
-    const MOCK_COMPANY_CASH = 2500000; // $2.5M Cash on Hand
+    // Inventory as % of Cash (Simulating Company Cash Position dynamically)
+    const MOCK_COMPANY_CASH = React.useMemo(() => {
+        return FinancialEngine.calculateCompanyCash(inventory);
+    }, [inventory]);
+    
     const inventoryToCashRatio = (totalInventoryValue / MOCK_COMPANY_CASH) * 100;
 
-    // Forecast to Cash Flow Projection
-    const cashFlowData = MOCK_FORECAST_DATA.slice(-6).map(data => {
-        const revenue = data.base * 120; // Avg Selling Price estimate
-        const cogs = revenue * 0.65; // Cost of Goods Sold approx
-        const operationalEx = 15000; // Fixed OpEx
-        return {
-            month: data.month,
-            revenue: revenue,
-            netCashFlow: revenue - cogs - operationalEx,
-            cumulativeCash: revenue - cogs - operationalEx // Simplified for chart
-        };
-    });
+    // Forecast to Cash Flow Projection (Delegated to Domain Engine)
+    const cashFlowData = React.useMemo(() => {
+        return FinancialEngine.projectCashFlow(kardexTransactions, 15000000, targetMargin);
+    }, [kardexTransactions, targetMargin]);
 
     // Capital Composition Data for Pie Chart
     const statusComposition = [
@@ -107,10 +99,15 @@ export const FinancialImpact: React.FC = () => {
                         <div className="text-2xl font-bold text-slate-900">
                             {formatCOP(totalInventoryValue)}
                         </div>
-                        <div className="mt-3 flex items-center text-xs text-slate-500">
-                            <span className="font-medium text-slate-700">{inventory.length} SKUs</span>
-                            <span className="mx-1">•</span>
-                            Valoración promedio costo
+                        <div className="mt-3 flex flex-col gap-1 text-xs text-slate-500">
+                            <div className="flex items-center">
+                                <span className="font-medium text-slate-700">{inventory.length} SKUs</span>
+                                <span className="mx-1">•</span>
+                                Valoración promedio costo
+                            </div>
+                            <div className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 mt-1">
+                                Costo Inmovilización: {formatCOP(holdingCost.annualCost)}/año ({systemSettings?.finance?.annualHoldingCostPercent ?? 25}%)
+                            </div>
                         </div>
                     </div>
                 </div>

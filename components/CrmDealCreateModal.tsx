@@ -13,7 +13,7 @@ interface CrmDealCreateModalProps {
 }
 
 export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, onClose, contactId, companyName }) => {
-  const { addDeal, crmSettings, systemUsers } = useEnterprise();
+  const { addDeal, crmSettings, systemUsers, inventory } = useEnterprise();
   const { activeRole } = useAuthStore();
   
   const [title, setTitle] = useState('');
@@ -23,6 +23,9 @@ export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, 
   const [isNonCommissionable, setIsNonCommissionable] = useState(false);
   const [isSplit, setIsSplit] = useState(false);
   const [splits, setSplits] = useState<{ userId: string, percentage: number }[]>([{ userId: '1', percentage: 100 }]); // Default current user 100%
+  const [items, setItems] = useState<{ productId: string; quantity: number; unitPrice: number; name: string }[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedQuantity, setSelectedQuantity] = useState<string>('');
 
   // Escape key hooks
   useEscapeKey(onClose, isOpen);
@@ -33,16 +36,30 @@ export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, 
   const threshold = crmSettings.whaleAlertThreshold || 50000000;
   const isWhale = typeof value === 'number' && value >= threshold;
 
+  const handleAddItem = () => {
+    if (!selectedProduct || !selectedQuantity) return;
+    const prod = inventory.find(p => p.id === selectedProduct);
+    if (!prod) return;
+    setItems([...items, { productId: prod.id, name: prod.name, quantity: Number(selectedQuantity), unitPrice: prod.price }]);
+    setSelectedProduct('');
+    setSelectedQuantity('');
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || value === '' || !expectedCloseDate) return;
+    if (!title || (!value && items.length === 0) || !expectedCloseDate) return;
 
     const newDeal: CrmDeal = {
       id: `DEAL-${Date.now()}`,
       title,
       contactId,
       company: companyName,
-      value: Number(value),
+      value: items.length > 0 ? items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) : Number(value),
+      items: items.length > 0 ? items.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice })) : undefined,
       stage: 'PROSPECTO',
       expectedCloseDate,
       probability,
@@ -60,7 +77,7 @@ export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, 
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -90,15 +107,73 @@ export const CrmDealCreateModal: React.FC<CrmDealCreateModalProps> = ({ isOpen, 
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+              <label className="text-sm font-bold text-slate-800 block">Cotizador de Productos (Opcional)</label>
+              
+              <div className="flex gap-2">
+                <select 
+                  value={selectedProduct} 
+                  onChange={e => setSelectedProduct(e.target.value)}
+                  className="flex-1 text-sm border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 ring-indigo-500/20"
+                >
+                  <option value="">Seleccionar Producto...</option>
+                  {inventory.filter(p => (p.status as string) !== 'SILENT').map(p => (
+                    <option key={p.id} value={p.id}>{p.name} - ${p.price.toLocaleString('es-CO')}</option>
+                  ))}
+                </select>
+                <input 
+                  type="text" 
+                  placeholder="Cant" 
+                  value={selectedQuantity}
+                  onChange={e => {
+                      let val = e.target.value.replace(',', '.');
+                      if (/^\d*\.?\d*$/.test(val)) {
+                          setSelectedQuantity(val);
+                      }
+                  }}
+                  className="w-20 text-sm border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 ring-indigo-500/20"
+                />
+                <button 
+                  type="button" 
+                  onClick={handleAddItem}
+                  className="px-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-lg transition-colors"
+                >
+                  +
+                </button>
+              </div>
+
+              {items.length > 0 && (
+                <div className="space-y-2 mt-3 pt-3 border-t border-slate-200">
+                  {items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-white p-2 border border-slate-100 rounded shadow-sm text-xs">
+                      <div>
+                        <span className="font-bold text-slate-700">{item.quantity}x</span> {item.name}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-slate-500">${(item.quantity * item.unitPrice).toLocaleString('es-CO')}</span>
+                        <button type="button" onClick={() => handleRemoveItem(idx)} className="text-rose-500 hover:text-rose-700">
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div>
-              <label className="text-xs font-semibold text-slate-500 mb-1 block">Valor Esperado ($)</label>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block flex justify-between">
+                <span>Valor Esperado ($)</span>
+                {items.length > 0 && <span className="text-[9px] text-indigo-500 bg-indigo-50 px-1 rounded border border-indigo-100">Calculado</span>}
+              </label>
               <input 
                 type="number" 
                 required
                 min="0"
-                value={value}
-                onChange={(e) => setValue(Number(e.target.value))}
-                className="w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none" 
+                value={items.length > 0 ? items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) : value}
+                onChange={(e) => { if(items.length === 0) setValue(Number(e.target.value)) }}
+                disabled={items.length > 0}
+                className={`w-full text-sm border border-slate-200 rounded-lg p-2.5 focus:ring-2 ring-indigo-500/20 outline-none ${items.length > 0 ? 'bg-slate-100 font-bold text-slate-600' : ''}`} 
               />
             </div>
             <div>

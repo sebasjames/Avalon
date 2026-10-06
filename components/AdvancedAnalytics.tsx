@@ -1,4 +1,6 @@
+import { formatCOP } from '../utils/format';
 import React, { useState } from 'react';
+import { useEnterprise } from '../context/EnterpriseContext';
 import { 
     ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     LineChart, Line, BarChart, Bar, AreaChart, Area, ComposedChart, Legend, 
@@ -205,6 +207,7 @@ const SectionHeader = ({ icon: Icon, title, subtitle }: any) => (
 );
 
 export const AdvancedAnalytics: React.FC = () => {
+    const { systemSettings } = useEnterprise();
     const [activeSection, setActiveSection] = useState<number>(1);
     
     // Simulation State
@@ -1246,14 +1249,14 @@ export const AdvancedAnalytics: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm transition-all duration-300">
                                         <div className="text-slate-500 text-xs font-bold uppercase">Ingresos Proyectados</div>
-                                        <div className="text-2xl font-bold text-slate-900 mt-2">${(simRevenue/1000).toFixed(0)}k</div>
+                                        <div className="text-2xl font-bold text-slate-900 mt-2">{formatCOP(simRevenue)}</div>
                                         <div className={`text-xs mt-1 ${simRevenue > SIMULATION_BASE.revenue ? 'text-emerald-600' : 'text-rose-600'}`}>
                                             {((simRevenue - SIMULATION_BASE.revenue) / SIMULATION_BASE.revenue * 100).toFixed(1)}% vs Base
                                         </div>
                                     </div>
                                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm transition-all duration-300">
                                         <div className="text-slate-500 text-xs font-bold uppercase">Margen Neto (%)</div>
-                                        <div className={`text-2xl font-bold mt-2 ${simMarginPercent < 30 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                        <div className={`text-2xl font-bold mt-2 ${simMarginPercent < systemSettings.sales.defaultTargetMargin ? 'text-rose-600' : 'text-emerald-600'}`}>
                                             {simMarginPercent.toFixed(1)}%
                                         </div>
                                         <div className="text-xs text-slate-400 mt-1">Target &gt; 35%</div>
@@ -1283,9 +1286,9 @@ export const AdvancedAnalytics: React.FC = () => {
                                         </ResponsiveContainer>
                                     </div>
                                     <InsightCard 
-                                        type={simMarginPercent < 30 ? 'risk' : 'neutral'}
+                                        type={simMarginPercent < systemSettings.sales.defaultTargetMargin ? 'risk' : 'neutral'}
                                         title="Análisis de Escenario"
-                                        insight={simMarginPercent < 30 
+                                        insight={simMarginPercent < systemSettings.sales.defaultTargetMargin 
                                             ? "ALERTA: Este escenario erosiona el margen por debajo del umbral de rentabilidad operativa. Se sugiere no aplicar descuentos agresivos con el costo actual."
                                             : "El escenario es saludable. El aumento de volumen compensa la reducción leve de precio."
                                         }
@@ -1390,13 +1393,13 @@ export const AdvancedAnalytics: React.FC = () => {
                                         
                                         {/* Quadrant Lines */}
                                         <ReferenceLine x={6} stroke="#cbd5e1" strokeDasharray="3 3" label="Meta Rotación" />
-                                        <ReferenceLine y={30} stroke="#cbd5e1" strokeDasharray="3 3" label="Meta Margen" />
+                                        <ReferenceLine y={systemSettings.sales.defaultTargetMargin} stroke="#cbd5e1" strokeDasharray="3 3" label="Meta Margen" />
 
                                         <Scatter name="Categorías" data={GMROI_SCATTER} fill="#8884d8">
                                             {GMROI_SCATTER.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={
-                                                    entry.turns > 6 && entry.margin > 30 ? '#10b981' : // Star
-                                                    entry.turns < 6 && entry.margin < 30 ? '#ef4444' : // Dog
+                                                    entry.turns > 6 && entry.margin > systemSettings.sales.defaultTargetMargin ? '#10b981' : // Star
+                                                    entry.turns < 6 && entry.margin < systemSettings.sales.defaultTargetMargin ? '#ef4444' : // Dog
                                                     entry.turns > 6 ? '#3b82f6' : '#f59e0b' // Cash Cow / Opportunity
                                                 } />
                                             ))}

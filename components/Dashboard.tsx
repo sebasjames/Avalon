@@ -4,10 +4,10 @@ import {
   LineChart, Line, AreaChart, Area 
 } from 'recharts';
 import { TrendingUp, AlertTriangle, Package, DollarSign, Activity, Truck } from 'lucide-react';
-import { SALES_DATA } from '../constants';
 import { InventoryStatus, Category } from '../types';
 import { formatCOP } from '../utils/format';
 import { useEnterprise } from '../context/EnterpriseContext';
+import { AnalyticsEngine } from '../utils/AnalyticsEngine';
 
 const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -30,12 +30,15 @@ const KPICard = ({ title, value, change, icon: Icon, color }: any) => (
 );
 
 export const Dashboard: React.FC = () => {
-  const { inventory } = useEnterprise();
+  const { inventory, kardexTransactions = [], dispatches } = useEnterprise();
 
   // Calculated metrics
   const totalValue = inventory.reduce((acc, item) => acc + (item.category === Category.SERVICE ? 0 : item.totalStock * (item.category.includes('Materia Prima') ? item.unitCost : item.price)), 0);
   const silentStockCount = inventory.filter(i => i.status === InventoryStatus.SILENT).length;
   const activeStockCount = inventory.filter(i => i.status === InventoryStatus.ACTIVE).length;
+
+  const dynamicSalesData = React.useMemo(() => AnalyticsEngine.generateSalesVsForecast(kardexTransactions), [kardexTransactions]);
+  const kpis = React.useMemo(() => AnalyticsEngine.calculateGlobalServiceKPIs(dispatches), [dispatches]);
 
   return (
     <div className="p-6 space-y-6 bg-slate-50 min-h-screen">
@@ -51,7 +54,7 @@ export const Dashboard: React.FC = () => {
         />
         <KPICard 
           title="Nivel de Servicio (OTIF)" 
-          value="94.2%" 
+          value={`${kpis.otif}%`} 
           change={1.5} 
           icon={Truck} 
           color="bg-emerald-500" 
@@ -81,7 +84,7 @@ export const Dashboard: React.FC = () => {
           </h3>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={SALES_DATA}>
+              <AreaChart data={dynamicSalesData}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>

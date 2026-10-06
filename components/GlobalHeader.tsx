@@ -3,19 +3,22 @@ import {
     Search, Bell, X, Users, ShoppingCart, Calculator, BrainCircuit, Zap, Package,
     LayoutGrid, Heart, Database, FileSpreadsheet, TrendingUp, DollarSign, LineChart,
     Factory, ShieldCheck, PieChart, History, Briefcase, Medal, TableProperties, Settings,
-    RefreshCcw, Info
+    RefreshCcw, Info, ChevronDown, ChevronRight, Receipt
 } from 'lucide-react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { useAuthStore } from '../stores/authStore';
+import { useDemoStore } from '../stores/demoStore';
 import { MOCK_OPPORTUNITIES } from '../constants';
 
 export const GlobalHeader: React.FC = () => {
     const {
         contacts, getActiveNotifications, setGlobalSelectedContactId,
-        globalInventorySearch, setGlobalInventorySearch, clearNotifications
+        globalInventorySearch, setGlobalInventorySearch, clearNotifications,
+        systemUsers
     } = useEnterprise();
-    const { activeRole, setActiveRole } = useAuthStore();
+    const { activeRole, setActiveRole, activeUserId, setActiveUserId } = useAuthStore();
+    const { isDemoMode } = useDemoStore();
     const navigate = useNavigate();
     const location = useLocation();
     const pendingCount = MOCK_OPPORTUNITIES.filter(o => o.status === 'PENDING').length;
@@ -24,6 +27,23 @@ export const GlobalHeader: React.FC = () => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
+    const [openRoleGroups, setOpenRoleGroups] = useState<string[]>(['POS', 'Comercial', 'Planta']);
+
+    const groupedUsers = React.useMemo(() => {
+        if (!systemUsers) return {};
+        const groups: Record<string, typeof systemUsers> = {};
+        systemUsers.forEach(u => {
+            const role = u.baseRole;
+            if (!groups[role]) groups[role] = [];
+            groups[role].push(u);
+        });
+        return groups;
+    }, [systemUsers]);
+
+    const toggleRoleGroup = (e: React.MouseEvent, role: string) => {
+        e.stopPropagation();
+        setOpenRoleGroups(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
+    };
 
     const isInventoryView = location.pathname.includes('/inventory-hub');
 
@@ -74,6 +94,7 @@ export const GlobalHeader: React.FC = () => {
         if (path === '/analytics') return { title: 'Analítica Avanzada', icon: PieChart };
         if (path === '/event-log') return { title: 'Registro de Eventos', icon: History };
         if (path === '/staff/sales-profiles') return { title: 'Perfiles Comerciales', icon: Users };
+        if (path === '/staff/registro-actividad') return { title: 'Registro de Actividad Comercial', icon: Receipt };
         if (path === '/staff/gestion-comercial') return { title: 'Gestión Comercial', icon: Briefcase };
         if (path === '/staff/comisiones') return { title: 'Comisiones y Logros', icon: Medal };
         if (path === '/staff/matrix') return { title: 'Matriz de Comisiones', icon: TableProperties };
@@ -87,8 +108,16 @@ export const GlobalHeader: React.FC = () => {
     const { title, icon: Icon } = getPageInfo();
 
     return (
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-40 hidden md:flex items-center justify-between px-6 py-3">
-            <style>{`
+        <div className="shrink-0 z-30 w-full relative">
+            {isDemoMode && (
+                <div className="bg-orange-500 text-white text-center py-1 font-bold text-sm tracking-widest shadow-sm flex items-center justify-center space-x-2 shrink-0">
+                    <span className="animate-pulse">🚧</span>
+                    <span>ESTÁS EN MODO DEMO / SANDBOX - TUS CAMBIOS NO AFECTARÁN LA BASE DE DATOS REAL</span>
+                    <span className="animate-pulse">🚧</span>
+                </div>
+            )}
+            <header className={`border-b border-slate-200 hidden md:flex items-center justify-between px-6 py-3 transition-colors shrink-0 ${isDemoMode ? 'bg-orange-50' : 'bg-white'}`}>
+                <style>{`
                 @keyframes bell-ring {
                     0%, 100% { transform: rotate(0deg); }
                     10%, 30%, 50%, 70%, 90% { transform: rotate(15deg); }
@@ -321,33 +350,73 @@ export const GlobalHeader: React.FC = () => {
                         className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-lg transition-colors text-left"
                     >
                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
-                            {activeRole === 'admin' ? 'A' : activeRole === 'manager' ? 'M' : activeRole === 'Comercial' ? 'C' : activeRole === 'POS' ? 'P' : 'C'}
+                            {systemUsers?.find(u => u.id === activeUserId)?.name?.charAt(0) || 'A'}
                         </div>
                         <div className="hidden lg:block">
-                            <div className="text-sm font-bold text-slate-900 leading-none capitalize">{activeRole} User</div>
+                            <div className="text-sm font-bold text-slate-900 leading-none truncate max-w-[120px]">
+                                {systemUsers?.find(u => u.id === activeUserId)?.name || 'Admin Global'}
+                            </div>
                             <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">{activeRole}</div>
                         </div>
                     </button>
 
                     {isRoleMenuOpen && (
-                        <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden py-1 z-50">
-                            {['admin', 'manager', 'Comercial', 'Contabilidad', 'POS', 'Despachos', 'Mezclas'].map((role) => (
-                                <button
-                                    key={role}
-                                    onClick={() => {
-                                        setActiveRole(role as any);
-                                        setIsRoleMenuOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${activeRole === role ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'
-                                        }`}
-                                >
-                                    <span className="capitalize">{role}</span>
+                        <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden py-1 z-50 max-h-[70vh] flex flex-col">
+                            <div className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-100 flex justify-between items-center shrink-0">
+                                Cambiar Usuario (Demo)
+                                <button onClick={() => setIsRoleMenuOpen(false)} className="hover:text-slate-700">
+                                    <X className="w-4 h-4"/>
                                 </button>
-                            ))}
+                            </div>
+                            <div className="overflow-y-auto flex-1 custom-scrollbar pb-2">
+                                {Object.entries(groupedUsers).map(([role, users]) => {
+                                    const isOpen = openRoleGroups.includes(role);
+                                    let displayRole = role;
+                                    if (role === 'POS') displayRole = 'Punto de Venta (POS)';
+                                    if (role === 'manager') displayRole = 'Gerencia / Administrativo';
+                                    if (role === 'admin') displayRole = 'Administrador Sistema';
+                                    
+                                    return (
+                                        <div key={role} className="border-b border-slate-50 last:border-0">
+                                            <button
+                                                onClick={(e) => toggleRoleGroup(e, role)}
+                                                className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                                            >
+                                                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{displayRole}</span>
+                                                {isOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                                            </button>
+                                            
+                                            {isOpen && (
+                                                <div className="py-1">
+                                                    {users.map((user) => (
+                                                        <button
+                                                            key={user.id}
+                                                            onClick={() => {
+                                                                setActiveUserId(user.id);
+                                                                setActiveRole(user.baseRole as any);
+                                                                setIsRoleMenuOpen(false);
+                                                            }}
+                                                            className={`w-full text-left px-5 py-2 text-sm transition-colors flex flex-col ${
+                                                                activeUserId === user.id 
+                                                                    ? 'bg-indigo-50/50 text-indigo-700 border-l-2 border-indigo-500' 
+                                                                    : 'text-slate-600 hover:bg-slate-50 border-l-2 border-transparent'
+                                                            }`}
+                                                        >
+                                                            <div className="font-semibold truncate">{user.name}</div>
+                                                            <div className="text-[10px] text-slate-400 truncate">{user.email}</div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
         </header>
+        </div>
     );
 };

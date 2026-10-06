@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { MezclaOrder, MezclaStatus } from '../types';
+import { MezclaOrder, MezclaStatus, BatchStatus, ProductionBatch } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
-import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List, Printer, Tag, Lock, AlertTriangle } from 'lucide-react';
+import { Clock, Beaker, CheckCircle, PackageCheck, AlertCircle, Play, History, KanbanSquare, List, Printer, Tag, Lock, AlertTriangle, FileText, MessageSquare, User, X, Database, Save, Check } from 'lucide-react';
+import { MezclasCatalogo } from './MezclasCatalogo';
 import { LabelPreviewModal, MezclaLabelData } from './LabelPreviewModal';
 import { PigmentContainerStickerModal } from './PigmentContainerStickerModal';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -61,12 +62,13 @@ const MOCK_ORDERS: MezclaOrder[] = [
 ];
 
 export const MezclasTablero: React.FC = () => {
-    const { addKardexTransaction, updateInventoryStock } = useEnterprise();
-    const [orders, setOrders] = useState<MezclaOrder[]>(MOCK_ORDERS);
-    const [view, setView] = useState<'KANBAN' | 'LISTA' | 'HISTORIAL'>('KANBAN');
+    const { inventory, addKardexTransaction, updateInventoryStock, consumeLabStock, mezclaOrders, updateMezclaOrder, productionOrders, addProductionOrder, mezclaCatalogo, saveMezclaToCatalogo } = useEnterprise();
+    const orders = mezclaOrders;
+    const [view, setView] = useState<'KANBAN' | 'LISTA' | 'HISTORIAL' | 'CATALOGO'>('KANBAN');
     const [lastDeductionMessage, setLastDeductionMessage] = useState<string | null>(null);
     const [selectedLabelData, setSelectedLabelData] = useState<MezclaLabelData | null>(null);
     const [selectedContainerStickerOrder, setSelectedContainerStickerOrder] = useState<MezclaOrder | null>(null);
+    const [notesDropdownOpen, setNotesDropdownOpen] = useState<string | null>(null);
 
     // Sticker verification & Auth Modal State
     const [printedStickersMap, setPrintedStickersMap] = useState<Record<string, boolean>>({});
@@ -74,6 +76,8 @@ export const MezclasTablero: React.FC = () => {
     const [authModalOrder, setAuthModalOrder] = useState<MezclaOrder | null>(null);
     const [pinInput, setPinInput] = useState('');
     const [authError, setAuthError] = useState('');
+    const [preStartModalOrder, setPreStartModalOrder] = useState<MezclaOrder | null>(null);
+    const [preStartChecks, setPreStartChecks] = useState<Record<string, boolean>>({});
 
     const pending = orders.filter(o => o.status === MezclaStatus.PENDING);
     const inProgress = orders.filter(o => o.status === MezclaStatus.IN_PROGRESS);
@@ -104,11 +108,27 @@ export const MezclasTablero: React.FC = () => {
                 itemsDeductedCount++;
             }
 
-            // 2. Deduct Pigments/Formula Components
+            // Pigments logic moved to READY
+
+            setLastDeductionMessage(`✅ Lote ${orderToUpdate.id} iniciado en planta: Se descontaron ${itemsDeductedCount} materias primas (Base + Pigmentos) en Kardex.`);
+            setTimeout(() => setLastDeductionMessage(null), 6000);
+        }
+
+        updateMezclaOrder(id, {
+            status: newStatus,
+            completedAt: newStatus === MezclaStatus.READY ? new Date().toISOString() : orderToUpdate?.completedAt
+        });
+
+        // 3. Generar Lote en el Historial de Producción cuando finaliza
+        if (orderToUpdate && newStatus === MezclaStatus.READY && orderToUpdate.status !== MezclaStatus.READY) {
+            const today = new Date().toISOString().split('T')[0];
+            let itemsDeductedCount = 0;
+
             if (orderToUpdate.formula) {
                 Object.entries(orderToUpdate.formula).forEach(([code, qtyStr], idx) => {
                     if (code !== 'Error') {
                         const qtyGrams = parseFloat(qtyStr) || 1;
+                        consumeLabStock(`PIGMENT-${code}`, qtyGrams);
                         addKardexTransaction({
                             id: `TX-MZ-${Date.now()}-PIG-${idx}`,
                             date: today,
@@ -118,28 +138,37 @@ export const MezclasTablero: React.FC = () => {
                             quantity: qtyGrams,
                             balanceAfter: 0,
                             documentRef: orderToUpdate.id,
-                            user: 'Operador de Planta (Mezclas)'
+                            user: 'Bodega Mezclas (KDS)'
                         });
-                        updateInventoryStock(`PIGMENT-${code}`, -qtyGrams);
                         itemsDeductedCount++;
                     }
                 });
+                if (itemsDeductedCount > 0) {
+                    setLastDeductionMessage(`✅ Mezcla Finalizada. Se descontaron ${itemsDeductedCount} tintas exactas de la Bodega Mezclas.`);
+                    setTimeout(() => setLastDeductionMessage(null), 6000);
+                }
             }
-
-            setLastDeductionMessage(`✅ Lote ${orderToUpdate.id} iniciado en planta: Se descontaron ${itemsDeductedCount} materias primas (Base + Pigmentos) en Kardex.`);
-            setTimeout(() => setLastDeductionMessage(null), 6000);
+            const newBatch: ProductionBatch = {
+                id: `ORD-MZ-${orderToUpdate.id}`,
+                batchNumber: `LOTE-${new Date().getFullYear()}-${orderToUpdate.id}`,
+                productName: `${orderToUpdate.baseName} - ${orderToUpdate.colorId}`,
+                sku: `MIX-${orderToUpdate.baseName.replace(/\s+/g, '-').toUpperCase()}`,
+                status: BatchStatus.COMPLETED,
+                startDate: orderToUpdate.requestedAt,
+                endDate: new Date().toISOString(),
+                plannedOutput: 1, // KDS generally mixes 1 Gal/Can at a time per order currently
+                actualOutput: 1,
+                waste: 0,
+                rework: false,
+                standardUnitCost: 10000,
+                realUnitCost: 10000,
+                ingredients: [
+                    { name: orderToUpdate.baseName, plannedQty: 1, actualQty: 1, unit: 'GL', costImpact: 5000 },
+                    // In a more advanced implementation, we'd map pigments here too
+                ]
+            };
+            addProductionOrder(newBatch);
         }
-
-        setOrders(prev => prev.map(o => {
-            if (o.id === id) {
-                return {
-                    ...o, 
-                    status: newStatus,
-                    completedAt: newStatus === MezclaStatus.READY ? new Date().toISOString() : o.completedAt
-                };
-            }
-            return o;
-        }));
     };
 
     const handleAttemptMarkReady = (order: MezclaOrder) => {
@@ -169,14 +198,85 @@ export const MezclasTablero: React.FC = () => {
 
         return (
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:shadow-lg transition-all flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start relative">
                     <div>
                         <h3 className="font-bold text-slate-800 text-lg">{order.id}</h3>
                         <p className="text-sm text-slate-500">{order.clientName}</p>
                     </div>
-                    <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold rounded-lg text-sm">
-                        Venta: {order.saleId}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setNotesDropdownOpen(notesDropdownOpen === order.id ? null : order.id); }}
+                            className="relative p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                            title="Notas de Laboratorio"
+                        >
+                            <FileText className="w-4 h-4" />
+                            {(order.timelineNotes?.length || 0) > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                                    {order.timelineNotes!.length}
+                                </span>
+                            )}
+                        </button>
+                        
+                        {notesDropdownOpen === order.id && (
+                            <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-slate-200 shadow-xl rounded-xl z-50 overflow-hidden flex flex-col max-h-96">
+                                <div className="bg-slate-50 border-b border-slate-100 px-4 py-2 flex justify-between items-center">
+                                    <h4 className="font-bold text-sm text-slate-700 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-indigo-500" /> Notas de Mezcla</h4>
+                                    <button onClick={(e) => { e.stopPropagation(); setNotesDropdownOpen(null); }} className="text-slate-400 hover:text-slate-600"><X className="w-4 h-4"/></button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50/50 custom-scrollbar">
+                                    {(!order.timelineNotes || order.timelineNotes.length === 0) ? (
+                                        <p className="text-xs text-center text-slate-400 italic py-4">No hay notas registradas.</p>
+                                    ) : (
+                                        order.timelineNotes.map(n => (
+                                            <div key={n.id} className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm relative">
+                                                <div className="flex justify-between items-start mb-1.5">
+                                                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded uppercase tracking-wider">{n.process}</span>
+                                                    <span className="text-[10px] text-slate-400 font-mono">{n.date}</span>
+                                                </div>
+                                                <p className="text-sm text-slate-700 mb-2 leading-relaxed">{n.text}</p>
+                                                <div className="flex items-center gap-1.5 pt-2 border-t border-slate-50">
+                                                    <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center">
+                                                        <User className="w-3 h-3 text-slate-500"/>
+                                                    </div>
+                                                    <span className="text-[10px] font-medium text-slate-500">{n.author}</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                <div className="p-3 border-t border-slate-100 bg-white">
+                                    <textarea
+                                        autoFocus
+                                        id={`note-input-${order.id}`}
+                                        placeholder="Escribe una nota aquí..."
+                                        className="w-full text-sm border-2 border-slate-200 rounded-lg focus:ring-0 focus:border-indigo-400 p-2.5 min-h-[60px] resize-none transition-colors bg-slate-50 focus:bg-white"
+                                        onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                const text = (e.target as HTMLTextAreaElement).value.trim();
+                                                if (text) {
+                                                    const newNote = {
+                                                        id: Math.random().toString(36).substr(2, 9),
+                                                        author: 'Laboratorio KDS',
+                                                        process: 'Mezclas',
+                                                        text,
+                                                        date: new Date().toLocaleDateString('es-CO') + ' ' + new Date().toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'})
+                                                    };
+                                                    updateMezclaOrder(order.id, { timelineNotes: [...(order.timelineNotes || []), newNote] });
+                                                    (e.target as HTMLTextAreaElement).value = '';
+                                                }
+                                            }
+                                        }}
+                                    />
+                                    <p className="text-[9px] text-slate-400 text-right mt-1.5 flex items-center justify-end gap-1"><CheckCircle className="w-3 h-3"/> Presiona ENTER para guardar</p>
+                                </div>
+                            </div>
+                        )}
+                        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold rounded-lg text-sm shrink-0">
+                            Venta: {order.saleId}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -203,12 +303,43 @@ export const MezclasTablero: React.FC = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 gap-2">
-                                {formulaEntries.map(([tinta, cantidad]) => (
-                                    <div key={tinta} className="flex justify-between items-center text-sm border-b border-slate-50 pb-1">
-                                        <span className="text-slate-600 font-medium">{tinta}</span>
-                                        <span className="font-bold font-mono text-indigo-600 bg-indigo-50 px-1.5 rounded">{cantidad}</span>
-                                    </div>
-                                ))}
+                                {formulaEntries.map(([tinta, cantidad]) => {
+                                    let numPart = String(cantidad);
+                                    let unitPart = '';
+                                    const match = numPart.trim().match(/^([\d\s\/\.]+)\s+([A-Za-z]+.*)$/);
+                                    if (match) {
+                                        numPart = match[1].trim();
+                                        unitPart = match[2].trim();
+                                    }
+                                    return (
+                                        <div key={tinta} className="flex justify-between items-center text-sm border-b border-slate-50 pb-1">
+                                            <span className="text-slate-600 font-medium truncate pr-2" title={tinta}>{tinta.replace('PIGMENT-', '')}</span>
+                                            {order.status === MezclaStatus.IN_PROGRESS ? (
+                                                <div className="flex items-center gap-1 bg-white border border-indigo-200 rounded px-1.5 py-0.5 focus-within:ring-2 ring-indigo-500/20 shadow-inner">
+                                                    <input
+                                                        type="text"
+                                                        defaultValue={numPart}
+                                                        onBlur={(e) => {
+                                                            const val = e.target.value.trim();
+                                                            if (val && val !== numPart) {
+                                                                const newQty = unitPart ? `${val} ${unitPart}` : val;
+                                                                const newFormula = { ...order.formula, [tinta]: newQty };
+                                                                updateMezclaOrder(order.id, { formula: newFormula });
+                                                            }
+                                                        }}
+                                                        className="w-10 sm:w-12 text-right font-mono font-bold text-indigo-700 bg-transparent outline-none text-xs"
+                                                    />
+                                                    {unitPart && <span className="text-indigo-400 text-[10px] uppercase font-sans tracking-wider">{unitPart}</span>}
+                                                </div>
+                                            ) : (
+                                                <span className="font-bold font-mono text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded flex items-center gap-1.5 shrink-0">
+                                                <span>{numPart}</span>
+                                                {unitPart && <span className="text-indigo-400 text-[10px] uppercase font-sans tracking-wider">{unitPart}</span>}
+                                            </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -235,7 +366,7 @@ export const MezclasTablero: React.FC = () => {
                     )}
                     {order.status === MezclaStatus.PENDING && (
                         <button 
-                            onClick={() => updateStatus(order.id, MezclaStatus.IN_PROGRESS)}
+                            onClick={() => { setPreStartModalOrder(order); setPreStartChecks({}); }}
                             className="flex-1 flex justify-center items-center gap-2 bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all text-xs cursor-pointer"
                         >
                             <Play className="w-4 h-4 fill-current" />
@@ -389,7 +520,7 @@ export const MezclasTablero: React.FC = () => {
                                     <td className="p-4 text-right">
                                         {order.status === MezclaStatus.PENDING && (
                                             <button 
-                                                onClick={() => updateStatus(order.id, MezclaStatus.IN_PROGRESS)}
+                                                onClick={() => { setPreStartModalOrder(order); setPreStartChecks({}); }}
                                                 className="inline-flex items-center gap-2 bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-indigo-700 shadow-sm transition-all text-sm"
                                             >
                                                 <Play className="w-3.5 h-3.5 fill-current" /> Iniciar
@@ -528,6 +659,87 @@ export const MezclasTablero: React.FC = () => {
             )}
 
             {/* PIN AUTHORIZATION MODAL FOR MARCAR COMO LISTA */}
+            
+            {preStartModalOrder && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[9999] animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-2xl animate-in zoom-in-95">
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                                <AlertTriangle className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-800">Asistente de Bodega: Lote {preStartModalOrder.id}</h2>
+                                <p className="text-sm text-slate-500">Revisa las siguientes recomendaciones de inventario antes de iniciar.</p>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-4 mb-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                            {Object.entries(preStartModalOrder.formula || {}).filter(([k]) => k !== 'Error').map(([code, qtyStr], idx) => {
+                                const requested = parseFloat(qtyStr as string) || 1;
+                                const skuId = `PIGMENT-${code}`;
+                                // We need to check inventory
+                                // Wait, the component state 'inventory' is not directly exported from useEnterprise in this file, we need to get it.
+                                // Actually, useEnterprise returns inventory! Let's just use it.
+                                const p = inventory.find(i => i.sku === skuId || i.id === skuId || i.originalSku === skuId);
+                                const labStock = p?.labStock || 0;
+                                
+                                let message = '';
+                                let type = '';
+                                
+                                if (labStock >= requested) {
+                                    message = `✅ Tienes ${labStock.toLocaleString('es-CO')}g destapados. Usa esos y no abras una unidad nueva.`;
+                                    type = 'green';
+                                } else if (labStock > 0 && labStock < requested) {
+                                    message = `⚠️ Tienes ${labStock.toLocaleString('es-CO')}g destapados. Úsalos y destapa una unidad nueva para los ${(requested - labStock).toLocaleString('es-CO')}g faltantes.`;
+                                    type = 'amber';
+                                } else {
+                                    message = `⚠️ No hay destapados. Deberás destapar una unidad nueva desde el almacén principal.`;
+                                    type = 'slate';
+                                }
+
+                                const isChecked = !!preStartChecks[code];
+
+                                return (
+                                    <div key={code} className={`p-4 rounded-xl border flex items-start gap-4 transition-colors cursor-pointer ${isChecked ? 'bg-slate-50 border-indigo-200' : 'bg-white border-slate-200'}`} onClick={() => setPreStartChecks(prev => ({...prev, [code]: !prev[code]}))}>
+                                        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 mt-1 transition-colors ${isChecked ? 'bg-indigo-600 text-white' : 'bg-slate-100 border border-slate-300'}`}>
+                                            {isChecked && <Check className="w-4 h-4" />}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-baseline gap-2 mb-1">
+                                                <span className="font-bold text-slate-800">{code}</span>
+                                                <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{requested}g</span>
+                                            </div>
+                                            <p className={`text-sm ${type === 'green' ? 'text-emerald-700' : type === 'amber' ? 'text-amber-700' : 'text-slate-600'}`}>
+                                                {message}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                            <button 
+                                onClick={() => setPreStartModalOrder(null)}
+                                className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    updateStatus(preStartModalOrder.id, MezclaStatus.IN_PROGRESS);
+                                    setPreStartModalOrder(null);
+                                }}
+                                disabled={Object.keys(preStartModalOrder.formula || {}).filter(k => k !== 'Error').length > 0 && Object.keys(preStartChecks).filter(k => preStartChecks[k]).length !== Object.keys(preStartModalOrder.formula || {}).filter(k => k !== 'Error').length}
+                                className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-lg shadow-indigo-200"
+                            >
+                                Entendido, Iniciar Mezcla
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {authModalOrder && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 max-w-md w-full text-white space-y-5 animate-in fade-in zoom-in-95">

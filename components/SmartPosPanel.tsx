@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { useAuthStore } from '../stores/authStore';
 import { usePosShortcuts } from '../hooks/usePosShortcuts';
@@ -8,15 +9,48 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
     Search, ShoppingCart, Users, Tag, AlertTriangle, ShieldCheck, 
     Calculator, Trash2, Plus, Minus, Check, CreditCard, Receipt, HandCoins, Box, ArrowRight, X, MapPin, ChevronDown, Wallet, UploadCloud, Info,
-    FlaskConical, Beaker, Scale, TestTube, Activity
+    FlaskConical, Beaker, Scale, TestTube, Activity, Factory, CheckCircle2, RefreshCcw
 } from 'lucide-react';
 import { formatCOP } from '../utils/format';
 import { PosService } from '../services/PosService';
-import { Product, CrmContact, CustomerTier } from '../types';
+import { Product, CrmContact, CustomerTier, BatchStatus, ProductionBatch, Category } from '../types';
 import tintometriaData from '../data/tintometria_raw.json';
 import { RETEFUENTE_RATE, RETEICA_BOGOTA, RETEICA_BARRANQUILLA } from '../constants';
 import { QuoteEmailModal } from './QuoteEmailModal';
 import { PosReceiptModal, PosReceiptData } from './PosReceiptModal';
+import { TintometricEngine } from '../utils/TintometricEngine';
+
+
+const QtyInput: React.FC<{ item: any, setExactQty: (id: string, qty: number) => void }> = ({ item, setExactQty }) => {
+    const [raw, setRaw] = React.useState(item.qty === 0 ? '' : item.qty.toString());
+    
+    React.useEffect(() => {
+        const parsed = parseFloat(raw);
+        if (parsed !== item.qty && !(raw === '' && item.qty === 0) && !(raw.endsWith('.') && parsed === item.qty)) {
+            setRaw(item.qty === 0 ? '' : item.qty.toString());
+        }
+    }, [item.qty, raw]);
+
+    return (
+        <input 
+            type="text" 
+            value={raw}
+            onChange={(e) => {
+                let val = e.target.value.replace(',', '.');
+                if (/^\d*\.?\d*$/.test(val)) {
+                    setRaw(val);
+                    const num = parseFloat(val);
+                    if (!isNaN(num)) {
+                        setExactQty(item.id, num);
+                    } else if (val === '') {
+                        setExactQty(item.id, 0);
+                    }
+                }
+            }}
+            className="w-12 text-center text-sm font-black text-slate-800 bg-transparent outline-none"
+        />
+    );
+};
 
 export const SmartPosPanel: React.FC = () => {
     const { activeUserId } = useAuthStore();
@@ -27,43 +61,53 @@ export const SmartPosPanel: React.FC = () => {
         paymentMethods, pointsOfSale,
         taxRules, pricingRules, paymentRules, rawMaterialCategories,
         contacts, tintometricRules, reverseDisplayRules, fractionalRules, addTransaction,
-        taxRates, updateContact, addContact
+        taxRates, updateContact, addContact,
+        productionOrders, addProductionOrder, addDispatch, addMezclaOrder, addDeal, mezclaOrders
     } = useEnterprise();
 
     const isReversedDisplay = (product: Product) => {
-        const s = (product.sku || '').toUpperCase();
-        const n = (product.name || '').toUpperCase();
-        const b = (product.brand || '').toUpperCase();
-        const f = (product.family || '').toUpperCase();
-        return (reverseDisplayRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+        return TintometricEngine.shouldDisplayReversed(product, reverseDisplayRules);
     };
 
     const isTintometric = (product: Product) => {
         const type = product.tintometricBaseType;
-        return !!type && type.trim().toUpperCase() !== 'N/A' && type.trim() !== '';
+        const hasBaseType = !!type && type.trim().toUpperCase() !== 'N/A' && type.trim() !== '';
+        return hasBaseType || TintometricEngine.requiresTintometricFormula(product, tintometricRules);
     };
 
     const isFractionalEligible = (product: Product) => {
-        const s = (product.sku || '').toUpperCase();
-        const n = (product.name || '').toUpperCase();
-        const b = (product.brand || '').toUpperCase();
-        const f = (product.family || '').toUpperCase();
-        return (fractionalRules || []).some(trigger => s.includes(trigger) || n.includes(trigger) || b.includes(trigger) || f.includes(trigger));
+        return TintometricEngine.isFractionalAllowed(product, fractionalRules);
     };
 
     const [search, setSearch] = useState('');
-    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string; }[]>([]);
+    const [cart, setCart] = useState<{ id: string; product: Product; qty: number; colorNote?: string; mixGroupId?: string; }[]>(() => {
+        try {
+            const saved = localStorage.getItem('POS_CART');
+            return saved ? JSON.parse(saved) : [];
+        } catch { return []; }
+    });
+    useEffect(() => { localStorage.setItem('POS_CART', JSON.stringify(cart)); }, [cart]);
+    const [mixGroups, setMixGroups] = useState<{ id: string; name: string; notes: string; saveAsRecipe?: boolean; isConfirmed?: boolean; }[]>([]);
     const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(null);
-    const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+    const [selectedCustomerId, setSelectedCustomerId] = useState<string>(() => localStorage.getItem('POS_CUSTOMER') || '');
+    useEffect(() => { localStorage.setItem('POS_CUSTOMER', selectedCustomerId); }, [selectedCustomerId]);
     const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
     const [showChemicalPanel, setShowChemicalPanel] = useState(false);
     const [customerSearch, setCustomerSearch] = useState('');
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+    const [showMixConfirmationModal, setShowMixConfirmationModal] = useState(false);
+    const [showNoMixWarningModal, setShowNoMixWarningModal] = useState(false);
+    const [showPendingInvoiceWarning, setShowPendingInvoiceWarning] = useState(false);
+    const [showReservationModal, setShowReservationModal] = useState(false);
+    const [showEmptyCartModal, setShowEmptyCartModal] = useState(false);
+    const [mixNotes, setMixNotes] = useState('');
+    const [mixConfirmed, setMixConfirmed] = useState(false);
     const [completedReceiptData, setCompletedReceiptData] = useState<PosReceiptData | null>(null);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [recentColors, setRecentColors] = useState<string[]>([]);
     const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [showMixModal, setShowMixModal] = useState(false);
     const [expenseConcept, setExpenseConcept] = useState('');
     const [expenseAmount, setExpenseAmount] = useState('');
     const [expenseProvider, setExpenseProvider] = useState('');
@@ -95,6 +139,7 @@ export const SmartPosPanel: React.FC = () => {
   useEscapeKey(() => setShowChemicalPanel(false), showChemicalPanel);
   useEscapeKey(() => setShowSuccess(false), showSuccess);
   useEscapeKey(() => setShowExpenseModal(false), showExpenseModal);
+  useEscapeKey(() => setShowEmptyCartModal(false), showEmptyCartModal);
 
 
     const handleCreateClient = () => {
@@ -208,10 +253,19 @@ export const SmartPosPanel: React.FC = () => {
     const mainSearchInputRef = useRef<HTMLInputElement>(null);
 
     const filteredCatalog = useMemo(() => {
-        if (!search) return inventory;
+        // En el mostrador del POS se comercializan productos terminados, bases tintométricas, catalizadores, etc.
+        // Los pigmentos crudos e insumos de laboratorio (PIGMENT-*) se consumen internamente en Planta/KDS y NO se venden en el mostrador del POS.
+        const commercialItems = inventory.filter(item => {
+            const skuUpper = (item.sku || '').toUpperCase();
+            const isLabPigment = skuUpper.startsWith('PIGMENT-') || 
+                                 (item.category === Category.RAW_MATERIAL && (item.family || '').toLowerCase().includes('pigment'));
+            return !isLabPigment;
+        });
+
+        if (!search) return commercialItems;
         const s = search.toLowerCase();
         
-        return inventory.filter(item => {
+        return commercialItems.filter(item => {
             if ((s === 'albaran' || s === 'albarran') && (item.sku || '').startsWith('ALB-')) return true;
             return (item.name || '').toLowerCase().includes(s) || 
                    (item.sku || '').toLowerCase().includes(s) || 
@@ -506,7 +560,7 @@ export const SmartPosPanel: React.FC = () => {
         return [globalGroup];
     }, [cart, rawMaterialCategories, subtotal, discountAmount]);
 
-    const handleCheckout = async () => {
+    const executeCheckout = async () => {
         if (cart.length === 0) return;
         
         setIsProcessingPayment(true);
@@ -632,8 +686,8 @@ export const SmartPosPanel: React.FC = () => {
                 const recipe = recipes.find(r => r.finalProductId === item.product.id);
                 const multiplier = 1;
 
-                // Descontar inventario real (solo si no es un servicio)
-                if (item.product.category !== 'Servicio') {
+                // Descontar inventario real (solo si no es un servicio y no es una mezcla del KDS)
+                if (item.product.category !== 'Servicio' && !item.isKdsMix) {
                     if (recipe) {
                         recipe.ingredients.forEach(ing => {
                             const ingProduct = inventory.find(p => p.id === ing.productId);
@@ -670,11 +724,76 @@ export const SmartPosPanel: React.FC = () => {
                     total: subtotalLine,
                     iva: iva,
                     paymentMethod: selectedPaymentMethod,
-                    posLocation: selectedPointOfSale,
+                    posLocation: systemUsers?.find(u => u.id === activeUserId)?.name || selectedPointOfSale,
                     dueDate: isCreditSale ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
                     paymentStatus: isCreditSale ? 'PENDIENTE' : 'PAGADA',
                     balance: isCreditSale ? subtotalLine : 0
                 });
+
+                // Generación de lotes individuales removida a petición del usuario.
+                // Todo el flujo de mezclas ahora es 100% agrupado.
+            });
+
+            // Generar órdenes de producción para las Mezclas Agrupadas (Fórmulas Compuestas)
+            mixGroups.forEach(group => {
+                const groupItems = cart.filter(c => c.mixGroupId === group.id);
+                if (groupItems.length === 0) return;
+
+                const newBatch: ProductionBatch = {
+                    id: `ORD-POS-${invoiceId.slice(-4)}-${Math.floor(Math.random()*1000)}`,
+                    batchNumber: `LOTE-POS-${new Date().getFullYear()}-${Math.floor(Math.random()*100)}`,
+                    productName: `${group.name || 'Mezcla sin nombre'} [Mezcla Agrupada]`,
+                    sku: 'MIX-GRP-POS',
+                    status: BatchStatus.PLANNING,
+                    startDate: dateStr,
+                    plannedOutput: 1, // Se solicita 1 lote agrupado
+                    actualOutput: 0,
+                    waste: 0,
+                    rework: false,
+                    standardUnitCost: groupItems.reduce((acc, item) => acc + (item.product.unitCost * item.qty), 0),
+                    realUnitCost: 0,
+                    ingredients: groupItems.map(item => {
+                        const multiplier = isFractionalEligible(item.product) ? 1000 : 1;
+                        return {
+                            name: item.product.name,
+                            plannedQty: item.qty * multiplier,
+                            actualQty: 0,
+                            unit: item.product.unit || 'Und',
+                            costImpact: 0
+                        };
+                    }),
+                    notes: (group.notes ? group.notes + '\n\n' : '') + (mixNotes ? `Notas Generales POS: ${mixNotes}` : '') || undefined
+                };
+                addProductionOrder(newBatch);
+
+                // --- GENERAR ORDEN DE MEZCLA PARA EL KDS ---
+                const formulaObj: Record<string, string> = {};
+                groupItems.forEach(item => {
+                    formulaObj[item.product.name] = `${item.qty} ${item.product.unit || 'Und'}`;
+                });
+                
+                addMezclaOrder({
+                    id: `MZ-POS-${invoiceId.slice(-4)}-GRP-${Math.floor(Math.random()*1000)}`,
+                    saleId: invoiceId,
+                    clientName: activeCustomer ? activeCustomer.name : 'Consumidor Final',
+                    colorId: group.name || 'Mezcla sin nombre',
+                    baseSku: 'MIX-GRP-POS',
+                    baseName: `${group.name || 'Mezcla sin nombre'} [Agrupada]`,
+                    formula: formulaObj,
+                    status: 'PENDING' as any, // Cast to any to bypass TS if needed, or use MezclaStatus.PENDING
+                    requestedAt: new Date().toISOString()
+                });
+
+                if (group.saveAsRecipe) {
+                    addRecipe({
+                        id: `RECIPE-POS-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                        finalProductId: group.name || 'Mezcla sin nombre', // Guardamos el nombre en el ID para identificarla fácilmente
+                        ingredients: groupItems.map(item => ({
+                            productId: item.product.id,
+                            quantity: item.qty
+                        }))
+                    });
+                }
             });
 
             if (isCreditSale && activeCustomer) {
@@ -708,7 +827,48 @@ export const SmartPosPanel: React.FC = () => {
                 total
             };
 
-            setCompletedReceiptData(receiptPayload);
+            
+            
+            // --- GENERATE KDS MEZCLAS ---
+            try {
+                receiptCartItems.forEach((item, idx) => {
+                    if (item.colorNote && item.colorNote.trim() !== '') {
+                        addMezclaOrder({
+                            id: `MZ-POS-${invoiceId.slice(-4)}-${idx}`,
+                            saleId: invoiceId,
+                            clientName: activeCustomer ? activeCustomer.name : 'Consumidor Final',
+                            colorId: item.colorNote,
+                            baseSku: item.sku,
+                            baseName: item.name,
+                            formula: { "INFO": "Generada desde POS" },
+                            status: 'PENDING' as any,
+                            requestedAt: new Date().toISOString()
+                        });
+                    }
+                });
+            } catch (e) { console.error('KDS Mezcla Error', e); }
+            
+            // --- GENERATE DISPATCH MODULE ORDER ---
+            try {
+                addDispatch({
+                    id: `DSP-POS-${invoiceId.slice(-4)}-${Math.floor(Math.random() * 1000)}`,
+                    dealId: invoiceId,
+                    contactId: activeCustomer ? activeCustomer.id : 'C-000',
+                    status: 'PENDIENTE',
+                    promisedDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                    pendingInvoice: selectedPaymentMethod === 'Pendiente Facturar',
+                    items: receiptCartItems.map(item => ({
+                        sku: item.sku || 'N/A',
+                        productName: item.name,
+                        orderedQty: item.qty,
+                        deliveredQty: 0
+                    }))
+                });
+            } catch(e) { console.error('Dispatch creation error', e); }
+
+            if (selectedPaymentMethod !== 'Pendiente Facturar') {
+                setCompletedReceiptData(receiptPayload);
+            }
             setShowSuccess(true);
             setTimeout(() => {
                 setShowSuccess(false);
@@ -721,13 +881,36 @@ export const SmartPosPanel: React.FC = () => {
             alert("No se pudo procesar el pago. Intente nuevamente.");
         } finally {
             setIsProcessingPayment(false);
+            setMixConfirmed(false);
+            setMixNotes('');
+        }
+    };
+
+    const handleCheckout = (skipPendingInvoiceCheck = false) => {
+        if (cart.length === 0) return;
+        
+        if (!skipPendingInvoiceCheck && selectedPaymentMethod === 'Pendiente Facturar') {
+            setShowPendingInvoiceWarning(true);
+            return;
+        }
+
+        if (mixConfirmed) {
+            executeCheckout();
+            return;
+        }
+
+        const hasMix = cart.some(item => item.colorNote);
+        if (hasMix) {
+            setShowMixConfirmationModal(true);
+        } else {
+            setShowNoMixWarningModal(true);
         }
     };
 
     const handleCheckoutRef = useRef(handleCheckout);
     useEffect(() => {
         handleCheckoutRef.current = handleCheckout;
-    }, [handleCheckout]);
+    }, [handleCheckout, mixConfirmed]);
 
     usePosShortcuts({
         onSearchClient: () => {
@@ -857,6 +1040,12 @@ export const SmartPosPanel: React.FC = () => {
                         )}
                     </div>
                     <button
+                        onClick={() => setShowMixModal(true)}
+                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-6 py-2 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition active:scale-95 shrink-0 whitespace-nowrap h-full"
+                    >
+                        <Beaker className="w-4 h-4" /> Cobrar Mezclas Listas
+                    </button>
+                    <button
                         onClick={() => {
                             setExpenseConcept('');
                             setExpenseAmount('');
@@ -895,7 +1084,7 @@ export const SmartPosPanel: React.FC = () => {
                                         <div className={`absolute top-0 left-0 w-full h-1 ${atp > 0 ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
 
                                         <div className="flex justify-between items-start mb-2 gap-2">
-                                            <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider line-clamp-1 ${reversed ? 'bg-indigo-100 text-indigo-700 max-w-[70%]' : 'bg-slate-100 text-slate-600'}`} title={reversed ? product.name : (product.sku || '').split('-')[0]}>
+                                            <div className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider truncate whitespace-nowrap overflow-hidden leading-normal max-w-[65%] ${reversed ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`} title={reversed ? product.name : (product.sku || '').split('-')[0]}>
                                                 {reversed ? product.name : (product.sku || '').split('-')[0]}
                                             </div>
                                             <div className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors shrink-0">
@@ -1190,22 +1379,7 @@ export const SmartPosPanel: React.FC = () => {
                                                 {/* Qty Controls */}
                                                 <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5 focus-within:ring-2 focus-within:border-indigo-500 focus-within:ring-indigo-200">
                                                     <button onClick={() => updateQty(item.id, -1)} className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-md transition-colors"><Minus className="w-3 h-3" /></button>
-                                                    <input 
-                                                        type="number" 
-                                                        min="0"
-                                                        step={isFractionalEligible(item.product) ? "any" : "1"}
-                                                        value={item.qty === 0 ? '' : item.qty}
-                                                        onChange={(e) => {
-                                                            let val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                                            if (!isNaN(val)) {
-                                                                if (!isFractionalEligible(item.product)) {
-                                                                    val = Math.floor(val);
-                                                                }
-                                                                setExactQty(item.id, val);
-                                                            }
-                                                        }}
-                                                        className="w-12 text-center text-sm font-black text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                    />
+                                                    <QtyInput item={item} setExactQty={setExactQty} />
                                                     <button onClick={() => updateQty(item.id, 1)} className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-md transition-colors"><Plus className="w-3 h-3" /></button>
                                                 </div>
                                                 <div className="text-sm font-bold text-indigo-600">
@@ -1306,6 +1480,23 @@ export const SmartPosPanel: React.FC = () => {
                 {/* Totals & Actions */}
                 <div className="bg-slate-900 text-white p-5 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] relative mt-2">
                     
+                    {/* Mix/Mezclas Toggle */}
+                    <div className="absolute -top-4 left-6 bg-slate-800 border border-slate-700 rounded-full p-1 shadow-lg flex items-center">
+                        <button 
+                            onClick={() => {
+                                if (cart.length > 0) {
+                                    setShowMixConfirmationModal(true);
+                                } else {
+                                    alert("El carrito está vacío.");
+                                }
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${cart.some(item => item.colorNote) ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            <Factory className="w-3.5 h-3.5" /> 
+                            Mezclas {cart.some(item => item.colorNote) ? `(${cart.filter(item => item.colorNote).length})` : ''}
+                        </button>
+                    </div>
+
                     {/* Margin Mode Toggle */}
                     <div className="absolute -top-4 right-6 bg-slate-800 border border-slate-700 rounded-full p-1 shadow-lg flex items-center">
                         <button 
@@ -1424,45 +1615,87 @@ export const SmartPosPanel: React.FC = () => {
                     </AnimatePresence>
 
                     {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-3 mt-6">
+                    <div className="grid grid-cols-3 gap-2 mt-6">
                         <button 
                             onClick={() => {
                                 if (cart.length > 0) {
                                     setIsQuoteModalOpen(true);
                                 } else {
-                                    alert("Agregue productos al carrito para cotizar");
+                                    setShowEmptyCartModal(true);
                                 }
                             }}
-                            className="py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                            className="py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
                         >
-                            <Receipt className="w-5 h-5" /> Cotizar
+                            <Receipt className="w-4 h-4" /> Cotizar
                         </button>
+
+                        <button 
+                            onClick={() => {
+                                if (cart.length > 0) {
+                                    const dealValue = cart.reduce((acc, item) => acc + (item.product.price * item.qty), 0);
+                                    addDeal({
+                                        id: `CRM-RES-${Date.now().toString().slice(-6)}`,
+                                        title: `Reserva POS - ${selectedCustomerId ? contacts.find(c=>c.id===selectedCustomerId)?.name || 'Cliente' : 'Mostrador'}`,
+                                        value: dealValue,
+                                        contactId: selectedCustomerId || 'POS',
+                                        ownerId: activeUserId || 'system',
+                                        stageId: 'NUEVO_LEAD',
+                                        source: 'INBOUND',
+                                        probability: 90,
+                                        expectedCloseDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                                        createdAt: new Date().toISOString(),
+                                        updatedAt: new Date().toISOString(),
+                                        customFields: {
+                                            cartItems: JSON.stringify(cart.map(item => ({ sku: item.product.sku, qty: item.qty })))
+                                        }
+                                    });
+
+                                    cart.forEach(item => {
+                                        const prod = inventory.find(p => p.id === item.product.id);
+                                        if (prod) {
+                                            updateInventoryProduct(prod.id, { reservedStock: prod.reservedStock + item.qty });
+                                        }
+                                    });
+
+                                    setShowReservationModal(true);
+                                } else {
+                                    setShowEmptyCartModal(true);
+                                }
+                            }}
+                            className="py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                        >
+                            <Box className="w-4 h-4" /> Reservar
+                        </button>
+
                         <button 
                             onClick={() => {
                                 if (!isMarginMode) {
                                     setIsMarginMode(true);
                                 } else {
                                     handleCheckout();
-                                    setIsMarginMode(false);
                                 }
                             }}
-                            disabled={cart.length === 0}
-                            className={`py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${
+                            disabled={cart.length === 0 || isProcessingPayment}
+                            className={`py-3.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-lg ${
                                 cart.length > 0 
-                                ? (isMarginMode 
-                                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white hover:scale-[1.02] shadow-emerald-900/50' 
-                                    : 'bg-blue-600 hover:bg-blue-500 text-white hover:scale-[1.02] shadow-blue-900/50') 
+                                ? (isMarginMode && selectedPaymentMethod === 'Pendiente Facturar'
+                                    ? 'bg-purple-600 hover:bg-purple-500 text-white hover:scale-[1.02] shadow-purple-900/50'
+                                    : 'bg-emerald-600 hover:bg-emerald-500 text-white hover:scale-[1.02] shadow-emerald-900/50') 
                                 : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
                             }`}
                         >
                             {cart.length > 0 ? (
                                 isMarginMode ? (
-                                    <>Confirmar <ArrowRight className="w-5 h-5" /></>
+                                    selectedPaymentMethod === 'Pendiente Facturar' ? (
+                                        <>Alistar Pedido <ArrowRight className="w-4 h-4" /></>
+                                    ) : (
+                                        <>Confirmar <ArrowRight className="w-4 h-4" /></>
+                                    )
                                 ) : (
-                                    <>Facturar <ArrowRight className="w-5 h-5" /></>
+                                    <>Facturar <ArrowRight className="w-4 h-4" /></>
                                 )
                             ) : (
-                                'Carrito Vacío'
+                                'Vacío'
                             )}
                         </button>
                     </div>
@@ -1478,7 +1711,7 @@ export const SmartPosPanel: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"
                     >
                         <motion.div 
                             initial={{ scale: 0.8, y: 20 }}
@@ -1506,7 +1739,7 @@ export const SmartPosPanel: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
                     >
                         <motion.div 
                             initial={{ scale: 0.9, y: 20 }}
@@ -1631,12 +1864,354 @@ export const SmartPosPanel: React.FC = () => {
                 )}
             </AnimatePresence>
 
+            {/* Pending Invoice Warning Modal */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {showPendingInvoiceWarning && (
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/50 z-[99999] flex items-center justify-center backdrop-blur-sm p-4"
+                        >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-slate-200 overflow-hidden"
+                        >
+                            <div className="p-6 text-center">
+                                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <AlertTriangle className="w-8 h-8 text-purple-600" />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 mb-2">Factura Abierta</h3>
+                                <p className="text-slate-600 mb-6 text-sm">
+                                    Estás a punto de alistar un pedido y dejar la factura abierta. ¿Deseas continuar?
+                                </p>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => setShowPendingInvoiceWarning(false)}
+                                        className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setShowPendingInvoiceWarning(false);
+                                            handleCheckout(true);
+                                        }}
+                                        className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-colors shadow-md"
+                                    >
+                                        Sí, alistar pedido
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
+
+            {/* Reservation Success Modal */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {showReservationModal && (
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/50 z-[99999] flex items-center justify-center backdrop-blur-sm p-4"
+                        >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-slate-200 overflow-hidden"
+                        >
+                            <div className="p-6 text-center">
+                                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 mb-2">¡Pedido Reservado!</h3>
+                                <p className="text-slate-600 mb-6 text-sm">
+                                    Stock apartado (ATP reducido) y enviado al CRM exitosamente.
+                                </p>
+                                <button 
+                                    onClick={() => {
+                                        setShowReservationModal(false);
+                                        setCart([]);
+                                    }}
+                                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-colors shadow-md"
+                                >
+                                    Aceptar
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
+
+            {/* No Mix Warning Modal */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {showNoMixWarningModal && (
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/50 z-[99999] flex items-center justify-center backdrop-blur-sm p-4"
+                        >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-slate-200 overflow-hidden"
+                        >
+                            <div className="p-6 text-center">
+                                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <AlertTriangle className="w-8 h-8 text-amber-600" />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 mb-2">Sin Orden de Mezcla</h3>
+                                <p className="text-slate-600 mb-6 text-sm">
+                                    Esta factura no incluye ningún producto para mezclar (sin notas de color). ¿Estás segura de que es correcto?
+                                </p>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => setShowNoMixWarningModal(false)}
+                                        className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+                                    >
+                                        Revisar
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setShowNoMixWarningModal(false);
+                                            setMixConfirmed(true);
+                                            executeCheckout();
+                                        }}
+                                        className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-md"
+                                    >
+                                        {selectedPaymentMethod === 'Pendiente Facturar' ? 'Sí, Alistar Pedido' : 'Sí, Facturar'}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
+
+            {/* Mix Confirmation Modal */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {showMixConfirmationModal && (
+                        <motion.div 
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/50 z-[99999] flex items-center justify-center backdrop-blur-sm p-4"
+                        >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]"
+                        >
+                            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-purple-50/50">
+                                <h3 className="font-bold text-slate-800 text-lg flex items-center">
+                                    <Factory className="w-5 h-5 mr-2 text-purple-600" />
+                                    Validación de Mezclas
+                                </h3>
+                                <button onClick={() => setShowMixConfirmationModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="p-6 overflow-y-auto space-y-4">
+                                <div className="space-y-4">
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <h4 className="font-bold text-slate-800">Mezclas Agrupadas (Fórmulas Compuestas)</h4>
+                                            <button 
+                                                onClick={() => setMixGroups([...mixGroups, { id: Date.now().toString(), name: '', notes: '' }])}
+                                                className="px-3 py-1.5 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg text-xs font-bold transition-colors flex items-center"
+                                            >
+                                                <Plus className="w-3.5 h-3.5 mr-1" />
+                                                Nueva Mezcla
+                                            </button>
+                                        </div>
+                                        
+                                        {mixGroups.length === 0 ? (
+                                            <div className="text-sm text-slate-500 text-center py-4 bg-white rounded-lg border border-dashed border-slate-300">
+                                                No hay mezclas agrupadas. Usa esto si vas a fabricar un producto uniendo varios ítems del carrito.
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {mixGroups.map(group => (
+                                                    <div key={group.id} className={`border rounded-xl p-3 shadow-sm transition-colors ${group.isConfirmed ? 'border-emerald-200 bg-emerald-50' : 'border-purple-200 bg-white'}`}>
+                                                        {group.isConfirmed ? (
+                                                            <div className="flex justify-between items-center">
+                                                                <div className="flex-1 pr-4">
+                                                                    <div className="font-bold text-sm text-emerald-900 flex items-center">
+                                                                        <CheckCircle2 className="w-4 h-4 mr-1.5 text-emerald-600"/>
+                                                                        {group.name || 'Mezcla sin nombre'}
+                                                                    </div>
+                                                                    {group.notes && <div className="text-xs text-emerald-700 mt-1 italic">{group.notes}</div>}
+                                                                    {(() => {
+                                                                        const groupItems = cart.filter(c => c.mixGroupId === group.id);
+                                                                        if (groupItems.length === 0) return null;
+                                                                        return (
+                                                                            <ul className="text-[10px] text-emerald-600/80 mt-2 font-medium leading-tight space-y-0.5 list-disc pl-3 marker:text-emerald-400">
+                                                                                {groupItems.map(i => (
+                                                                                    <li key={i.id}>{i.product.name} (x{i.qty})</li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        );
+                                                                    })()}
+                                                                </div>
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        const newGroups = [...mixGroups];
+                                                                        const g = newGroups.find(g => g.id === group.id);
+                                                                        if (g) g.isConfirmed = false;
+                                                                        setMixGroups(newGroups);
+                                                                    }}
+                                                                    className="text-emerald-600 hover:text-emerald-800 text-xs font-bold underline px-2 py-1"
+                                                                >
+                                                                    Editar
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <div className="flex justify-between items-start mb-3 gap-2">
+                                                                    <div className="flex-1 space-y-2">
+                                                                        <input 
+                                                                            type="text" 
+                                                                            placeholder="Nombre de la mezcla (Ej. Azul Noche PU)" 
+                                                                            value={group.name} 
+                                                                            onChange={e => {
+                                                                                const newGroups = [...mixGroups];
+                                                                                const g = newGroups.find(g => g.id === group.id);
+                                                                                if (g) g.name = e.target.value;
+                                                                                setMixGroups(newGroups);
+                                                                            }}
+                                                                            className="w-full font-bold text-sm bg-transparent border-b border-purple-200 outline-none text-purple-900 placeholder-purple-300 pb-1"
+                                                                        />
+                                                                        <input 
+                                                                            type="text" 
+                                                                            placeholder="Notas / Instrucciones (Opcional)" 
+                                                                            value={group.notes} 
+                                                                            onChange={e => {
+                                                                                const newGroups = [...mixGroups];
+                                                                                const g = newGroups.find(g => g.id === group.id);
+                                                                                if (g) g.notes = e.target.value;
+                                                                                setMixGroups(newGroups);
+                                                                            }}
+                                                                            className="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1.5 outline-none focus:border-purple-300"
+                                                                        />
+                                                                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                                                                            <input 
+                                                                                type="checkbox"
+                                                                                checked={group.saveAsRecipe || false}
+                                                                                onChange={e => {
+                                                                                    const newGroups = [...mixGroups];
+                                                                                    const g = newGroups.find(g => g.id === group.id);
+                                                                                    if (g) g.saveAsRecipe = e.target.checked;
+                                                                                    setMixGroups(newGroups);
+                                                                                }}
+                                                                                className="rounded border-purple-300 text-purple-600 focus:ring-purple-500 w-3.5 h-3.5"
+                                                                            />
+                                                                            <span className="text-xs font-semibold text-purple-700">Guardar como receta en el sistema</span>
+                                                                        </label>
+                                                                    </div>
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            setMixGroups(mixGroups.filter(g => g.id !== group.id));
+                                                                            // Unassign items
+                                                                            const newCart = cart.map(c => c.mixGroupId === group.id ? { ...c, mixGroupId: undefined } : c);
+                                                                            setCart(newCart);
+                                                                        }} 
+                                                                        className="text-slate-400 hover:text-rose-500 p-1 bg-slate-50 rounded hover:bg-rose-50 transition-colors"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4"/>
+                                                                    </button>
+                                                                </div>
+                                                                <div className="text-[10px] font-bold text-slate-500 uppercase mb-2">Ingredientes de esta mezcla:</div>
+                                                                <div className="space-y-1">
+                                                                    {cart.map(item => (
+                                                                        <label key={item.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${item.mixGroupId === group.id ? 'bg-purple-50' : 'hover:bg-slate-50'}`}>
+                                                                            <input 
+                                                                                type="checkbox" 
+                                                                                checked={item.mixGroupId === group.id}
+                                                                                onChange={(e) => {
+                                                                                    const newCart = [...cart];
+                                                                                    const cartItem = newCart.find(c => c.id === item.id);
+                                                                                    if (cartItem) {
+                                                                                        cartItem.mixGroupId = e.target.checked ? group.id : undefined;
+                                                                                    }
+                                                                                    setCart(newCart);
+                                                                                }}
+                                                                                className="rounded border-purple-300 text-purple-600 focus:ring-purple-500 w-3.5 h-3.5"
+                                                                            />
+                                                                            <span className={`text-xs font-medium line-clamp-1 ${item.mixGroupId === group.id ? 'text-purple-900' : 'text-slate-600'}`}>{item.product.name}</span>
+                                                                            <span className="text-[10px] text-slate-400 ml-auto bg-white px-1.5 rounded border border-slate-100">Cant: {item.qty}</span>
+                                                                        </label>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="flex justify-end mt-3">
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            const newGroups = [...mixGroups];
+                                                                            const g = newGroups.find(g => g.id === group.id);
+                                                                            if (g) g.isConfirmed = true;
+                                                                            setMixGroups(newGroups);
+                                                                        }}
+                                                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center active:scale-95"
+                                                                    >
+                                                                        <Check className="w-4 h-4 mr-1.5" />
+                                                                        Guardar Mezcla
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 pt-4 border-t border-slate-100">
+                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Notas Adicionales para Producción</label>
+                                    <textarea 
+                                        className="w-full text-sm bg-white border border-slate-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-purple-500 transition-shadow min-h-[80px]"
+                                        placeholder="Ej: El cliente lo necesita para esta tarde, aplicar espesante extra..."
+                                        value={mixNotes}
+                                        onChange={e => setMixNotes(e.target.value)}
+                                    ></textarea>
+                                </div>
+                            </div>
+                            <div className="p-6 border-t border-slate-100 bg-slate-50 flex gap-3">
+                                <button 
+                                    onClick={() => setShowMixConfirmationModal(false)}
+                                    className="flex-1 px-4 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
+                                >
+                                    Volver
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setMixConfirmed(true);
+                                        setShowMixConfirmationModal(false);
+                                        // If we are already in margin mode or ready to checkout
+                                        if (isMarginMode) {
+                                            executeCheckout();
+                                        }
+                                    }}
+                                    className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black shadow-md shadow-purple-200 transition-all active:scale-95 flex items-center justify-center"
+                                >
+                                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                                    {selectedPaymentMethod === 'Pendiente Facturar' ? 'Confirmar y Alistar Pedido' : 'Confirmar y Facturar'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
+
             {/* Shortcuts Modal */}
             <AnimatePresence>
                 {showShortcutsModal && (
                     <motion.div 
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center backdrop-blur-sm p-4"
+                        className="fixed inset-0 bg-slate-900/50 z-[9999] flex items-center justify-center backdrop-blur-sm p-4"
                         onClick={() => setShowShortcutsModal(false)}
                     >
                         <motion.div 
@@ -1660,6 +2235,98 @@ export const SmartPosPanel: React.FC = () => {
                                     <li className="flex justify-between items-center"><span className="text-slate-600 font-medium text-sm">Navegar Productos</span> <kbd className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-bold font-mono text-slate-700 shadow-sm">↑ / ↓</kbd></li>
                                     <li className="flex justify-between items-center"><span className="text-slate-600 font-medium text-sm">Modificar Cantidad</span> <kbd className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-bold font-mono text-slate-700 shadow-sm">+ / -</kbd></li>
                                 </ul>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Popup: Carrito Vacío para Cotizar / Reservar */}
+            <AnimatePresence>
+                {showEmptyCartModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-slate-950/70 z-[9999] flex items-center justify-center backdrop-blur-md p-4"
+                        onClick={() => setShowEmptyCartModal(false)}
+                    >
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.94, y: 16 }} 
+                            animate={{ opacity: 1, scale: 1, y: 0 }} 
+                            exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                            onClick={e => e.stopPropagation()}
+                            className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 flex flex-col relative"
+                        >
+                            {/* Decorative Header */}
+                            <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 p-6 text-white text-center flex flex-col items-center">
+                                <button 
+                                    onClick={() => setShowEmptyCartModal(false)} 
+                                    className="absolute top-4 right-4 p-1.5 rounded-full bg-black/15 hover:bg-black/30 text-white/90 hover:text-white transition-colors"
+                                    title="Cerrar (ESC)"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                                
+                                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-inner mb-3 text-white">
+                                    <ShoppingCart className="w-8 h-8" />
+                                </div>
+
+                                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/25">
+                                    Carrito Vacío
+                                </span>
+
+                                <h3 className="text-xl font-black mt-2 tracking-tight">Agregue productos al carrito</h3>
+                                
+                                <p className="text-amber-100 text-xs mt-1.5 max-w-xs font-medium leading-relaxed">
+                                    Para generar una cotización formal o reservar mercancía, primero debe incluir al menos un producto o mezcla del catálogo.
+                                </p>
+                            </div>
+
+                            {/* Help & Fast Action Guidance */}
+                            <div className="p-6 bg-slate-50 space-y-3">
+                                <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start gap-3">
+                                    <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 shrink-0 mt-0.5">
+                                        <Search className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left text-xs">
+                                        <div className="font-bold text-slate-800">Buscar en el Catálogo</div>
+                                        <div className="text-slate-500 text-[11px] mt-0.5">
+                                            Escriba en el buscador superior o presione <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700 text-[10px]">F7</kbd> / <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700 text-[10px]">F10</kbd> para escanear SKU o código de barras.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start gap-3">
+                                    <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 shrink-0 mt-0.5">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left text-xs">
+                                        <div className="font-bold text-slate-800">Selección Rápida</div>
+                                        <div className="text-slate-500 text-[11px] mt-0.5">
+                                            Haga clic directamente en cualquier tarjeta de producto a la izquierda para cargarlo de inmediato al carrito.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="p-4 bg-white border-t border-slate-100 flex gap-2">
+                                <button 
+                                    onClick={() => setShowEmptyCartModal(false)}
+                                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors"
+                                >
+                                    Cerrar
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setShowEmptyCartModal(false);
+                                        mainSearchInputRef.current?.focus();
+                                    }}
+                                    className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white text-xs font-black rounded-xl shadow-lg shadow-slate-900/10 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Search className="w-4 h-4" /> Ir a Buscar Productos
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -1803,6 +2470,73 @@ export const SmartPosPanel: React.FC = () => {
                     data={completedReceiptData}
                 />
             )}
+
+            {/* Modal: Cobrar Mezclas Listas */}
+            <AnimatePresence>
+                {showMixModal && (
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
+                        >
+                            <div className="bg-emerald-600 p-6 flex justify-between items-center text-white shrink-0">
+                                <div>
+                                    <h2 className="text-xl font-black flex items-center gap-2">
+                                        <Beaker className="w-6 h-6" /> Cobrar Mezclas Listas
+                                    </h2>
+                                    <p className="text-emerald-100 text-sm mt-1">Selecciona la mezcla del laboratorio que deseas facturar sin afectar nuevamente el inventario.</p>
+                                </div>
+                                <button onClick={() => setShowMixModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                                {mezclaOrders?.filter(o => o.status === 'READY').length === 0 ? (
+                                    <div className="text-center py-10 text-slate-400">
+                                        <Beaker className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                                        <p className="font-bold">No hay mezclas listas en el KDS.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-3">
+                                        {mezclaOrders?.filter(o => o.status === 'READY').map(order => (
+                                            <div key={order.id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex justify-between items-center hover:border-emerald-300 transition-colors">
+                                                <div>
+                                                    <h3 className="font-bold text-slate-800 text-lg">{order.baseName}</h3>
+                                                    <p className="text-xs text-slate-500 font-medium">Orden: {order.id} | Cliente: {order.clientName}</p>
+                                                    <p className="text-xs text-indigo-600 font-bold mt-1 tracking-widest">{order.colorId}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const baseProduct = inventory.find(p => p.sku === order.baseSku);
+                                                        if (baseProduct) {
+                                                            setCart(prev => [...prev, {
+                                                                id: Date.now().toString(),
+                                                                product: baseProduct,
+                                                                qty: 1,
+                                                                colorNote: `[Mezcla KDS: ${order.id}] ${order.colorId}`,
+                                                                isKdsMix: true
+                                                            }]);
+                                                            setShowMixModal(false);
+                                                        } else {
+                                                            alert('El producto base de esta mezcla no se encuentra en el inventario actual.');
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold rounded-lg text-sm transition-colors flex items-center gap-2"
+                                                >
+                                                    <Plus className="w-4 h-4" /> Agregar a la Factura
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
         </div>
     );

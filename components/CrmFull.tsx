@@ -1,5 +1,6 @@
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, Briefcase, Calendar, BarChart3, Plus, Search, Filter, 
@@ -18,6 +19,8 @@ import { CrmProfitabilityModule } from './CrmProfitabilityModule';
 import { CrmClientFullProfile } from './CrmClientFullProfile';
 import { useEnterprise } from '../context/EnterpriseContext';
 
+import { useActionSignal, dispatchActionSignal } from '../stores/actionSignals';
+
 type CrmTab = 'dashboard' | 'embudo' | 'postventa' | 'contactos' | 'actividades' | 'configuracion' | 'rentabilidad';
 
 export const getSourceBadge = (source: string | CrmLeadSource) => {
@@ -35,7 +38,9 @@ export const getSourceBadge = (source: string | CrmLeadSource) => {
 };
 
 export const CrmFull: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<CrmTab>('contactos');
+  const [highlightSignal, setHighlightSignal] = useState<{ dealId: string; nonce: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSource, setSelectedSource] = useState<CrmLeadSource | 'ALL'>('ALL');
 
@@ -81,6 +86,52 @@ export const CrmFull: React.FC = () => {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [setFullProfileContactId]);
+
+  // Bus de Señales de Acción Efímeras: Abrir de inmediato la ficha completa del lead
+  useActionSignal<{ dealId?: string; contactId?: string }>('HIGHLIGHT_CRM_DEAL', ({ dealId, contactId }) => {
+    setActiveTab('embudo');
+    setFilterOwner('all'); // Asegura que el trato no esté oculto por filtro de asesor
+
+    let targetContactId = contactId;
+    if (!targetContactId && dealId) {
+      const foundDeal = deals.find(d => d.id === dealId);
+      if (foundDeal) {
+        targetContactId = foundDeal.contactId;
+      }
+    }
+
+    if (targetContactId) {
+      setGlobalSelectedContactId(targetContactId);
+    }
+  });
+
+  // Manejo de parámetros de URL (para enlaces externos directos o bookmarks)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as CrmTab | null;
+    const dealIdParam = searchParams.get('dealId');
+    const contactParam = searchParams.get('contact');
+
+    if (dealIdParam) {
+      const foundDeal = deals.find(d => d.id === dealIdParam);
+      if (foundDeal) {
+        setActiveTab('embudo');
+        setFilterOwner('all');
+        setGlobalSelectedContactId(foundDeal.contactId);
+      } else {
+        dispatchActionSignal('HIGHLIGHT_CRM_DEAL', { dealId: dealIdParam });
+      }
+      // Limpiar inmediatamente el query param de la URL para que no contamine la sesión ni el historial
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('dealId');
+      nextParams.delete('t');
+      setSearchParams(nextParams, { replace: true });
+    } else if (contactParam) {
+      setActiveTab('contactos');
+      setGlobalSelectedContactId(contactParam);
+    } else if (tabParam && ['dashboard', 'embudo', 'postventa', 'contactos', 'actividades', 'configuracion', 'rentabilidad'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, setSearchParams, setGlobalSelectedContactId, deals]);
 
   // Custom Filter State
   const [filterOwner, setFilterOwner] = useState<string>('all');
@@ -255,45 +306,6 @@ export const CrmFull: React.FC = () => {
     setIsModalOpen(false);
     setNewPayload({});
     setValidationError(null);
-  };
-
-  const handleSimulateWhatsAppLead = () => {
-    let assignedOwnerId = 'U-ME';
-    
-    if (crmSettings.autoAssignLeads) {
-      const salesReps = systemUsers.filter(u => u.baseRole === 'Comercial' || u.baseRole === 'manager' || u.baseRole === 'admin');
-      if (salesReps.length > 0) {
-        const lastWhatsappLead = [...contacts].reverse().find(c => c.source === 'WHATSAPP');
-        let nextIndex = 0;
-        if (lastWhatsappLead) {
-          const lastOwnerIndex = salesReps.findIndex(u => u.id === lastWhatsappLead.ownerId);
-          if (lastOwnerIndex !== -1) {
-            nextIndex = (lastOwnerIndex + 1) % salesReps.length;
-          }
-        }
-        assignedOwnerId = salesReps[nextIndex].id;
-      }
-    }
-
-    const nc: CrmContact = {
-      id: `C-WA-${Date.now()}`,
-      name: `Lead WA ${Math.floor(Math.random() * 1000)}`,
-      company: 'Por definir',
-      email: '',
-      phone: '',
-      whatsapp: '3000000000',
-      documentNumber: '',
-      source: 'WHATSAPP',
-      status: 'PROSPECTO',
-      tier: 'NEW',
-      lastContactDate: new Date().toISOString(),
-      ownerId: assignedOwnerId
-    };
-    
-    addContact(nc);
-    alert(`Nuevo Lead de WhatsApp simulado.
-
-Asignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedOwnerId}${crmSettings.autoAssignLeads ? ' (Asignación Automática - Round Robin)' : ' (Asignación Manual a Usuario Actual)'}`);
   };
 
   const handleAddDecisionMaker = () => {
@@ -484,9 +496,6 @@ Asignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedO
 
           {activeTab === 'contactos' && (
             <div className="flex items-center gap-3">
-              <button onClick={handleSimulateWhatsAppLead} className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors font-bold text-sm shadow-sm border border-emerald-200">
-                <Globe className="w-4 h-4" /> Simular Lead WhatsApp
-              </button>
               <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm shadow-sm shadow-indigo-200">
                 <Plus className="w-4 h-4" /> Nuevo Registro
               </button>
@@ -509,6 +518,7 @@ Asignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedO
             onDealMove={handleDealMove} 
             onDealClick={setGlobalSelectedContactId}
             getSourceBadge={getSourceBadge}
+            highlightSignal={highlightSignal}
           />
         )}
 
@@ -581,7 +591,7 @@ Asignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedO
       {/* Feature 4: Lost Reason Modal */}
       <AnimatePresence>
         {lostModalDealId && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
                 <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl border-t-8 border-rose-500">
                     <h2 className="text-xl font-bold text-slate-900 mb-2">Trato Perdido</h2>
                     <p className="text-sm text-slate-600 mb-6">Para mejorar nuestra analítica (BI), por favor indica la razón por la cual se perdió esta oportunidad:</p>
@@ -613,7 +623,7 @@ Asignado a: ${systemUsers.find(u => u.id === assignedOwnerId)?.name || assignedO
 
       {/* CRUD Creation Modal: Ingreso de Clientes */}
       {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm overflow-y-auto py-10">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm overflow-y-auto py-10">
             <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl my-auto max-h-full overflow-y-auto">
               <h2 className="text-2xl font-bold mb-6 text-slate-900">Ingreso de Clientes / Oportunidades</h2>
               

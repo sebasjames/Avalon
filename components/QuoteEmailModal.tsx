@@ -2,7 +2,7 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Mail, Send, Paperclip, FileText, Check, Loader2, Download } from 'lucide-react';
+import { X, Mail, Send, Paperclip, FileText, Check, Loader2, Download, Edit3, RotateCcw } from 'lucide-react';
 import { PosCartItem } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
 import jsPDF from 'jspdf';
@@ -26,6 +26,33 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
 }) => {
     const { addTransaction } = useEnterprise();
     const [includeTechDocs, setIncludeTechDocs] = useState(false);
+    const [removedTechDocIds, setRemovedTechDocIds] = useState<string[]>([]);
+
+    const handleToggleTechDocs = (checked: boolean) => {
+        setIncludeTechDocs(checked);
+        if (checked && removedTechDocIds.length > 0 && removedTechDocIds.length === cart.length) {
+            setRemovedTechDocIds([]);
+        }
+    };
+
+    const handleRemoveDoc = (docId: string) => {
+        setRemovedTechDocIds(prev => [...prev, docId]);
+    };
+
+    const handleRestoreAllDocs = () => {
+        setRemovedTechDocIds([]);
+    };
+
+    const activeTechDocs = cart.filter((item, i) => {
+        const docId = item.id || `${item.sku || 'sku'}-${i}`;
+        return !removedTechDocIds.includes(docId);
+    });
+
+    // Editable email message state
+    const [isEditingMessage, setIsEditingMessage] = useState(false);
+    const [customIntro, setCustomIntro] = useState('De acuerdo a nuestra conversación, adjunto la cotización solicitada con los productos requeridos:');
+    const [customClosing, setCustomClosing] = useState('Esta cotización tiene una validez de 15 días. Quedo atento a cualquier inquietud para proceder con la orden de compra.');
+    const [customSignature, setCustomSignature] = useState('Equipo Comercial - Procoquinal S.A.S.');
     const [isSending, setIsSending] = useState(false);
     const [sent, setSent] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -201,10 +228,105 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Email Body Preview */}
-                        <div className="bg-white p-6 rounded-xl border border-slate-200 max-h-[320px] overflow-y-auto custom-scrollbar text-sm text-slate-700 font-sans leading-relaxed shadow-inner">
-                            <p className="mb-4">Estimado(a) <strong>{clientName || 'Cliente'}</strong>,</p>
-                            <p className="mb-4">De acuerdo a nuestra conversación, adjunto la cotización solicitada con los productos requeridos:</p>
+                        {/* Header bar with 'Editar Mensaje Escrito' button */}
+                        <div className="flex items-center justify-between px-1">
+                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                                <Mail className="w-3.5 h-3.5 text-slate-400" /> Mensaje Escrito del Correo
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setIsEditingMessage(!isEditingMessage)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs ${
+                                    isEditingMessage
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                                        : 'bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300'
+                                }`}
+                                title={isEditingMessage ? 'Guardar y volver a la vista previa' : 'Personalizar saludo, validez y despedida'}
+                            >
+                                {isEditingMessage ? (
+                                    <>
+                                        <Check className="w-3.5 h-3.5" /> Guardar y Previsualizar
+                                    </>
+                                ) : (
+                                    <>
+                                        <Edit3 className="w-3.5 h-3.5" /> Editar Mensaje Escrito
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Editor Mode vs Preview Mode */}
+                        {isEditingMessage ? (
+                            <div className="bg-white p-5 rounded-xl border-2 border-indigo-200 shadow-sm space-y-4">
+                                <div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="text-xs font-bold text-slate-700 uppercase">1. Párrafo de Apertura / Saludo</label>
+                                        <span className="text-[11px] text-slate-400 font-medium">Estimado(a) {clientName || 'Cliente'},</span>
+                                    </div>
+                                    <textarea
+                                        value={customIntro}
+                                        onChange={e => setCustomIntro(e.target.value)}
+                                        rows={3}
+                                        className="w-full text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500 font-sans leading-relaxed resize-y"
+                                        placeholder="Escribe el mensaje introductorio al cliente..."
+                                    />
+                                </div>
+
+                                <div className="p-3 bg-indigo-50/60 rounded-lg border border-indigo-100 text-xs text-indigo-900 flex items-center justify-between">
+                                    <span className="font-semibold flex items-center gap-1.5">
+                                        📊 En el medio se adjunta la tabla interactiva de {cart.length} ítem(s) y desglose de impuestos
+                                    </span>
+                                    <span className="font-black text-indigo-950 text-sm">{formatCOP(calculatedTotal)}</span>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">2. Condiciones Comerciales / Validez</label>
+                                    <textarea
+                                        value={customClosing}
+                                        onChange={e => setCustomClosing(e.target.value)}
+                                        rows={3}
+                                        className="w-full text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500 font-sans leading-relaxed resize-y"
+                                        placeholder="Condiciones de validez, despacho, tiempos de entrega, forma de pago..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">3. Firma / Despedida Comercial</label>
+                                    <input
+                                        type="text"
+                                        value={customSignature}
+                                        onChange={e => setCustomSignature(e.target.value)}
+                                        className="w-full text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-indigo-500 font-sans"
+                                        placeholder="Ej: Asesor Comercial - Procoquinal S.A.S."
+                                    />
+                                </div>
+
+                                <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCustomIntro('De acuerdo a nuestra conversación, adjunto la cotización solicitada con los productos requeridos:');
+                                            setCustomClosing('Esta cotización tiene una validez de 15 días. Quedo atento a cualquier inquietud para proceder con la orden de compra.');
+                                            setCustomSignature('Equipo Comercial - Procoquinal S.A.S.');
+                                        }}
+                                        className="text-xs text-slate-400 hover:text-slate-600 font-medium flex items-center gap-1 transition-colors"
+                                    >
+                                        <RotateCcw className="w-3 h-3" /> Restablecer texto predeterminado
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditingMessage(false)}
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                                    >
+                                        <Check className="w-3.5 h-3.5" /> Aplicar y Previsualizar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-white p-6 rounded-xl border border-slate-200 max-h-[320px] overflow-y-auto custom-scrollbar text-sm text-slate-700 font-sans leading-relaxed shadow-inner">
+                                <p className="mb-3">Estimado(a) <strong>{clientName || 'Cliente'}</strong>,</p>
+                                <p className="mb-4 whitespace-pre-line">{customIntro}</p>
                             
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4 overflow-x-auto">
                                 <table className="w-full text-left text-sm">
@@ -301,13 +423,13 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                 </table>
                             </div>
 
-                            <p className="mb-4">Esta cotización tiene una validez de 15 días. Quedo atento a cualquier inquietud para proceder con la orden de compra.</p>
+                            <p className="mb-4 whitespace-pre-line">{customClosing}</p>
                             
                             <div className="text-slate-500 text-xs">
-                                <p className="font-bold text-slate-700">Equipo Comercial</p>
-                                <p>Procoquinal S.A.S.</p>
+                                <p className="font-bold text-slate-700 whitespace-pre-line">{customSignature}</p>
                             </div>
                         </div>
+                    )}
 
                         {/* Attachments & Options */}
                         <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col gap-4">
@@ -323,19 +445,73 @@ export const QuoteEmailModal: React.FC<QuoteEmailModalProps> = ({
                                     <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${includeTechDocs ? 'translate-x-5' : 'translate-x-0'}`} />
                                 </div>
                                 <div>
-                                    <input type="checkbox" className="sr-only" checked={includeTechDocs} onChange={e => setIncludeTechDocs(e.target.checked)} />
+                                    <input type="checkbox" className="sr-only" checked={includeTechDocs} onChange={e => handleToggleTechDocs(e.target.checked)} />
                                     <span className="text-sm font-bold text-slate-800 block">Agregar Fichas Técnicas (PDF)</span>
                                     <span className="text-xs text-slate-500">Adjunta automáticamente las fichas técnicas y hojas de seguridad de los productos cotizados.</span>
                                 </div>
                             </label>
                             
                             {includeTechDocs && (
-                                <div className="flex flex-wrap gap-2 pl-2">
-                                    {cart.map((item, i) => (
-                                        <span key={i} className="bg-blue-50 px-2 py-1 rounded text-xs text-blue-700 border border-blue-200 flex items-center gap-1">
-                                            <FileText className="w-3 h-3 text-red-500" /> FT_{item.name.substring(0, 15).replace(/\s+/g, '')}.pdf
-                                        </span>
-                                    ))}
+                                <div className="space-y-2 pl-1">
+                                    <div className="flex items-center justify-between text-xs text-slate-500 font-medium px-1">
+                                        <span>Fichas técnicas vinculadas ({activeTechDocs.length}):</span>
+                                        {removedTechDocIds.length > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRestoreAllDocs}
+                                                className="text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                                            >
+                                                Restaurar todas ({removedTechDocIds.length})
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {activeTechDocs.length === 0 ? (
+                                        <div className="p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300 text-center text-xs text-slate-400">
+                                            Se han quitado todas las fichas técnicas de este envío.{' '}
+                                            <button 
+                                                type="button" 
+                                                onClick={handleRestoreAllDocs} 
+                                                className="text-blue-600 font-bold hover:underline ml-1"
+                                            >
+                                                Volver a agregarlas
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2.5 pt-0.5">
+                                            {activeTechDocs.map((item, i) => {
+                                                const docId = item.id || `${item.sku || 'sku'}-${i}`;
+                                                const fileName = `FT_${item.name.substring(0, 16).replace(/\s+/g, '')}.pdf`;
+                                                return (
+                                                    <div 
+                                                        key={docId} 
+                                                        className="relative group inline-flex items-center"
+                                                    >
+                                                        <span className="bg-blue-50/90 group-hover:bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-blue-200/90 flex items-center gap-1.5 transition-all shadow-xs group-hover:shadow-sm select-none">
+                                                            <FileText className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                                            <span className="truncate max-w-[150px] sm:max-w-[200px]" title={fileName}>
+                                                                {fileName}
+                                                            </span>
+                                                        </span>
+
+                                                        {/* Botón X en la punta que aparece al hacer hover */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleRemoveDoc(docId);
+                                                            }}
+                                                            title={`Quitar ficha técnica de ${item.name}`}
+                                                            aria-label={`Quitar ficha técnica de ${item.name}`}
+                                                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 hover:bg-rose-600 active:scale-90 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100 shadow-md z-10 cursor-pointer"
+                                                        >
+                                                            <X className="w-2.5 h-2.5 stroke-[3]" />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

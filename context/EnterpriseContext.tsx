@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { INVENTORY_DATA, MOCK_CRM_DEALS, MOCK_EVENT_LOG, MOCK_CRM_ACTIVITIES, MOCK_CRM_SETTINGS, MOCK_TAX_RULES, MOCK_PRICING_RULES, MOCK_PAYMENT_RULES, MOCK_SUPPLIERS, DEFAULT_SETTINGS } from '../constants';
-import { Product, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, NotificationRule, FloatingNote, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction, CommissionRule, ToastAlert, WarehouseLocation, WorldOfficeConfig, ChemicalPresentation } from '../types';
+import { Product, Category, InventoryStatus, ABCClass, XYZClass, CrmDeal, SystemEvent, CrmContact, CrmActivity, CrmDealStage, InboundReceipt, CrmSettings, CrmPostSaleStage, CrmAssignmentLog, CrmNotification, NotificationRule, FloatingNote, AccountingTransaction, TaxRate, Recipe, TaxRule, PricingRule, PaymentRule, AuditReport, SystemUser, Supplier, ImportDossier, DispatchLog, KardexTransaction, CommissionRule, ToastAlert, WarehouseLocation, WorldOfficeConfig, ChemicalPresentation, ProductionBatch, MezclaOrder, MezclaStatus, MezclaReceta, SystemSettings } from '../types';
 import { NotificationService } from '../services/NotificationService';
 import { userService } from '../services/userService';
 import clientsData from '../data/clients.json';
 import { KARDEX_TRANSACTIONS } from '../data/kardex_ledger';
 import { ACCOUNTING_TRANSACTIONS } from '../data/accounting_ledger';
+import { useDemoStore } from '../stores/demoStore';
 
 const CLIENTS_DATA = clientsData as CrmContact[];
 
@@ -49,11 +50,11 @@ export const DEFAULT_WORLD_OFFICE_CONFIG: WorldOfficeConfig = {
     ivaGenerado: '240801',
     retencionFuente: '236540'
   },
-
   activeWarehouses: [
     'Bodega Centenario (Bodega Principal)',
-    'Bodega Norte (Punto de Venta)',
-    'Bodega Barranquilla (Bodega Satélite)'
+    'Bodega Gaitan (Punto de Venta)',
+    'Bodega Barranquilla (Bodega Satélite)',
+    'Bodega Transito (Bodega Satélite)'
   ]
 };
 
@@ -66,6 +67,8 @@ interface EnterpriseContextType {
     receipts: InboundReceipt[];
     crmSettings: CrmSettings;
     updateCrmSettings: (updates: Partial<CrmSettings>) => void;
+    systemSettings: SystemSettings;
+    updateSystemSettings: (updates: Partial<SystemSettings>) => void;
     moveDealStage: (dealId: string, newStage: CrmDealStage | 'CLOSED_LOST', lostReason?: string) => void;
     moveContactPostSaleStage: (contactId: string, newStage: CrmPostSaleStage) => void;
     addAuditEvent: (event: Omit<SystemEvent, 'event_id' | 'timestamp'>) => void;
@@ -80,8 +83,12 @@ interface EnterpriseContextType {
     getContactHealthScore: (contactId: string) => 'GREEN' | 'YELLOW' | 'RED';
     updateHealthThresholds: (redMax: number, yellowMax: number) => void;
     updateContact: (contactId: string, updates: Partial<CrmContact>) => void;
+    addInventoryProduct: (product: Product) => void;
     updateInventoryProduct: (productId: string, updates: Partial<Product>) => void;
     updateInventoryStock: (productId: string, quantityChange: number) => void;
+    consumeLabStock: (skuOrId: string, quantityToConsume: number) => { success: boolean; message: string };
+    updateLabStock: (skuOrId: string, newLabStock: number, options?: { notes?: string; documentRef?: string; formulaName?: string; user?: string; lotNumber?: string }) => void;
+    openUnitToLab: (skuOrId: string, units?: number, usedQuantity?: number, reason?: string) => void;
     tintometricRules: string[];
     updateTintometricRules: (rules: string[]) => void;
     reverseDisplayRules: string[];
@@ -131,6 +138,20 @@ interface EnterpriseContextType {
     deleteRecipe: (id: string) => void;
     processCreditNote: (t: AccountingTransaction) => void;
     reconcileDatáfonoTransaction: (id: string, bankAmount: number, bankFee: number) => void;
+
+    // --- Base de Datos de Mezclas y KDS ---
+    mezclaOrders: MezclaOrder[];
+    addMezclaOrder: (m: MezclaOrder) => void;
+    updateMezclaOrder: (id: string, updates: Partial<MezclaOrder>) => void;
+    mezclaCatalogo: MezclaReceta[];
+    saveMezclaToCatalogo: (receta: Omit<MezclaReceta, 'id' | 'timesPrepared' | 'createdAt'> & { id?: string }) => MezclaReceta;
+    updateMezclaCatalogo: (id: string, updates: Partial<MezclaReceta>) => void;
+    deleteMezclaFromCatalogo: (id: string) => void;
+    
+    // --- Producción ---
+    productionOrders: ProductionBatch[];
+    addProductionOrder: (batch: ProductionBatch) => void;
+    updateProductionOrder: (id: string, updates: Partial<ProductionBatch>) => void;
 
     // --- Auto Auditor ---
     auditReports: AuditReport[];
@@ -196,14 +217,423 @@ interface EnterpriseContextType {
     // World Office ERP Configuration
     worldOfficeConfig: WorldOfficeConfig;
     updateWorldOfficeConfig: (updates: Partial<WorldOfficeConfig>) => void;
+
+    // Sandbox / Demo Mode Support
+    getCompleteState: () => any;
+    restoreCompleteState: (data: any) => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
 
+
+export const SEED_MEZCLAS_CATALOGO: MezclaReceta[] = [
+    {
+        id: 'REC-RAL-1000',
+        name: 'Beige Arena - RAL 1000',
+        colorCode: 'RAL 1000',
+        clientName: 'Constructor S.A.',
+        baseSku: 'BASE-POLI-PST',
+        baseName: 'Base Pastel Poliuretano',
+        baseType: 'SOLVENTE INTERNO',
+        formula: {
+            'PIGMENT-AMARILLO-OX': '14.5',
+            'PIGMENT-BLANCO-TIT': '32.0',
+            'PIGMENT-NEGRO-HUMO': '1.8'
+        },
+        unit: 'GL',
+        density: 1.15,
+        category: 'ESTANDAR',
+        timesPrepared: 12,
+        lastPreparedAt: '2026-03-28T14:30:00.000Z',
+        createdAt: '2025-11-10T09:00:00.000Z',
+        createdByUser: 'Laboratorio Central',
+        notes: 'Fórmula estándar de alta resistencia UV para exteriores.'
+    },
+    {
+        id: 'REC-RAL-3000',
+        name: 'Rojo Fuego Seguridad - RAL 3000',
+        colorCode: 'RAL 3000',
+        clientName: 'Taller El Rayo',
+        baseSku: 'BASE-ACR-INT',
+        baseName: 'Base Intensa Acrílica',
+        baseType: 'ACRÍLICO AUTOMOTRIZ',
+        formula: {
+            'PIGMENT-ROJO-ORGANICO': '45.0',
+            'PIGMENT-AMARILLO-MED': '8.2',
+            'PIGMENT-MAGENTA': '3.4'
+        },
+        unit: 'GL',
+        density: 1.05,
+        category: 'ESPECIAL_CLIENTE',
+        timesPrepared: 7,
+        lastPreparedAt: '2026-04-01T10:15:00.000Z',
+        createdAt: '2026-01-15T11:20:00.000Z',
+        createdByUser: 'Operador Mezclas Gaitan',
+        notes: 'Ajuste de brillo para carrocería comercial.'
+    },
+    {
+        id: 'REC-CUSTOM-VERDE-CONTR',
+        name: 'Verde Máquina Corporativo',
+        colorCode: 'VERDE-CONST-02',
+        clientName: 'Constructor S.A.',
+        baseSku: 'BASE-EPOX-IND',
+        baseName: 'Base Epóxica Industrial',
+        baseType: 'EPÓXICO INDUSTRIAL',
+        formula: {
+            'PIGMENT-VERDE-FTALO': '28.0',
+            'PIGMENT-AMARILLO-CROMO': '18.5',
+            'PIGMENT-NEGRO-HUMO': '4.0'
+        },
+        unit: 'GL',
+        density: 1.25,
+        category: 'ESPECIAL_CLIENTE',
+        timesPrepared: 5,
+        lastPreparedAt: '2026-03-15T16:00:00.000Z',
+        createdAt: '2026-02-05T08:30:00.000Z',
+        createdByUser: 'Laboratorio Planta',
+        notes: 'Tono especial desarrollado a muestra de chapa para equipos pesados.'
+    },
+    {
+        id: 'REC-RAL-7035',
+        name: 'Gris Luz Tableros - RAL 7035',
+        colorCode: 'RAL 7035',
+        clientName: 'Catálogo General',
+        baseSku: 'BASE-POLI-PST',
+        baseName: 'Base Pastel Poliuretano',
+        baseType: 'SOLVENTE INTERNO',
+        formula: {
+            'PIGMENT-BLANCO-TIT': '48.0',
+            'PIGMENT-NEGRO-HUMO': '2.1',
+            'PIGMENT-OXIDO-AMARILLO': '0.9'
+        },
+        unit: 'GL',
+        density: 1.18,
+        category: 'ESTANDAR',
+        timesPrepared: 19,
+        lastPreparedAt: '2026-04-03T11:00:00.000Z',
+        createdAt: '2025-10-01T10:00:00.000Z',
+        createdByUser: 'Ing. Tintometría',
+        notes: 'Color normalizado para tableros eléctricos y ductos.'
+    },
+    {
+        id: 'REC-CUSTOM-AZUL-TRAF',
+        name: 'Azul Tráfico Señalización',
+        colorCode: 'AZUL-TRAF-PROCO',
+        clientName: 'Catálogo General',
+        baseSku: 'BASE-ACR-TRAF',
+        baseName: 'Base Tráfico Acrílica',
+        baseType: 'TRÁFICO BASE SOLVENTE',
+        formula: {
+            'PIGMENT-AZUL-FTALO': '35.0',
+            'PIGMENT-BLANCO-TIT': '15.0'
+        },
+        unit: 'GL',
+        density: 1.30,
+        category: 'AJUSTE_PLANTA',
+        timesPrepared: 9,
+        lastPreparedAt: '2026-03-22T09:40:00.000Z',
+        createdAt: '2026-01-20T14:10:00.000Z',
+        createdByUser: 'Supervisor Planta Centenario',
+        notes: 'Excelente adherencia y secado rápido (15 min al tacto).'
+    }
+];
+
+
+const INITIAL_LAB_PRODUCTS: Product[] = [
+    {
+        id: 'pig-am-ox',
+        sku: 'PIGMENT-AMARILLO-OX',
+        originalSku: 'AMARILLO-OX',
+        name: 'Pigmento Amarillo Óxido Concentrado',
+        category: Category.RAW_MATERIAL,
+        family: 'Pigmentos y Colorantes',
+        brand: 'Tintometría Procoquinal',
+        baseUnit: 'GR',
+        density: 1.2,
+        unitCost: 35000,
+        price: 52000,
+        totalStock: 8,
+        reservedStock: 0,
+        status: InventoryStatus.ACTIVE,
+        abc: ABCClass.A,
+        xyz: XYZClass.X,
+        agingDays: 12,
+        batches: [],
+        netWeightKg: 1000,
+        labStock: 350
+    },
+    {
+        id: 'pig-bl-tit',
+        sku: 'PIGMENT-BLANCO-TIT',
+        originalSku: 'BLANCO-TIT',
+        name: 'Pigmento Blanco Titanio Super Cubriente',
+        category: Category.RAW_MATERIAL,
+        family: 'Pigmentos y Colorantes',
+        brand: 'Tintometría Procoquinal',
+        baseUnit: 'GR',
+        density: 1.4,
+        unitCost: 42000,
+        price: 64000,
+        totalStock: 14,
+        reservedStock: 0,
+        status: InventoryStatus.ACTIVE,
+        abc: ABCClass.A,
+        xyz: XYZClass.X,
+        agingDays: 5,
+        batches: [],
+        netWeightKg: 1000,
+        labStock: 820
+    },
+    {
+        id: 'pig-neg-hum',
+        sku: 'PIGMENT-NEGRO-HUMO',
+        originalSku: 'NEGRO-HUMO',
+        name: 'Pigmento Negro Humo Especial',
+        category: Category.RAW_MATERIAL,
+        family: 'Pigmentos y Colorantes',
+        brand: 'Tintometría Procoquinal',
+        baseUnit: 'GR',
+        density: 1.1,
+        unitCost: 28000,
+        price: 45000,
+        totalStock: 6,
+        reservedStock: 0,
+        status: InventoryStatus.ACTIVE,
+        abc: ABCClass.B,
+        xyz: XYZClass.Y,
+        agingDays: 20,
+        batches: [],
+        netWeightKg: 1000,
+        labStock: 120
+    },
+    {
+        id: 'pig-roj-org',
+        sku: 'PIGMENT-ROJO-ORGANICO',
+        originalSku: 'ROJO-ORGANICO',
+        name: 'Pigmento Rojo Orgánico Brillante',
+        category: Category.RAW_MATERIAL,
+        family: 'Pigmentos y Colorantes',
+        brand: 'Tintometría Procoquinal',
+        baseUnit: 'GR',
+        density: 1.15,
+        unitCost: 55000,
+        price: 85000,
+        totalStock: 5,
+        reservedStock: 0,
+        status: InventoryStatus.ACTIVE,
+        abc: ABCClass.A,
+        xyz: XYZClass.X,
+        agingDays: 15,
+        batches: [],
+        netWeightKg: 1000,
+        labStock: 480
+    },
+    {
+        id: 'pig-az-fta',
+        sku: 'PIGMENT-AZUL-FTALO',
+        originalSku: 'AZUL-FTALO',
+        name: 'Pigmento Azul Ftalocianina Profundo',
+        category: Category.RAW_MATERIAL,
+        family: 'Pigmentos y Colorantes',
+        brand: 'Tintometría Procoquinal',
+        baseUnit: 'GR',
+        density: 1.12,
+        unitCost: 48000,
+        price: 72000,
+        totalStock: 9,
+        reservedStock: 0,
+        status: InventoryStatus.ACTIVE,
+        abc: ABCClass.A,
+        xyz: XYZClass.Y,
+        agingDays: 18,
+        batches: [],
+        netWeightKg: 1000,
+        labStock: 210
+    },
+    {
+        id: 'base-pu-blanco-20l',
+        sku: 'BASE-POLIURETANO-BLANCO',
+        originalSku: 'BASE-PU-BL',
+        name: 'Base Poliuretano Blanco Extra (Cuñete 20L)',
+        category: Category.RAW_MATERIAL,
+        family: 'Bases Tintométricas',
+        brand: 'Procoquinal Industrial',
+        baseUnit: 'LT',
+        density: 1.25,
+        unitCost: 185000,
+        price: 275000,
+        totalStock: 18,
+        reservedStock: 2,
+        status: InventoryStatus.ACTIVE,
+        abc: ABCClass.A,
+        xyz: XYZClass.X,
+        agingDays: 8,
+        batches: [],
+        netVolumeLiters: 20,
+        labStock: 14.5
+    },
+    {
+        id: 'base-pu-transp-20l',
+        sku: 'BASE-POLIURETANO-TRANSP',
+        originalSku: 'BASE-PU-TR',
+        name: 'Base Poliuretano Transparente (Cuñete 20L)',
+        category: Category.RAW_MATERIAL,
+        family: 'Bases Tintométricas',
+        brand: 'Procoquinal Industrial',
+        baseUnit: 'LT',
+        density: 0.98,
+        unitCost: 165000,
+        price: 245000,
+        totalStock: 12,
+        reservedStock: 0,
+        status: InventoryStatus.ACTIVE,
+        abc: ABCClass.A,
+        xyz: XYZClass.X,
+        agingDays: 14,
+        batches: [],
+        netVolumeLiters: 20,
+        labStock: 5.0
+    }
+];
+
+
+const INITIAL_LAB_KARDEX: KardexTransaction[] = [
+    {
+        id: 'TX-LAB-101',
+        date: '2026-10-05 08:35:10',
+        skuId: 'PIGMENT-AMARILLO-OX',
+        productName: 'Pigmento Amarillo Óxido Concentrado',
+        lotNumber: 'LOTE-MZ-8821',
+        type: 'Salida',
+        quantity: -14.5,
+        balanceBefore: 364.5,
+        balanceAfter: 350.0,
+        unit: 'GR',
+        operationType: 'CONSUMO_MEZCLA',
+        documentRef: 'ORD-MZ-001',
+        mezclaOrderId: 'ORD-MZ-001',
+        formulaName: 'Gris Platino Satinado (Lote #001)',
+        user: 'Operador Tintometría (Báscula 1)',
+        notes: 'Dosificado en mezcla. Consumo directo de saldo destapado.'
+    },
+    {
+        id: 'TX-LAB-102',
+        date: '2026-10-05 08:36:22',
+        skuId: 'PIGMENT-BLANCO-TIT',
+        productName: 'Pigmento Blanco Titanio Super Cubriente',
+        lotNumber: 'LOTE-MZ-8821',
+        type: 'Salida',
+        quantity: -32.0,
+        balanceBefore: 852.0,
+        balanceAfter: 820.0,
+        unit: 'GR',
+        operationType: 'CONSUMO_MEZCLA',
+        documentRef: 'ORD-MZ-001',
+        mezclaOrderId: 'ORD-MZ-001',
+        formulaName: 'Gris Platino Satinado (Lote #001)',
+        user: 'Operador Tintometría (Báscula 1)',
+        notes: 'Dosificado en mezcla. Saldo remanente en tarro.'
+    },
+    {
+        id: 'TX-LAB-103',
+        date: '2026-10-05 08:37:05',
+        skuId: 'PIGMENT-NEGRO-HUMO',
+        productName: 'Pigmento Negro Humo Especial',
+        lotNumber: 'LOTE-MZ-8821',
+        type: 'Salida',
+        quantity: -1.8,
+        balanceBefore: 121.8,
+        balanceAfter: 120.0,
+        unit: 'GR',
+        operationType: 'CONSUMO_MEZCLA',
+        documentRef: 'ORD-MZ-001',
+        mezclaOrderId: 'ORD-MZ-001',
+        formulaName: 'Gris Platino Satinado (Lote #001)',
+        user: 'Operador Tintometría (Báscula 1)',
+        notes: 'Nivel bajo en tarro destapado (120g restantes).'
+    },
+    {
+        id: 'TX-LAB-104',
+        date: '2026-10-05 09:12:44',
+        skuId: 'PIGMENT-ROJO-ORGANICO',
+        productName: 'Pigmento Rojo Orgánico Brillante',
+        lotNumber: 'L-PRO-9442',
+        type: 'Entrada',
+        quantity: 1000.0,
+        balanceBefore: 0.0,
+        balanceAfter: 1000.0,
+        unit: 'GR',
+        operationType: 'APERTURA_ENVASE',
+        documentRef: 'DESTAPE-MANUAL-04',
+        user: 'Bodega Central -> Laboratorio',
+        formulaName: 'Destape de 1 tarro nuevo de 1,000g',
+        notes: 'Traslado de 1 unidad sellada de almacén a mesón de mezclas.'
+    },
+    {
+        id: 'TX-LAB-105',
+        date: '2026-10-05 09:45:30',
+        skuId: 'PIGMENT-ROJO-ORGANICO',
+        productName: 'Pigmento Rojo Orgánico Brillante',
+        lotNumber: 'LOTE-MZ-8822',
+        type: 'Salida',
+        quantity: -520.0,
+        balanceBefore: 1000.0,
+        balanceAfter: 480.0,
+        unit: 'GR',
+        operationType: 'CONSUMO_MEZCLA',
+        documentRef: 'ORD-MZ-002',
+        mezclaOrderId: 'ORD-MZ-002',
+        formulaName: 'Rojo Carmesí Industrial (Lote #002)',
+        user: 'Operador Tintometría (Báscula 1)',
+        notes: 'Consumidos 520g. Quedan 480g en tarro destapado.'
+    },
+    {
+        id: 'TX-LAB-106',
+        date: '2026-10-05 10:15:00',
+        skuId: 'BASE-POLIURETANO-BLANCO',
+        productName: 'Base Poliuretano Blanco Extra (Cuñete 20L)',
+        lotNumber: 'LOTE-PU-002',
+        type: 'Salida',
+        quantity: -5.5,
+        balanceBefore: 20.0,
+        balanceAfter: 14.5,
+        unit: 'LT',
+        operationType: 'CONSUMO_MEZCLA',
+        documentRef: 'ORD-MZ-001',
+        mezclaOrderId: 'ORD-MZ-001',
+        formulaName: 'Base para Esmalte Poliuretano Blanco',
+        user: 'Operador Tintometría (Mesón 2)',
+        notes: 'Descontados 5.5 Litros del cuñete destapado.'
+    },
+    {
+        id: 'TX-LAB-107',
+        date: '2026-10-05 10:40:15',
+        skuId: 'PIGMENT-AMARILLO-OX',
+        productName: 'Pigmento Amarillo Óxido Concentrado',
+        lotNumber: 'LOTE-BASC-01',
+        type: 'Ajuste',
+        quantity: -10.0,
+        balanceBefore: 360.0,
+        balanceAfter: 350.0,
+        unit: 'GR',
+        operationType: 'AJUSTE_BASCULA',
+        documentRef: 'CALIB-TARA-01',
+        user: 'Supervisor Calidad Laboratorio',
+        formulaName: 'Pesaje de Control en Báscula Digital',
+        notes: 'Ajuste por residuo adherido a paredes del envase.'
+    }
+];
+
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [isRestored, setIsRestored] = useState(false);
+
     
     const [activeUserId, setActiveUserId] = useState<string>('1');
-    const [inventory, setInventory] = useState<Product[]>(INVENTORY_DATA);
+    const [inventory, setInventory] = useState<Product[]>(() => {
+        const existingSkus = new Set(INVENTORY_DATA.map(p => p.sku));
+        const toAdd = INITIAL_LAB_PRODUCTS.filter(p => !existingSkus.has(p.sku));
+        return [...toAdd, ...INVENTORY_DATA];
+    });
     
     const [systemUsers, setSystemUsers] = useState<SystemUser[]>(() => userService.getInitialUsers());
 
@@ -211,190 +641,23 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         userService.saveUsers(systemUsers);
     }, [systemUsers]);
 
-
-
-    const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
-    const [importDossiers, setImportDossiers] = useState<ImportDossier[]>([]);
-    const [dispatches, setDispatches] = useState<DispatchLog[]>([
-        {
-            id: 'DSP-00101',
-            dealId: 'D-MOCK-1',
-            contactId: 'C-MOCK-1',
-            status: 'PENDIENTE',
-            promisedDate: new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0],
-            items: [
-                { sku: 'FG-PU-001', productName: 'Fondo Poliuretano Blanco', orderedQty: 50, deliveredQty: 0 },
-                { sku: 'RM-SOL-005', productName: 'Solvente Universal', orderedQty: 20, deliveredQty: 0 }
-            ]
-        },
-        {
-            id: 'DSP-00102',
-            dealId: 'D-MOCK-2',
-            contactId: 'C-MOCK-2',
-            status: 'ARMANDO_PEDIDO',
-            promisedDate: new Date(Date.now() + 1 * 86400000).toISOString().split('T')[0],
-            items: [
-                { sku: 'FG-AQ-003', productName: 'Laca Acrílica Transparente', orderedQty: 100, deliveredQty: 100 }
-            ]
-        },
-        {
-            id: 'DSP-00103',
-            dealId: 'D-MOCK-3',
-            contactId: 'C-MOCK-3',
-            status: 'EN_TRANSITO',
-            promisedDate: new Date(Date.now()).toISOString().split('T')[0],
-            driver: 'Carlos Perea',
-            vehicle: 'Furgón NPR-450',
-            items: [
-                { sku: 'FG-PU-002', productName: 'Barniz Poliuretano Mate', orderedQty: 30, deliveredQty: 30 }
-            ]
-        },
-        {
-            id: 'DSP-1001',
-            dealId: 'D-MOCK-1',
-            contactId: 'C-002',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0],
-            driver: 'Roberto Méndez',
-            vehicle: 'Camión NKR-123',
-            items: [
-                { sku: 'CLORO-01', productName: 'Cloro Industrial', orderedQty: 50, deliveredQty: 50 },
-                { sku: 'JABON-05', productName: 'Jabón Multiusos', orderedQty: 20, deliveredQty: 20 }
-            ]
-        },
-        {
-            id: 'DSP-1002',
-            dealId: 'D-MOCK-4',
-            contactId: 'C-004',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0],
-            driver: 'Roberto Méndez',
-            vehicle: 'Camión NKR-123',
-            items: [
-                { sku: 'FG-PU-001', productName: 'Fondo Poliuretano Blanco', orderedQty: 40, deliveredQty: 40 },
-                { sku: 'RM-SOL-005', productName: 'Solvente Universal', orderedQty: 25, deliveredQty: 25 }
-            ]
-        },
-        {
-            id: 'DSP-1003',
-            dealId: 'D-MOCK-5',
-            contactId: 'C-005',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 12 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 12 * 86400000).toISOString().split('T')[0],
-            driver: 'Carlos Perea',
-            vehicle: 'Furgón NPR-450',
-            items: [
-                { sku: 'FG-AQ-003', productName: 'Laca Acrílica Transparente', orderedQty: 60, deliveredQty: 60 }
-            ]
-        },
-        {
-            id: 'DSP-1004',
-            dealId: 'D-MOCK-6',
-            contactId: 'C-006',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 18 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 18 * 86400000).toISOString().split('T')[0],
-            driver: 'Carlos Perea',
-            vehicle: 'Furgón NPR-450',
-            items: [
-                { sku: 'RM-RES-001', productName: 'Resina Poliéster Ortoftálica 800', orderedQty: 10, deliveredQty: 10 }
-            ]
-        },
-        {
-            id: 'DSP-1005',
-            dealId: 'D-MOCK-7',
-            contactId: 'C-007',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 25 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 24 * 86400000).toISOString().split('T')[0],
-            driver: 'Roberto Méndez',
-            vehicle: 'Camión NKR-123',
-            items: [
-                { sku: 'RM-SOL-002', productName: 'Thinner Acrílico 5 Gal', orderedQty: 30, deliveredQty: 28 }
-            ]
-        },
-        {
-            id: 'DSP-1006',
-            dealId: 'D-MOCK-8',
-            contactId: 'C-008',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 35 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 35 * 86400000).toISOString().split('T')[0],
-            driver: 'Roberto Méndez',
-            vehicle: 'Camión NKR-123',
-            items: [
-                { sku: 'FG-PU-002', productName: 'Barniz Poliuretano Mate', orderedQty: 50, deliveredQty: 50 }
-            ]
-        },
-        {
-            id: 'DSP-1007',
-            dealId: 'D-MOCK-9',
-            contactId: 'C-009',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 48 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 48 * 86400000).toISOString().split('T')[0],
-            driver: 'Carlos Perea',
-            vehicle: 'Furgón NPR-450',
-            items: [
-                { sku: 'CLORO-01', productName: 'Cloro Industrial', orderedQty: 80, deliveredQty: 80 }
-            ]
-        },
-        {
-            id: 'DSP-1008',
-            dealId: 'D-MOCK-10',
-            contactId: 'C-010',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 62 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 62 * 86400000).toISOString().split('T')[0],
-            driver: 'Roberto Méndez',
-            vehicle: 'Camión NKR-123',
-            items: [
-                { sku: 'FG-AQ-003', productName: 'Laca Acrílica Transparente', orderedQty: 45, deliveredQty: 45 }
-            ]
-        },
-        {
-            id: 'DSP-1009',
-            dealId: 'D-MOCK-11',
-            contactId: 'C-011',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 80 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 80 * 86400000).toISOString().split('T')[0],
-            driver: 'Carlos Perea',
-            vehicle: 'Furgón NPR-450',
-            items: [
-                { sku: 'RM-SOL-005', productName: 'Solvente Universal', orderedQty: 35, deliveredQty: 35 }
-            ]
-        },
-        {
-            id: 'DSP-1010',
-            dealId: 'D-MOCK-12',
-            contactId: 'C-012',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 110 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 110 * 86400000).toISOString().split('T')[0],
-            driver: 'Roberto Méndez',
-            vehicle: 'Camión NKR-123',
-            items: [
-                { sku: 'FG-PU-001', productName: 'Fondo Poliuretano Blanco', orderedQty: 70, deliveredQty: 70 }
-            ]
-        },
-        {
-            id: 'DSP-1011',
-            dealId: 'D-MOCK-13',
-            contactId: 'C-013',
-            status: 'ENTREGADO',
-            promisedDate: new Date(Date.now() - 140 * 86400000).toISOString().split('T')[0],
-            actualDeliveryDate: new Date(Date.now() - 140 * 86400000).toISOString().split('T')[0],
-            driver: 'Carlos Perea',
-            vehicle: 'Furgón NPR-450',
-            items: [
-                { sku: 'RM-RES-001', productName: 'Resina Poliéster Ortoftálica 800', orderedQty: 15, deliveredQty: 15 }
-            ]
+    const [systemSettings, setSystemSettings] = useState<SystemSettings>(() => {
+        const saved = localStorage.getItem('procoquinal_system_settings');
+        if (saved) {
+            try { return JSON.parse(saved); } catch (e) { }
         }
-    ]);
+        return DEFAULT_SETTINGS;
+    });
+
+    const updateSystemSettings = (updates: Partial<SystemSettings>) => {
+        setSystemSettings(prev => {
+            const updated = { ...prev, ...updates };
+            localStorage.setItem('procoquinal_system_settings', JSON.stringify(updated));
+            return updated;
+        });
+    };    const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
+    const [importDossiers, setImportDossiers] = useState<ImportDossier[]>([]);
+    const [dispatches, setDispatches] = useState<DispatchLog[]>([]);
 
     const [commissionRules, setCommissionRules] = useState<CommissionRule[]>([
         { id: '1', name: 'Comisión Estándar (2%)', type: 'Porcentaje', baseVariable: 'Facturación Neta (Menos Retención)', value: 2.0, target: 'Clientes Estándar / Regulares', active: true, hasAgingPenalty: true, hasDiscountPenalty: true },
@@ -427,11 +690,67 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const updateSupplier = (id: string, updates: Partial<Supplier>) => setSuppliers(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
     const deleteSupplier = (id: string) => setSuppliers(prev => prev.filter(s => s.id !== id));
 
-    const [locations, setLocations] = useState<WarehouseLocation[]>([
+        const [mezclaOrders, setMezclaOrders] = useState<MezclaOrder[]>([]);
+    const [mezclaCatalogo, setMezclaCatalogo] = useState<MezclaReceta[]>(SEED_MEZCLAS_CATALOGO);
+
+    const addMezclaOrder = (m: MezclaOrder) => setMezclaOrders(prev => [...prev, m]);
+    const updateMezclaOrder = (id: string, updates: Partial<MezclaOrder>) => {
+        setMezclaOrders(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
+    };
+
+    const saveMezclaToCatalogo = (receta: Omit<MezclaReceta, 'id' | 'timesPrepared' | 'createdAt'> & { id?: string }): MezclaReceta => {
+        let savedResult: MezclaReceta;
+        setMezclaCatalogo(prev => {
+            const existingIndex = prev.findIndex(r => 
+                (receta.id && r.id === receta.id) ||
+                (r.colorCode.toUpperCase() === (receta.colorCode || '').toUpperCase() && 
+                 r.baseSku === receta.baseSku &&
+                 (r.clientName || 'General').toUpperCase() === (receta.clientName || 'General').toUpperCase())
+            );
+
+            if (existingIndex >= 0) {
+                const existing = prev[existingIndex];
+                savedResult = {
+                    ...existing,
+                    ...receta,
+                    id: existing.id,
+                    timesPrepared: (existing.timesPrepared || 0) + 1,
+                    lastPreparedAt: new Date().toISOString(),
+                    formula: { ...existing.formula, ...receta.formula }
+                };
+                const next = [...prev];
+                next[existingIndex] = savedResult;
+                return next;
+            } else {
+                savedResult = {
+                    ...receta,
+                    id: receta.id || `REC-MZ-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    timesPrepared: 1,
+                    createdAt: new Date().toISOString(),
+                    lastPreparedAt: new Date().toISOString(),
+                    category: receta.category || (receta.clientName && receta.clientName !== 'Catálogo General' && receta.clientName !== 'General' ? 'ESPECIAL_CLIENTE' : 'ESTANDAR')
+                };
+                return [savedResult, ...prev];
+            }
+        });
+        return savedResult!;
+    };
+
+    const updateMezclaCatalogo = (id: string, updates: Partial<MezclaReceta>) => {
+        setMezclaCatalogo(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+    };
+
+    const deleteMezclaFromCatalogo = (id: string) => {
+        setMezclaCatalogo(prev => prev.filter(r => r.id !== id));
+    };
+    
+        const [locations, setLocations] = useState<WarehouseLocation[]>([
         { id: 'LOC-001', name: 'Centenario', address: 'Sede Principal Centenario', type: 'Bodega Principal', status: 'Activa' },
-        { id: 'LOC-002', name: 'Norte', address: 'Punto de Venta Norte', type: 'Punto de Venta', status: 'Activa' },
+        { id: 'LOC-002', name: 'Gaitan', address: 'Punto de Venta Gaitan', type: 'Punto de Venta', status: 'Activa' },
         { id: 'LOC-003', name: 'Barranquilla', address: 'Bodega Satélite Barranquilla', type: 'Bodega Satélite', status: 'Activa' },
+        { id: 'LOC-004', name: 'Transito', address: 'Productos en tránsito (llegaron, no distribuidos)', type: 'Bodega Satélite', status: 'Activa' },
     ]);
+
     const addLocation = (loc: WarehouseLocation) => setLocations(prev => [...prev, loc]);
     const updateLocation = (id: string, updates: Partial<WarehouseLocation>) => setLocations(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
     const deleteLocation = (id: string) => setLocations(prev => prev.filter(l => l.id !== id));
@@ -458,7 +777,9 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const addDispatch = (d: DispatchLog) => setDispatches(prev => [...prev, d]);
     const updateDispatch = (id: string, updates: Partial<DispatchLog>) => setDispatches(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
 
-    const [kardexTransactions, setKardexTransactions] = useState<KardexTransaction[]>(KARDEX_TRANSACTIONS);
+    const [kardexTransactions, setKardexTransactions] = useState<KardexTransaction[]>(() => {
+        return [...INITIAL_LAB_KARDEX, ...KARDEX_TRANSACTIONS];
+    });
     const addKardexTransaction = (tx: KardexTransaction) => setKardexTransactions(prev => [tx, ...prev]);
 
     // --- Notification Rules Engine State ---
@@ -674,7 +995,8 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'Crédito 60 días',
         'Crédito 90 días',
         'Saldo a Favor',
-        'Muestra'
+        'Muestra',
+        'Pendiente Facturar'
     ]);
     const [pointsOfSale, setPointsOfSale] = useState<string[]>([
         'Sede Principal Centro',
@@ -698,7 +1020,6 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         'VETRO',
         'VET',
         'LACA CATALIZA',
-        'PROCOQUINAL',
         'PF 45'
     ]);
 
@@ -753,6 +1074,17 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // --- Transactions State ---
     const [transactions, setTransactions] = useState<AccountingTransaction[]>(seedData.txs);
+
+    // --- Producción ---
+    const [productionOrders, setProductionOrders] = useState<ProductionBatch[]>([]);
+
+    const addProductionOrder = (batch: ProductionBatch) => {
+        setProductionOrders(prev => [batch, ...prev]);
+    };
+
+    const updateProductionOrder = (id: string, updates: Partial<ProductionBatch>) => {
+        setProductionOrders(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
+    };
 
     const addTransaction = (t: AccountingTransaction) => {
         setTransactions(prev => [t, ...prev]);
@@ -955,6 +1287,259 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setAuditReports(prev => [newReport, ...prev]);
     };
 
+    const consumeLabStock = (skuOrId: string, quantityToConsume: number): { success: boolean; message: string } => {
+        let result = { success: false, message: '' };
+        
+        setInventory(prev => {
+            const productIndex = prev.findIndex(p => p.id === skuOrId || p.sku === skuOrId || p.originalSku === skuOrId);
+            const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+            if (productIndex === -1) {
+                const isPigment = skuOrId.startsWith('PIGMENT-');
+                const cleanName = isPigment ? skuOrId.replace('PIGMENT-', 'Pigmento ') : skuOrId;
+                const unitCapacity = 1000;
+                const unitsNeeded = Math.ceil(quantityToConsume / unitCapacity);
+                const initialTotalStock = 10;
+                const remainingTotalStock = Math.max(0, initialTotalStock - unitsNeeded);
+                const newLabStock = (unitsNeeded * unitCapacity) - quantityToConsume;
+
+                const newProduct: Product = {
+                    id: skuOrId.toLowerCase(),
+                    sku: skuOrId,
+                    originalSku: skuOrId,
+                    name: cleanName,
+                    category: Category.RAW_MATERIAL,
+                    family: 'Pigmentos y Colorantes',
+                    brand: 'Tintometría Procoquinal',
+                    baseUnit: 'GR',
+                    density: 1.0,
+                    unitCost: 35000,
+                    price: 52000,
+                    totalStock: remainingTotalStock,
+                    reservedStock: 0,
+                    status: InventoryStatus.ACTIVE,
+                    abc: ABCClass.A,
+                    xyz: XYZClass.X,
+                    agingDays: 0,
+                    batches: [],
+                    netWeightKg: 1000,
+                    labStock: newLabStock
+                };
+
+                // Log Kardex
+                addKardexTransaction({
+                    id: `TX-LAB-${Date.now()}`,
+                    date: nowStr,
+                    skuId: skuOrId,
+                    productName: cleanName,
+                    lotNumber: `LOTE-MZ-${Date.now().toString().slice(-4)}`,
+                    type: 'Salida',
+                    quantity: -quantityToConsume,
+                    balanceBefore: unitsNeeded * unitCapacity,
+                    balanceAfter: newLabStock,
+                    unit: 'GR',
+                    operationType: 'CONSUMO_MEZCLA',
+                    documentRef: 'ORD-MEZCLA-ACTIVA',
+                    user: 'Operador Tintometría (KDS)',
+                    formulaName: 'Dosificación en Lote de Mezcla',
+                    notes: `Destapadas ${unitsNeeded} unidad(es) de Bodega Central. Consumo: ${quantityToConsume}g. Saldo restante: ${newLabStock}g`
+                });
+
+                result = { success: true, message: `Destapado nuevo envase (${newLabStock}g restantes)` };
+                return [...prev, newProduct];
+            }
+
+            const p = prev[productIndex];
+            const currentLabStock = p.labStock || 0;
+            const unitName = p.baseUnit || 'GR';
+            
+            if (currentLabStock >= quantityToConsume) {
+                const newLabStock = currentLabStock - quantityToConsume;
+                const newInventory = [...prev];
+                newInventory[productIndex] = { ...p, labStock: newLabStock };
+                
+                // Log Kardex
+                addKardexTransaction({
+                    id: `TX-LAB-${Date.now()}`,
+                    date: nowStr,
+                    skuId: p.sku,
+                    productName: p.name,
+                    lotNumber: `LOTE-MZ-${Date.now().toString().slice(-4)}`,
+                    type: 'Salida',
+                    quantity: -quantityToConsume,
+                    balanceBefore: currentLabStock,
+                    balanceAfter: newLabStock,
+                    unit: unitName,
+                    operationType: 'CONSUMO_MEZCLA',
+                    documentRef: 'ORD-MEZCLA-ACTIVA',
+                    user: 'Operador Tintometría (KDS)',
+                    formulaName: 'Dosificación en Lote de Mezcla',
+                    notes: `Consumidos ${quantityToConsume}${unitName} de saldo destapado. Remanente: ${newLabStock}${unitName}`
+                });
+
+                result = { success: true, message: `Consumido de Bodega Mezclas` };
+                return newInventory;
+            }
+
+            const remainingToConsume = quantityToConsume - currentLabStock;
+            const unitCapacity = p.netWeightKg || p.netVolumeLiters || 1; 
+            const unitsNeeded = Math.ceil(remainingToConsume / unitCapacity);
+
+            if (p.totalStock < unitsNeeded) {
+                result = { success: false, message: `Falta stock (sellado) para destapar.` };
+                return prev;
+            }
+
+            const newTotalStock = p.totalStock - unitsNeeded;
+            const newLabStock = currentLabStock + (unitsNeeded * unitCapacity) - quantityToConsume;
+
+            const newInventory = [...prev];
+            newInventory[productIndex] = { 
+                ...p, 
+                totalStock: newTotalStock,
+                labStock: newLabStock
+            };
+
+            // Log Kardex
+            addKardexTransaction({
+                id: `TX-LAB-${Date.now()}`,
+                date: nowStr,
+                skuId: p.sku,
+                productName: p.name,
+                lotNumber: `LOTE-MZ-${Date.now().toString().slice(-4)}`,
+                type: 'Salida',
+                quantity: -quantityToConsume,
+                balanceBefore: currentLabStock + (unitsNeeded * unitCapacity),
+                balanceAfter: newLabStock,
+                unit: unitName,
+                operationType: 'CONSUMO_MEZCLA',
+                documentRef: 'ORD-MEZCLA-ACTIVA',
+                user: 'Operador Tintometría (KDS)',
+                formulaName: 'Dosificación en Lote de Mezcla',
+                notes: `Agotado saldo previo (${currentLabStock}${unitName}) y destapadas ${unitsNeeded} unidad(es) de ${unitCapacity}${unitName}. Saldo: ${newLabStock}${unitName}`
+            });
+            
+            result = { success: true, message: `Se destaparon ${unitsNeeded} unidad(es)` };
+            return newInventory;
+        });
+
+        return result;
+    };
+
+    const updateLabStock = (
+        skuOrId: string, 
+        newLabStock: number,
+        options?: { notes?: string; documentRef?: string; formulaName?: string; user?: string; lotNumber?: string }
+    ) => {
+        setInventory(prev => {
+            const product = prev.find(p => p.id === skuOrId || p.sku === skuOrId || p.originalSku === skuOrId);
+            if (product) {
+                const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                const prevLab = product.labStock || 0;
+                const diff = newLabStock - prevLab;
+                const isVaciar = newLabStock === 0;
+
+                addKardexTransaction({
+                    id: `TX-ADJ-${Date.now()}`,
+                    date: nowStr,
+                    skuId: product.sku,
+                    productName: product.name,
+                    lotNumber: options?.lotNumber || 'LOTE-BASCULA',
+                    type: isVaciar ? 'Salida' : 'Ajuste',
+                    quantity: diff,
+                    balanceBefore: prevLab,
+                    balanceAfter: newLabStock,
+                    unit: product.baseUnit || 'GR',
+                    operationType: isVaciar ? 'VACIADO_ENVASE' : 'AJUSTE_BASCULA',
+                    documentRef: options?.documentRef || (isVaciar ? 'VACIADO-MANUAL' : 'PESAJE-BASCULA'),
+                    user: options?.user || 'Operador de Mesón',
+                    formulaName: options?.formulaName || (isVaciar ? 'Envase marcado como agotado/vaciado' : 'Ajuste de tara y saldo en balanza de precisión'),
+                    notes: options?.notes || (isVaciar ? 'Se retiró el envase vacío del laboratorio.' : `Pesaje neto ajustado de ${prevLab} a ${newLabStock} ${product.baseUnit || 'GR'}.`)
+                });
+            }
+
+            return prev.map(p => {
+                if (p.id === skuOrId || p.sku === skuOrId || p.originalSku === skuOrId) {
+                    return { ...p, labStock: Math.max(0, newLabStock) };
+                }
+                return p;
+            });
+        });
+    };
+
+    const openUnitToLab = (skuOrId: string, units: number = 1, usedQuantity: number = 0, reason: string = '') => {
+        setInventory(prev => {
+            const product = prev.find(p => p.id === skuOrId || p.sku === skuOrId || p.originalSku === skuOrId);
+            if (product) {
+                const unitCapacity = product.netWeightKg || product.netVolumeLiters || (product.baseUnit === 'GR' ? 1000 : 20);
+                const unitsToOpen = Math.min(product.totalStock, units);
+                if (unitsToOpen > 0) {
+                    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                    const prevLab = product.labStock || 0;
+                    const addedQty = unitsToOpen * unitCapacity;
+                    const validUsed = Math.min(addedQty, Math.max(0, usedQuantity));
+                    const newLab = prevLab + addedQty - validUsed;
+
+                    // 1. Transaction: Apertura de Envase
+                    addKardexTransaction({
+                        id: `TX-OPEN-${Date.now()}`,
+                        date: nowStr,
+                        skuId: product.sku,
+                        productName: product.name,
+                        lotNumber: `LOT-BOD-${Date.now().toString().slice(-4)}`,
+                        type: 'Entrada',
+                        quantity: addedQty,
+                        balanceBefore: prevLab,
+                        balanceAfter: prevLab + addedQty,
+                        unit: product.baseUnit || 'GR',
+                        operationType: 'APERTURA_ENVASE',
+                        documentRef: reason || 'DESTAPE-BOD-CENTRAL',
+                        user: 'Bodega Central -> Laboratorio',
+                        formulaName: `Destape de ${unitsToOpen} envase(s) nuevo(s) (${addedQty} ${product.baseUnit || 'GR'})`,
+                        notes: `Se destapó envase cerrado de ${unitCapacity}${product.baseUnit || 'GR'} desde Bodega Central.`
+                    });
+
+                    // 2. If usedQuantity > 0: Transaction Consumo Inmediato
+                    if (validUsed > 0) {
+                        addKardexTransaction({
+                            id: `TX-LAB-${Date.now() + 1}`,
+                            date: nowStr,
+                            skuId: product.sku,
+                            productName: product.name,
+                            lotNumber: `LOT-MZ-${Date.now().toString().slice(-4)}`,
+                            type: 'Salida',
+                            quantity: -validUsed,
+                            balanceBefore: prevLab + addedQty,
+                            balanceAfter: newLab,
+                            unit: product.baseUnit || 'GR',
+                            operationType: 'CONSUMO_MEZCLA',
+                            documentRef: reason || 'CONSUMO-DESTAPE',
+                            user: 'Operador Tintometría (KDS)',
+                            formulaName: reason || 'Consumo inmediato en lote de mezcla',
+                            notes: `Dosificados ${validUsed}${product.baseUnit || 'GR'} al destapar. Saldo en tarro para inventario mezclas: ${newLab}${product.baseUnit || 'GR'}.`
+                        });
+                    }
+                }
+            }
+
+            return prev.map(p => {
+                if (p.id === skuOrId || p.sku === skuOrId || p.originalSku === skuOrId) {
+                    const unitCapacity = p.netWeightKg || p.netVolumeLiters || (p.baseUnit === 'GR' ? 1000 : 20);
+                    const unitsToOpen = Math.min(p.totalStock, units);
+                    if (unitsToOpen <= 0) return p;
+                    const addedQty = unitsToOpen * unitCapacity;
+                    const validUsed = Math.min(addedQty, Math.max(0, usedQuantity));
+                    return {
+                        ...p,
+                        totalStock: p.totalStock - unitsToOpen,
+                        labStock: (p.labStock || 0) + addedQty - validUsed
+                    };
+                }
+                return p;
+            });
+        });
+    };
+
     const updateInventoryStock = (productId: string, quantityChange: number) => {
         setInventory(prev => prev.map(p =>
             p.id === productId ? { ...p, totalStock: p.totalStock + quantityChange } : p
@@ -981,6 +1566,26 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const updateContact = (contactId: string, updates: Partial<CrmContact>) => {
         setContacts(prev => prev.map(c => c.id === contactId ? { ...c, ...updates } : c));
+    };
+
+    const addInventoryProduct = (newProduct: Product) => {
+        setInventory(prev => [newProduct, ...prev]);
+        addAuditEvent({
+            event_type: 'PRODUCT_CREATED',
+            event_category: 'OPERATIONS',
+            entity_type: 'SKU',
+            entity_id: newProduct.sku,
+            actor_type: 'HUMAN',
+            actor_id: 'OPERADOR',
+            previous_state: null,
+            new_state: newProduct,
+            context: { 
+                channel: 'WEB',
+                reason: `Creación de nuevo producto en catálogo: ${newProduct.name}` 
+            },
+            causal_chain_id: `PRODUCT-CREATE-${Date.now()}`,
+            confidence_level: 'MANUAL'
+        });
     };
 
     const updateInventoryProduct = (productId: string, updates: Partial<Product>) => {
@@ -1078,44 +1683,49 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             if (deal.id === dealId) {
                 // Feature: Integración Fluida CRM -> Inventario
                 if (newStage === 'CLOSED_WON' && deal.stage !== 'CLOSED_WON') {
-                    // Buscar un producto al azar para descontar inventario en esta simulación
-                    setInventory(prevInv => {
-                        const newInv = [...prevInv];
-                        const productIdx = Math.floor(Math.random() * newInv.length);
-                        const product = newInv[productIdx];
-
-                        // Reservamos 10 unidades como ejemplo real
-                        const qtyToReserve = 10;
-                        newInv[productIdx] = {
-                            ...product,
-                            reservedStock: product.reservedStock + qtyToReserve
-                        };
-
-                        // Crear EventLog Auditoría
-                        const logEntry: SystemEvent = {
-                            event_id: `EVT-${Date.now()}`,
-                            event_type: 'STOCK_RESERVE',
-                            event_category: 'OPERATIONS',
-                            entity_type: 'SKU',
-                            entity_id: product.sku,
-                            actor_type: 'SYSTEM',
-                            actor_id: 'CRM-PIPELINE',
-                            timestamp: new Date().toISOString(),
-                            previous_state: { reservedStock: product.reservedStock },
-                            new_state: { reservedStock: product.reservedStock + qtyToReserve },
-                            context: {
-                                channel: 'SYSTEM',
-                                reason: `Deal Ganado: ${deal.title}`,
-                                meta: { dealId, qty: qtyToReserve }
-                            },
-                            causal_chain_id: dealId,
-                            confidence_level: 'AUTOMATIC'
-                        };
-
-                        setEvents(e => [logEntry, ...e]);
-
-                        return newInv;
-                    });
+                    if (deal.items && deal.items.length > 0) {
+                        // Reservar inventario basado en los items del deal
+                        setInventory(prevInv => {
+                            const newInv = [...prevInv];
+                            const newEvents = [];
+                            
+                            for (const item of deal.items) {
+                                const pIdx = newInv.findIndex(p => p.id === item.productId);
+                                if (pIdx !== -1) {
+                                    const product = newInv[pIdx];
+                                    const qtyToReserve = item.quantity;
+                                    newInv[pIdx] = {
+                                        ...product,
+                                        reservedStock: product.reservedStock + qtyToReserve
+                                    };
+                                    
+                                    newEvents.push({
+                                        event_id: `EVT-${Date.now()}-${product.sku}`,
+                                        event_type: 'STOCK_RESERVE',
+                                        event_category: 'OPERATIONS',
+                                        entity_type: 'SKU',
+                                        entity_id: product.sku,
+                                        actor_type: 'SYSTEM',
+                                        actor_id: 'CRM-PIPELINE',
+                                        timestamp: new Date().toISOString(),
+                                        previous_state: { reservedStock: product.reservedStock },
+                                        new_state: { reservedStock: product.reservedStock + qtyToReserve },
+                                        context: {
+                                            channel: 'SYSTEM',
+                                            reason: `Deal Ganado: ${deal.title}`,
+                                            meta: { dealId, qty: qtyToReserve }
+                                        },
+                                        causal_chain_id: dealId,
+                                        confidence_level: 'AUTOMATIC'
+                                    });
+                                }
+                            }
+                            if (newEvents.length > 0) {
+                                setEvents(e => [...newEvents, ...e]);
+                            }
+                            return newInv;
+                        });
+                    }
 
                     // Auto-transfer to Post-Sale Pipeline
                     setContacts(prev => prev.map(c =>
@@ -1348,17 +1958,141 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
         }));
     };
 
+    // --- Sandbox / Demo Mode Handlers ---
+    const getCompleteState = () => {
+        return {
+            inventory, systemUsers, suppliers, importDossiers, dispatches, commissionRules,
+            crmSettings, systemSettings, mezclaOrders, mezclaCatalogo, locations, worldOfficeConfig, kardexTransactions, notificationRules,
+            deals, contacts, activities, events, receipts, assignmentLogs, paymentMethods,
+            pointsOfSale, tintometricRules, reverseDisplayRules, litersToCunetesRules,
+            fractionalRules, rawMaterialCategories, accountingShortcuts, taxRates, recipes,
+            taxRules, pricingRules, paymentRules, transactions, auditReports
+        };
+    };
+
+    const restoreCompleteState = (data: any) => {
+        if (!data) return;
+        if (data.inventory) setInventory(data.inventory);
+        if (data.systemUsers) setSystemUsers(data.systemUsers);
+        if (data.suppliers) setSuppliers(data.suppliers);
+        if (data.importDossiers) setImportDossiers(data.importDossiers);
+        if (data.dispatches) setDispatches(data.dispatches);
+        if (data.commissionRules) setCommissionRules(data.commissionRules);
+        if (data.crmSettings) setCrmSettings(data.crmSettings);
+        if (data.systemSettings) setSystemSettings(data.systemSettings);
+        if (data.mezclaCatalogo) setMezclaCatalogo(data.mezclaCatalogo);
+        if (data.locations) setLocations(data.locations);
+        if (data.worldOfficeConfig) setWorldOfficeConfig(data.worldOfficeConfig);
+        if (data.kardexTransactions) setKardexTransactions(data.kardexTransactions);
+        if (data.notificationRules) setNotificationRules(data.notificationRules);
+        if (data.deals) setDeals(data.deals);
+        if (data.contacts) setContacts(data.contacts);
+        if (data.activities) setActivities(data.activities);
+        if (data.events) setEvents(data.events);
+        if (data.receipts) setReceipts(data.receipts);
+        if (data.assignmentLogs) setAssignmentLogs(data.assignmentLogs);
+        if (data.paymentMethods) setPaymentMethods(data.paymentMethods);
+        if (data.pointsOfSale) setPointsOfSale(data.pointsOfSale);
+        if (data.tintometricRules) setTintometricRules(data.tintometricRules);
+        if (data.reverseDisplayRules) setReverseDisplayRules(data.reverseDisplayRules);
+        if (data.litersToCunetesRules) setLitersToCunetesRules(data.litersToCunetesRules);
+        if (data.fractionalRules) setFractionalRules(data.fractionalRules);
+        if (data.rawMaterialCategories) setRawMaterialCategories(data.rawMaterialCategories);
+        if (data.accountingShortcuts) setAccountingShortcuts(data.accountingShortcuts);
+        if (data.taxRates) setTaxRates(data.taxRates);
+        if (data.recipes) setRecipes(data.recipes);
+        if (data.taxRules) setTaxRules(data.taxRules);
+        if (data.pricingRules) setPricingRules(data.pricingRules);
+        if (data.paymentRules) setPaymentRules(data.paymentRules);
+        if (data.transactions) setTransactions(data.transactions);
+        if (data.auditReports) setAuditReports(data.auditReports);
+    };
+
+    useEffect(() => {
+        const { isDemoMode, enterDemoMode } = useDemoStore.getState();
+        if (!isDemoMode) {
+            // Wait for initial render to settle, then snapshot
+            setTimeout(() => {
+                enterDemoMode(getCompleteState());
+            }, 100);
+        }
+    }, []);
+
+
+    useEffect(() => {
+        const saved = localStorage.getItem('AVALON_LIVE_STATE');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                // Call restore immediately on mount
+                if (parsed) {
+                    if (parsed.inventory) setInventory(parsed.inventory);
+                    if (parsed.systemUsers) setSystemUsers(parsed.systemUsers);
+                    if (parsed.suppliers) setSuppliers(parsed.suppliers);
+                    if (parsed.importDossiers) setImportDossiers(parsed.importDossiers);
+                    if (parsed.dispatches) setDispatches(parsed.dispatches);
+                    if (parsed.commissionRules) setCommissionRules(parsed.commissionRules);
+                    if (parsed.crmSettings) setCrmSettings(parsed.crmSettings);
+                    if (parsed.systemSettings) setSystemSettings(parsed.systemSettings);
+                    if (parsed.mezclaOrders) setMezclaOrders(parsed.mezclaOrders);
+                    if (parsed.mezclaCatalogo) setMezclaCatalogo(parsed.mezclaCatalogo);
+                    if (parsed.locations) setLocations(parsed.locations);
+                    if (parsed.worldOfficeConfig) setWorldOfficeConfig(parsed.worldOfficeConfig);
+                    if (parsed.kardexTransactions) setKardexTransactions(parsed.kardexTransactions);
+                    if (parsed.notificationRules) setNotificationRules(parsed.notificationRules);
+                    if (parsed.deals) setDeals(parsed.deals);
+                    if (parsed.contacts) setContacts(parsed.contacts);
+                    if (parsed.activities) setActivities(parsed.activities);
+                    if (parsed.events) setEvents(parsed.events);
+                    if (parsed.receipts) setReceipts(parsed.receipts);
+                    if (parsed.assignmentLogs) setAssignmentLogs(parsed.assignmentLogs);
+                    if (parsed.paymentMethods) setPaymentMethods(parsed.paymentMethods);
+                    if (parsed.pointsOfSale) setPointsOfSale(parsed.pointsOfSale);
+                    if (parsed.tintometricRules) setTintometricRules(parsed.tintometricRules);
+                    if (parsed.reverseDisplayRules) setReverseDisplayRules(parsed.reverseDisplayRules);
+                    if (parsed.litersToCunetesRules) setLitersToCunetesRules(parsed.litersToCunetesRules);
+                    if (parsed.fractionalRules) setFractionalRules(parsed.fractionalRules);
+                    if (parsed.rawMaterialCategories) setRawMaterialCategories(parsed.rawMaterialCategories);
+                    if (parsed.accountingShortcuts) setAccountingShortcuts(parsed.accountingShortcuts);
+                    if (parsed.taxRates) setTaxRates(parsed.taxRates);
+                    if (parsed.recipes) setRecipes(parsed.recipes);
+                }
+            } catch(e) {
+                console.error('Error restoring state from localStorage', e);
+            }
+        }
+        setIsRestored(true);
+    }, []);
+
+    const stateObj = getCompleteState();
+    useEffect(() => {
+        if (!isRestored) return;
+        const timer = setTimeout(() => {
+            try {
+                localStorage.setItem('AVALON_LIVE_STATE', JSON.stringify(stateObj));
+            } catch (e) {
+                console.error('Failed to save state to localStorage', e);
+            }
+        }, 1000); // 1s debounce to avoid blocking UI
+        return () => clearTimeout(timer);
+    }, [stateObj, isRestored]);
+
     return (
-        <EnterpriseContext.Provider value={{
-            inventory, deals, contacts, activities, events, receipts, crmSettings,
+        <EnterpriseContext.Provider
+ value={{
+            inventory, deals, contacts, activities, events, receipts, crmSettings, systemSettings, updateSystemSettings,
             moveDealStage, moveContactPostSaleStage, addAuditEvent, addContact, addDeal, updateDeal, addActivity, deleteContacts, reassignContacts,
             processInboundReceipt,
             distributeTransitInventory,
             getContactHealthScore,
             updateHealthThresholds,
             updateContact,
+            addInventoryProduct,
             updateInventoryProduct,
             updateInventoryStock,
+            consumeLabStock,
+            updateLabStock,
+            openUnitToLab,
             tintometricRules,
             updateTintometricRules,
             reverseDisplayRules,
@@ -1395,6 +2129,9 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             deleteRecipe,
             processCreditNote,
             reconcileDatáfonoTransaction,
+            productionOrders,
+            addProductionOrder,
+            updateProductionOrder,
             taxRules,
             setTaxRules,
             pricingRules,
@@ -1435,7 +2172,10 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             updateCommissionRule,
             deleteCommissionRule,
             worldOfficeConfig,
-            updateWorldOfficeConfig
+            updateWorldOfficeConfig,
+            mezclaOrders, addMezclaOrder, updateMezclaOrder, mezclaCatalogo, saveMezclaToCatalogo, updateMezclaCatalogo, deleteMezclaFromCatalogo,
+            getCompleteState,
+            restoreCompleteState
         }}>
             {children}
         </EnterpriseContext.Provider>

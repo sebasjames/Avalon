@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { INVENTORY_DATA } from '../constants';
+import { useEnterprise } from '../context/EnterpriseContext';
 import { InventoryStatus, ABCClass, XYZClass, Category } from '../types';
-import { Search, Filter, AlertCircle, CheckCircle2, Clock, XCircle, X, Columns } from 'lucide-react';
+import { Search, Filter, AlertCircle, CheckCircle2, Clock, XCircle, X, Columns, Plus } from 'lucide-react';
 import { formatCOP } from '../utils/format';
+import { CreateProductModal } from './CreateProductModal';
 
 const StatusBadge = ({ status }: { status: InventoryStatus }) => {
   switch (status) {
@@ -36,6 +38,7 @@ const ALL_COLUMNS = [
     'Estatus', 
     'ABC/XYZ', 
     'Stock Total', 
+    'Bodega Mezclas',
     'ATP (Libre)', 
     'Minimo Stock', 
     'Aging (Días)', 
@@ -49,14 +52,17 @@ const ALL_COLUMNS = [
 ];
 
 export const InventoryTable: React.FC = () => {
+  const { inventory } = useEnterprise();
+  const rawData = inventory && inventory.length > 0 ? inventory : INVENTORY_DATA;
   const [search, setSearch] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('Todos');
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
   const [visibleColumns, setVisibleColumns] = useState<string[]>(ALL_COLUMNS);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   
-  const filteredData = INVENTORY_DATA.filter(item => {
+  const filteredData = rawData.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) || 
                           item.sku.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === 'Todos' || item.category === categoryFilter;
@@ -95,6 +101,13 @@ export const InventoryTable: React.FC = () => {
           <p className="text-sm text-slate-500">Niveles de stock, ATP y clasificación en tiempo real.</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto relative">
+            <button 
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+            >
+                <Plus className="w-4 h-4 mr-2" />
+                Agregar Producto
+            </button>
             <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <input 
@@ -237,6 +250,7 @@ export const InventoryTable: React.FC = () => {
                 {showCol('Estatus') && <th className="px-6 py-4">Estatus</th>}
                 {showCol('ABC/XYZ') && <th className="px-6 py-4">ABC/XYZ</th>}
                 {showCol('Stock Total') && <th className="px-6 py-4 text-right">Stock Total</th>}
+                {showCol('Bodega Mezclas') && <th className="px-6 py-4 text-right text-amber-700">Bodega Mezclas</th>}
                 {showCol('ATP (Libre)') && <th className="px-6 py-4 text-right">ATP (Libre)</th>}
                 {showCol('Minimo Stock') && <th className="px-6 py-4 text-right">Minimo Stock</th>}
                 {showCol('Aging (Días)') && <th className="px-6 py-4 text-right">Aging (Días)</th>}
@@ -287,6 +301,11 @@ export const InventoryTable: React.FC = () => {
                   {showCol('Stock Total') && (
                     <td className="px-6 py-4 text-right font-medium">
                         {item.category === Category.SERVICE ? '∞' : item.totalStock.toLocaleString('es-CO')}
+                    </td>
+                  )}
+                  {showCol('Bodega Mezclas') && (
+                    <td className="px-6 py-4 text-right font-bold text-amber-600 bg-amber-50/50">
+                        {item.category === Category.SERVICE ? '-' : (item.labStock || 0).toLocaleString('es-CO')}
                     </td>
                   )}
                   {showCol('ATP (Libre)') && (
@@ -381,6 +400,11 @@ export const InventoryTable: React.FC = () => {
             </div>
         )}
       </div>
+
+      <CreateProductModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+      />
     </div>
   );
 };

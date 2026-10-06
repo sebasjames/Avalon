@@ -15,10 +15,15 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children }) => {
     const CORRECT_PASSWORD = 'Avalon_2028!';
 
     useEffect(() => {
-        // Check if previously authenticated in this session
-        const authStatus = sessionStorage.getItem('avalon_staging_auth');
-        if (authStatus === 'true') {
+        // Check if previously authenticated in this session or localStorage or URL param
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasUrlAuth = urlParams.get('auth') === 'true';
+        const authStatus = sessionStorage.getItem('avalon_staging_auth') || localStorage.getItem('avalon_staging_auth');
+        
+        if (authStatus === 'true' || hasUrlAuth) {
             setIsAuthenticated(true);
+            sessionStorage.setItem('avalon_staging_auth', 'true');
+            localStorage.setItem('avalon_staging_auth', 'true');
         }
         setIsChecking(false);
     }, []);

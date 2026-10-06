@@ -59,15 +59,6 @@ export const SalesPerformance: React.FC = () => {
             };
         }).sort((a, b) => b.daysLate - a.daysLate).slice(0, 6);
 
-        if (dynamicDelayedOrders.length === 0 && (selectedMonth === 'ALL' || selectedMonth === '09' || selectedMonth === '08')) {
-            dynamicDelayedOrders = [
-                { id: 'ORD-8921', client: 'ESSENTIAL FURNITURE S.A.S', sku: 'Resina Poliéster Ortoftálica 800 (55 Gal)', qty: 2, value: 7863920, daysLate: 4, reason: 'Esperando llegada de Lote Poliéster' },
-                { id: 'ORD-8924', client: 'MADERAS Y MOLDURAS DEL VALLE', sku: 'Laca Acrílica Automotriz (Cuñetes 5 Gal)', qty: 5, value: 4520000, daysLate: 7, reason: 'Retraso de despacho por verificación de crédito' },
-                { id: 'ORD-8930', client: 'PINTURAS Y RECUBRIMIENTOS DE LA SABANA', sku: 'Solvente Universal Grado Industrial', qty: 10, value: 12350000, daysLate: 11, reason: 'Quiebre temporal en envases tambor 55 gal' },
-                { id: 'ORD-8935', client: 'INDUSTRIAS QUÍMICAS DE OCCIDENTE', sku: 'Barniz Poliuretano Mate 2K', qty: 4, value: 3180000, daysLate: 3, reason: 'Pendiente confirmación de entrega en Cali' }
-            ];
-        }
-
         const delayedSalesValue = delayedDeals.length > 0 
             ? delayedDeals.reduce((sum, d) => sum + d.value, 0)
             : dynamicDelayedOrders.reduce((sum, d) => sum + d.value, 0);
@@ -88,14 +79,6 @@ export const SalesPerformance: React.FC = () => {
                 reason: isCredit ? 'Límite de Crédito Excedido' : 'Cartera Vencida (+60 Días)'
             };
         });
-
-        if (dynamicBlockedCustomers.length === 0) {
-            dynamicBlockedCustomers.push(
-                { id: 'CLI-0142', name: 'DISTRIBUIDORA QUÍMICA INDUSTRIAL SAS', blockedAmount: 14850000, ordersBlocked: 2, impact: 'High', reason: 'Facturas FV-0120 y FV-0188 en Mora +60 Días' },
-                { id: 'CLI-0289', name: 'MADERAS Y BARNICES DEL CENTRO LTDA', blockedAmount: 8420000, ordersBlocked: 1, impact: 'Medium', reason: 'Cupo de Crédito ($8.0M) Excedido por Pedido Pendiente' },
-                { id: 'CLI-0077', name: 'RECUBRIMIENTOS DECORATIVOS BOGOTÁ', blockedAmount: 5120000, ordersBlocked: 1, impact: 'High', reason: 'Cheque Devuelto / Cartera Bloqueada por Contabilidad' }
-            );
-        }
 
         // Determine chronological 6-month window based on selected filter
         const targetYear = selectedYear !== 'ALL' ? parseInt(selectedYear) : now.getFullYear();

@@ -20,6 +20,11 @@ const AdvancedAnalytics = React.lazy(() => import('./components/AdvancedAnalytic
 const EventLog = React.lazy(() => import('./components/EventLog').then(m => ({ default: m.EventLog })));
 const InventoryHub = React.lazy(() => import('./components/InventoryHub').then(m => ({ default: m.InventoryHub })));
 const SalesTeamProfiles = React.lazy(() => import('./components/SalesTeamProfiles').then(m => ({ default: m.SalesTeamProfiles })));
+const TeamActivityAudit = React.lazy(() => import('./components/TeamActivityAudit').then(m => ({ default: m.TeamActivityAudit })));
+// Prefetch on idle
+if (typeof window !== 'undefined') {
+  setTimeout(() => import('./components/TeamActivityAudit'), 1500);
+}
 const Configuration = React.lazy(() => import('./components/Configuration').then(m => ({ default: m.Configuration })));
 const GestionComercial = React.lazy(() => import('./components/GestionComercial').then(m => ({ default: m.GestionComercial })));
 const ComisionesLogros = React.lazy(() => import('./components/ComisionesLogros').then(m => ({ default: m.ComisionesLogros })));
@@ -27,9 +32,10 @@ const MatrixComisiones = React.lazy(() => import('./components/MatrixComisiones'
 const CrmFull = React.lazy(() => import('./components/CrmFull').then(m => ({ default: m.CrmFull })));
 const NotificationsPage = React.lazy(() => import('./components/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const TintometriaPanel = React.lazy(() => import('./components/TintometriaPanel').then(m => ({ default: m.TintometriaPanel })));
-const MezclasTablero = React.lazy(() => import('./components/MezclasTablero').then(m => ({ default: m.MezclasTablero })));
+const OperationsHub = React.lazy(() => import('./components/OperationsHub').then(m => ({ default: m.OperationsHub })));
 const InventarioTransito = React.lazy(() => import('./components/InventarioTransito').then(m => ({ default: m.InventarioTransito })));
 const SmartPosPanel = React.lazy(() => import('./components/SmartPosPanel').then(m => ({ default: m.SmartPosPanel })));
+const PosHistory = React.lazy(() => import('./components/PosHistory').then(m => ({ default: m.PosHistory })));
 const AccountingModule = React.lazy(() => import('./components/AccountingModule').then(m => ({ default: m.AccountingModule })));
 const ReturnsPanel = React.lazy(() => import('./components/ReturnsPanel').then(m => ({ default: m.ReturnsPanel })));
 const DispatchModule = React.lazy(() => import('./components/DispatchModule').then(m => ({ default: m.DispatchModule })));
@@ -98,7 +104,7 @@ const App: React.FC = () => {
     <AuthGate>
     <EnterpriseProvider>
     <HashRouter>
-      <div className="flex min-h-screen bg-slate-50 font-sans">
+      <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-sans">
         {/* Mobile Overlay */}
         {isSidebarOpen && !isZenMode && (
           <div 
@@ -109,10 +115,10 @@ const App: React.FC = () => {
         
         {!isZenMode && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
         
-        <main className="flex-1 overflow-y-auto h-screen relative flex flex-col">
+        <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden relative">
           {/* Mobile Header */}
           {!isZenMode && (
-            <div className="md:hidden flex items-center p-4 bg-white border-b border-slate-200 sticky top-0 z-30">
+            <div className="md:hidden flex items-center p-4 bg-white border-b border-slate-200 shrink-0 z-30">
               <button 
                 onClick={() => setIsSidebarOpen(true)} 
                 className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
@@ -130,7 +136,8 @@ const App: React.FC = () => {
 
           {!isZenMode && <GlobalHeader />}
 
-          <div className="flex-1 relative">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 relative flex flex-col focus:outline-none">
+            <div className="flex-1 relative flex flex-col min-h-full">
             <React.Suspense fallback={
               <div className="flex items-center justify-center h-full min-h-[50vh]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -141,6 +148,7 @@ const App: React.FC = () => {
             <Route path="/crm" element={<CrmFull />} />
 
             <Route path="/pos" element={<SmartPosPanel />} />
+            <Route path="/pos-history" element={<PosHistory />} />
             <Route path="/inventory-hub" element={<InventoryHub />} />
             <Route path="/inventario-transito" element={<InventarioTransito />} />
             <Route path="/sales-performance" element={<SalesPerformance />} />
@@ -152,7 +160,7 @@ const App: React.FC = () => {
             <Route path="/production" element={<ProductionManagement />} />
             <Route path="/dispensador" element={<DispatchModule />} />
             <Route path="/tintometria" element={<TintometriaPanel />} />
-            <Route path="/mezclas" element={<MezclasTablero />} />
+            <Route path="/mezclas" element={<OperationsHub />} />
             <Route path="/ajustes" element={<ProtectedRoute allowedRoles={['admin']}><Configuration /></ProtectedRoute>} />
             <Route path="/atp" element={<ATPAllocation />} />
             <Route path="/governance" element={<ProtectedRoute allowedRoles={['admin']}><DataGovernance /></ProtectedRoute>} />
@@ -160,6 +168,7 @@ const App: React.FC = () => {
             <Route path="/analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdvancedAnalytics /></ProtectedRoute>} />
             <Route path="/event-log" element={<EventLog />} />
             <Route path="/staff/sales-profiles" element={<ProtectedRoute allowedRoles={['admin']}><SalesTeamProfiles /></ProtectedRoute>} />
+            <Route path="/staff/registro-actividad" element={<ProtectedRoute allowedRoles={['admin']}><TeamActivityAudit /></ProtectedRoute>} />
             <Route path="/staff/gestion-comercial" element={<ProtectedRoute allowedRoles={['admin']}><GestionComercial /></ProtectedRoute>} />
             <Route path="/staff/comisiones" element={<ProtectedRoute allowedRoles={['admin']}><ComisionesLogros /></ProtectedRoute>} />
             <Route path="/staff/matrix" element={<ProtectedRoute allowedRoles={['admin']}><MatrixComisiones /></ProtectedRoute>} />
@@ -174,8 +183,9 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
             </React.Suspense>
-          </div>
-        </main>
+            </div>
+          </main>
+        </div>
         
         <FloatingTaskNote />
         <ToastContainer />

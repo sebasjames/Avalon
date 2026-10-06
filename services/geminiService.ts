@@ -564,7 +564,7 @@ export const suggestTransitDistribution = async (receiptItems: any[], inventoryC
         
         const prompt = `
 Eres el módulo de IA Logística de Procoquinal. 
-Se acaba de recibir un lote de mercancía (Inventario en Tránsito). Tu objetivo es decidir a qué bodegas (Centenario, Gaitán, Barranquilla) enviar cada fracción de los productos para balancear el stock.
+Se acaba de recibir un lote de mercancía (Inventario en Tránsito). Tu objetivo es decidir a qué bodegas (Centenario, Gaitán, Barranquilla, Transito) enviar cada fracción de los productos para balancear el stock.
 
 INVENTARIO ACTUAL EN BODEGAS PARA ESTOS SKUS:
 ${JSON.stringify(inventoryContext, null, 2)}
@@ -583,7 +583,7 @@ Devuelve estrictamente un arreglo JSON (sin markdown, sin bloques de código) co
   }
 ]
 IMPORTANTE: La suma de 'qty' en 'splits' DEBE ser exactamente igual a la cantidad total del producto recibido.
-Solo puedes usar las bodegas: Centenario, Gaitán, Barranquilla.
+Solo puedes usar las bodegas: Centenario, Gaitán, Barranquilla, Transito.
 `;
 
         const response = await ai.models.generateContent({

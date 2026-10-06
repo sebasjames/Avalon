@@ -7,7 +7,7 @@ import {
     Settings, ScanBarcode, Calculator, TrendingUp, Zap, ShoppingCart, 
     Wallet, ShieldCheck, BarChart4, ChevronDown, ChevronRight, Boxes,
     PieChart, Landmark, CircleDollarSign, GitCommit, LayoutGrid, Users, Briefcase, X, Database, Medal, Network, Heart, FileSpreadsheet,
-    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck, Droplet, Beaker, BarChart3, Cloud
+    TableProperties, DollarSign, PackageOpen, UserCheck, HandCoins, RefreshCcw, CreditCard, Mail, ChevronLeft, Truck, Droplet, Beaker, BarChart3, Cloud, Receipt
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
     const operationPaths = ['/inventory', '/inventory-control', '/production'];
     const financePaths = ['/financial', '/informes-pedido', '/informes-omar', '/governance', '/intelligence', '/analytics', '/event-log', '/forecast', '/action-center'];
     const salesPaths = ['/crm', '/sales-performance', '/atp', '/pos'];
-    const staffPaths = ['/staff/sales-profiles', '/staff/gestion-comercial'];
+    const staffPaths = ['/staff/sales-profiles', '/staff/registro-actividad', '/staff/gestion-comercial', '/staff/comisiones', '/staff/matrix'];
     const accountingPaths = ['/accounting', '/returns'];
 
     setOpenGroups(prev => {
@@ -84,19 +84,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
     );
   };
 
-  const navStructure: any[] = [
-    // Group: Sales & Revenue
-    {
-        type: 'group',
-        label: "Ventas & Ingresos",
-        icon: CircleDollarSign,
-        children: [
-            { to: "/pos", icon: ShoppingCart, label: "Punto de Venta (B2B)", special: true },
-            { to: "/crm", icon: Users, label: "Gestión de Clientes (CRM)" },
-            { to: "/sales-performance", icon: BarChart4, label: "Desempeño de Ventas" },
-            { to: "/atp", icon: Calculator, label: "Disponibilidad ATP" },
-        ]
-    },
+    const navStructure: any[] = [
+        // Group: Sales & Revenue
+        {
+            type: 'group',
+            label: "Ventas & Ingresos",
+            icon: CircleDollarSign,
+            children: [
+                { to: "/pos", icon: ShoppingCart, label: "Punto de Venta (B2B)", special: true },
+                { to: "/pos-history", icon: FileSpreadsheet, label: "Historial / Turno", special: true },
+                { to: "/crm", icon: Users, label: "Gestión de Clientes (CRM)" },
+                { to: "/sales-performance", icon: BarChart4, label: "Desempeño de Ventas" },
+                { to: "/atp", icon: Calculator, label: "Reservado ATP" },
+            ]
+        },
     
     // Group: Operation
     {
@@ -106,8 +107,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         children: [
             { to: "/inventory-hub", icon: PackageSearch, label: "Centro de Inventarios" },
             { to: "/inventario-transito", icon: PackageOpen, label: "Inventario Tránsito" },
-            { to: "/production", icon: FlaskConical, label: "Producción y Lotes" },
-            { to: "/mezclas", icon: Beaker, label: "Tablero de Mezclas" },
+            { to: "/production", icon: FlaskConical, label: "Historial de Producción" },
+            { to: "/mezclas", icon: Beaker, label: "Mezclas y Pedidos" },
             { to: "/tintometria", icon: Droplet, label: "Tintometría y Colores" },
         ]
     },
@@ -139,6 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
         icon: Users,
         children: [
             { to: "/staff/sales-profiles", icon: Briefcase, label: "Equipo" },
+            { to: "/staff/registro-actividad", icon: Receipt, label: "Registro de Actividad Comercial" },
             { to: "/staff/gestion-comercial", icon: Briefcase, label: "Gestión Comercial" },
             { to: "/staff/comisiones", icon: Medal, label: "Comisiones y Logros" },
             { to: "/staff/matrix", icon: Network, label: "Matrix Comisiones" },
@@ -218,6 +220,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, setIsOpen }) =
                     return {
                         ...group,
                         children: group.children.filter((c: any) => c.to === '/mezclas' || c.to === '/inventory-hub')
+                    };
+                }
+                return null;
+            }
+            if (activeRole === 'Planta' || activeRole === 'Laboratorio') {
+                if (group.label === 'Operación') return group;
+                if (group.label === 'Despachos & Logística') return group;
+                if (group.label === 'Ventas & Ingresos') {
+                    return {
+                        ...group,
+                        children: group.children.filter((c: any) => c.to === '/atp')
                     };
                 }
                 return null;

@@ -95,11 +95,19 @@ export interface KardexTransaction {
   date: string;
   skuId: string;
   lotNumber: string;
-  type: 'Entrada' | 'Salida' | 'Ajuste';
+  type: 'Entrada' | 'Salida' | 'Ajuste' | 'VENTA';
+  total?: number;
   quantity: number;
   balanceAfter: number;
   documentRef: string;
   user: string;
+  productName?: string;
+  operationType?: 'APERTURA_ENVASE' | 'CONSUMO_MEZCLA' | 'AJUSTE_BASCULA' | 'VACIADO_ENVASE' | 'AJUSTE_GENERAL' | 'INGRESO_DESTAPADO' | string;
+  mezclaOrderId?: string;
+  formulaName?: string;
+  balanceBefore?: number;
+  unit?: string;
+  notes?: string;
 }
 
 export interface Product {
@@ -137,6 +145,7 @@ export interface Product {
   tintometricBaseType?: string; // e.g. "SOLVENTE INTERNO", "ACQUA INT."
   netWeightKg?: number; // Exact net weight in kilograms
   netVolumeLiters?: number; // Exact net volume in liters
+  labStock?: number; // Stock en Bodega de Mezclas (Destapado / En Uso)
   
   // Ficha Técnica / Technical Data
   chemicalComponents?: { name: string; percentage: string; cas: string }[];
@@ -215,6 +224,7 @@ export interface ProductionBatch {
     realUnitCost: number; // Calculated after deviations
     
     ingredients: FormulaItem[];
+    notes?: string;
 }
 
 export interface SalesRecord {
@@ -465,12 +475,20 @@ export interface DealSplit {
   percentage: number;
 }
 
+export interface DealItem {
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercent?: number;
+}
+
 export interface CrmDeal {
   id: string;
   title: string;
   contactId: string;
   company: string;
-  value: number;
+  value: number; // Will be auto-calculated if items exist
+  items?: DealItem[];
   stage: CrmDealStage;
   expectedCloseDate: string;
   probability: number; // 0-100
@@ -614,7 +632,7 @@ export interface SystemSettings {
 
 export interface CrmSettings {
   leadSources: CrmLeadSource[];
-  stages: { id: CrmDealStage; label: string; defaultProbability: number }[];
+  stages: { id: CrmDealStage; label: string; defaultProbability: number; color?: string }[];
   sla: {
     maxHoursUncontactedLead: number;
     maxDaysInStage: number;
@@ -638,7 +656,7 @@ export interface CrmSettings {
 export interface AccountingTransaction {
   id: string;
   date: string;
-  type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' | 'NOTA_CREDITO' | 'NOTA_DEBITO' | 'PAGO_RECIBIDO';
+  type: 'VENTA' | 'COMPRA' | 'AJUSTE_MERMA' | 'NOTA_CREDITO' | 'NOTA_DEBITO' | 'PAGO_RECIBIDO' | 'GASTO_CAJA';
   client: string;
   clientId?: string;
   document: string;
@@ -694,6 +712,14 @@ export interface Notification {
     read: boolean;
 }
 
+export interface TimelineNote {
+  id: string;
+  author: string;
+  process: string; // e.g. 'Ventas', 'Laboratorio', 'Despachos'
+  text: string;
+  date: string;
+}
+
 export enum MezclaStatus {
     PENDING = 'PENDING',
     IN_PROGRESS = 'IN_PROGRESS',
@@ -713,7 +739,33 @@ export interface MezclaOrder {
     requestedAt: string;
     completedAt?: string;
     operatorName?: string;
+    timelineNotes?: TimelineNote[];
+    colorName?: string;
+    presentation?: string;
+    recipeName?: string;
+    customerName?: string;
 }
+
+export interface MezclaReceta {
+    id: string;
+    name: string;
+    colorCode: string;
+    clientName?: string;
+    baseSku: string;
+    baseName: string;
+    baseType?: string;
+    formula: Record<string, string>; // Gramos / proporción por unidad (ej. Galón)
+    unit?: string; // 'GL', 'LT', 'KG'
+    density?: number | string;
+    instructions?: string;
+    category?: 'ESTANDAR' | 'ESPECIAL_CLIENTE' | 'AJUSTE_PLANTA';
+    timesPrepared: number;
+    lastPreparedAt?: string;
+    createdAt: string;
+    createdByUser?: string;
+    notes?: string;
+}
+
 
 export type PermissionKey = 
     | 'VER_INVENTARIO' | 'AJUSTES_STOCK'
@@ -721,7 +773,7 @@ export type PermissionKey =
     | 'MODULOS_FINANCIEROS' | 'EXPORTAR_SIIGO' | 'CIERRES_CAJA'
     | 'PANEL_MAESTRO' | 'GESTION_USUARIOS';
 
-export type UserRole = 'admin' | 'manager' | 'POS' | 'Contabilidad' | 'Comercial' | 'Mezclas' | 'Despachos';
+export type UserRole = 'admin' | 'manager' | 'POS' | 'Contabilidad' | 'Comercial' | 'Mezclas' | 'Despachos' | 'Planta' | 'Laboratorio';
 
 export interface SystemUser {
   id: string;
@@ -805,13 +857,15 @@ export interface DispatchLog {
   id: string;
   dealId: string;
   contactId: string;
-  status: 'PENDIENTE' | 'ARMANDO_PEDIDO' | 'EN_TRANSITO' | 'ENTREGADO' | 'ENTREGA_FALLIDA';
+  status: 'PENDIENTE' | 'ARMANDO_PEDIDO' | 'EN_TRANSITO' | 'ENTREGADO' | 'ENTREGA_FALLIDA' | 'CANCELADO';
   promisedDate: string;
   actualDeliveryDate?: string;
   items: DispatchItem[];
   driver?: string;
   vehicle?: string;
   notes?: string;
+  timelineNotes?: TimelineNote[];
+  pendingInvoice?: boolean;
 }
 
 export interface CommissionRule {
@@ -873,3 +927,9 @@ export interface WorldOfficeConfig {
 
   activeWarehouses: string[];
 }
+
+
+export type Deal = CrmDeal;
+export type Contact = CrmContact;
+export type DispatchRecord = DispatchLog;
+export type InventoryItem = Product;

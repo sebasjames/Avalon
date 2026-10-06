@@ -35,3 +35,13 @@ export const formatCOP = (num: number, includeDecimals = false): string => {
     
     return `${isNegative ? '-' : ''}$ ${result}${decimalPart} COP`;
 };
+
+export const formatDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch {
+        return dateStr;
+    }
+};

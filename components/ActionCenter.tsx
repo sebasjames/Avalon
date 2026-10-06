@@ -50,7 +50,7 @@ export const ActionCenter: React.FC = () => {
                 marginImpactPercent = -5;
                 costOfAction = quantityToMove * 1000; // Packaging cost
             } else if (type === 'TRANSFER') {
-                const locations = ['Centenario', 'Gaitán', 'Barranquilla'];
+                const locations = ['Centenario', 'Gaitán', 'Barranquilla', 'Transito'];
                 const dest = locations[Math.floor(Math.random() * locations.length)];
                 reason = `🤖 AI Forecast: Probabilidad de quiebre de stock inminente en sede ${dest}.`;
                 suggestedAction = `Transferencia Automática de ${quantityToMove} unidades hacia ${dest}.`;

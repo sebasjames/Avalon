@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Box, ScanBarcode, ShoppingCart, LayoutGrid } from 'lucide-react';
 import { useEnterprise } from '../context/EnterpriseContext';
@@ -17,6 +18,7 @@ export const InventoryHub: React.FC = () => {
     const activeLocations = locations.filter(l => l.status === 'Activa');
     const [activeTab, setActiveTab] = useState<InventoryTab>('catalog');
     const [segmentFilter, setSegmentFilter] = useState<string>('ALL');
+    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen bg-slate-50 relative overflow-hidden flex flex-col">
@@ -51,11 +53,10 @@ export const InventoryHub: React.FC = () => {
                             </button>
                         ))}
                         <button 
-                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all ml-1 border border-transparent hover:border-slate-200/50"
-                            title="Configurar Locaciones"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all ml-1 border border-transparent hover:border-slate-200/50 cursor-pointer"
+                            title="Configurar Sedes y Bodegas"
                             onClick={() => {
-                                // Simulate navigating to Configuration -> Locaciones by clicking standard nav
-                                alert("Ve a Configuración > Locaciones para administrar las bodegas.");
+                                navigate('/config?tab=locaciones&new=true');
                             }}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>

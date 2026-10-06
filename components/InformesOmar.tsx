@@ -232,8 +232,9 @@ export const InformesOmar: React.FC = () => {
     }
     return [
       'Bodega Centenario (Bodega Principal)',
-      'Bodega Norte (Punto de Venta)',
-      'Bodega Barranquilla (Bodega Satélite)'
+      'Bodega Gaitan (Punto de Venta)',
+      'Bodega Barranquilla (Bodega Satélite)',
+      'Bodega Transito (Bodega Satélite)'
     ];
   }, [locations]);
 
@@ -676,8 +677,9 @@ export const InformesOmar: React.FC = () => {
         const locNorm = (tx.posLocation || '').toLowerCase();
         const match = locNorm.includes(wNorm) || wNorm.includes(locNorm) ||
           (wNorm.includes('centenario') && (locNorm.includes('centenario') || locNorm.includes('centro') || locNorm.includes('principal'))) ||
-          (wNorm.includes('norte') && locNorm.includes('norte')) ||
+          (wNorm.includes('gaitan') && locNorm.includes('gaitan')) ||
           (wNorm.includes('barranquilla') && locNorm.includes('barranquilla')) ||
+          (wNorm.includes('transito') && locNorm.includes('transito')) ||
           (wNorm.includes('planta') && locNorm.includes('planta'));
         if (!match) return false;
       }
@@ -1982,7 +1984,7 @@ export const InformesOmar: React.FC = () => {
 
       {/* MODAL DE AYUDA RETRO WORLD OFFICE */}
       {showAyudaModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4 backdrop-blur-xs">
           <div className="bg-[#ece9d8] border-2 border-slate-700 w-full max-w-md shadow-2xl rounded-xs">
             <div className="bg-[#1c3b70] text-white px-3 py-1.5 font-bold text-xs flex justify-between items-center">
               <span className="flex items-center gap-1.5"><HelpCircle className="w-3.5 h-3.5" /> Ayuda World Office — Criterios de Selección</span>

@@ -542,7 +542,7 @@ Devuelve EXCLUSIVAMENTE un arreglo JSON válido sin markdown adicional con este 
                                         const difference = valTotal - sumDebits;
 
                                         return (
-                                            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+                                            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
                                                 <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col border border-slate-200 max-h-[90vh]">
                                                     {/* Modal Header */}
                                                     <div className="bg-slate-900 px-6 py-4 flex justify-between items-center shrink-0">
@@ -747,7 +747,7 @@ Devuelve EXCLUSIVAMENTE un arreglo JSON válido sin markdown adicional con este 
 
                                 {/* Batch validation review modal popup (overlay style) */}
                                 {showReviewModal && (
-                                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
                                         <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200">
                                             {/* Modal Header */}
                                             <div className="bg-slate-900 px-6 py-4 flex justify-between items-center">

@@ -191,7 +191,7 @@ export const TintometriaPanel: React.FC = () => {
 
       {/* Auth Modal for Saving Edits */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-center w-16 h-16 bg-indigo-50 rounded-2xl mb-6 mx-auto">
               <Lock className="w-8 h-8 text-indigo-600" />

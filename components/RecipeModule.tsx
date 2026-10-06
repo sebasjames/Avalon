@@ -4,6 +4,7 @@ import { FlaskConical, Plus, Trash2, Search, ArrowRight, Save, DatabaseZap, File
 import { useEnterprise } from '../context/EnterpriseContext';
 import { Product, Recipe, RecipeIngredient } from '../types';
 import { ImportRecipesModal } from './ImportRecipesModal';
+import { MezclasCatalogo } from './MezclasCatalogo';
 import { formatCOP } from '../utils/format';
 
 export const RecipeModule: React.FC = () => {
@@ -11,6 +12,7 @@ export const RecipeModule: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [activeInnerTab, setActiveInnerTab] = useState<'POS' | 'MEZCLAS'>('MEZCLAS');
 
     // New Recipe State
     const [selectedProduct, setSelectedProduct] = useState<string>('');
@@ -53,11 +55,24 @@ export const RecipeModule: React.FC = () => {
                         <FlaskConical size={24} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-slate-800 tracking-tight">Fórmulas y Recetas (BOM)</h2>
-                        <p className="text-sm font-medium text-slate-500">Configura combos, mezclas y servicios conexos.</p>
+                        <h2 className="text-xl font-bold text-slate-800 tracking-tight">Fórmulas y Recetas</h2>
+                        <div className="flex gap-4 mt-2">
+                            <button 
+                                onClick={() => setActiveInnerTab('MEZCLAS')} 
+                                className={`text-sm font-bold pb-1 transition-colors ${activeInnerTab === 'MEZCLAS' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Catálogo de Mezclas (Planta)
+                            </button>
+                            <button 
+                                onClick={() => setActiveInnerTab('POS')} 
+                                className={`text-sm font-bold pb-1 transition-colors ${activeInnerTab === 'POS' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Combos y Kits (POS)
+                            </button>
+                        </div>
                     </div>
                 </div>
-                {!isCreating && (
+                {!isCreating && activeInnerTab === 'POS' && (
                     <div className="flex gap-3">
                         <button 
                             onClick={() => setIsImportModalOpen(true)}
@@ -75,8 +90,16 @@ export const RecipeModule: React.FC = () => {
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6">
-                <AnimatePresence mode="wait">
+            <div className="flex-1 overflow-y-auto bg-slate-50">
+                {activeInnerTab === 'MEZCLAS' && (
+                    <div className="h-full">
+                        <MezclasCatalogo />
+                    </div>
+                )}
+                
+                {activeInnerTab === 'POS' && (
+                    <div className="p-6">
+                        <AnimatePresence mode="wait">
                     {isCreating ? (
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -244,6 +267,8 @@ export const RecipeModule: React.FC = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
+                    </div>
+                )}
             </div>
             
             <ImportRecipesModal 

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { MoreVertical, Building2, Clock, XCircle, LayoutGrid, List } from 'lucide-react';
+import { MoreVertical, Building2, Clock, XCircle, LayoutGrid, List, Box } from 'lucide-react';
 import { CrmDealStage, CrmDeal, CrmContact, CrmLeadSource } from '../types';
+import { useEnterprise } from '../context/EnterpriseContext';
+import { CrmEngine } from '../utils/CrmEngine';
 
 interface CrmPipelineProps {
   deals: CrmDeal[];
@@ -9,19 +11,39 @@ interface CrmPipelineProps {
   onDealMove: (dealId: string, newStage: CrmDealStage) => void;
   onDealClick: (contactId: string) => void;
   getSourceBadge: (source: CrmLeadSource) => { label: string; color: string; icon: any };
+  highlightDealId?: string | null;
+  highlightSignal?: { dealId: string; nonce: number } | null;
 }
 
-export const CrmPipeline: React.FC<CrmPipelineProps> = ({ deals, contacts, onDealMove, onDealClick, getSourceBadge }) => {
-  const stages: { id: CrmDealStage; label: string; color: string }[] = [
-    { id: 'PROSPECTO', label: 'Prospecto', color: 'bg-slate-100 border-slate-200' },
-    { id: 'QUALIFIED', label: 'Calificado', color: 'bg-blue-50 border-blue-200' },
-    { id: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-50 border-indigo-200' },
-    { id: 'NEGOTIATION', label: 'Negociación', color: 'bg-amber-50 border-amber-200' },
-    { id: 'CLOSED_WON', label: 'Ganado', color: 'bg-emerald-50 border-emerald-200' }
-  ];
+export const CrmPipeline: React.FC<CrmPipelineProps> = ({ 
+  deals, 
+  contacts: _contacts, 
+  onDealMove, 
+  onDealClick, 
+  getSourceBadge, 
+  highlightDealId, 
+  highlightSignal 
+}) => {
+  const { crmSettings } = useEnterprise();
+  const stages = CrmEngine.getActiveStages(crmSettings).filter(s => s.id !== 'CLOSED_LOST');
 
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [isDragging, setIsDragging] = useState(false);
+
+  // Auto-scroll suave de fondo hacia la tarjeta sin bloquear clics ni colocar letreros invasivos
+  useEffect(() => {
+    const targetId = highlightSignal?.dealId || highlightDealId;
+    if (!targetId) return;
+
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`crm-deal-${targetId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [highlightSignal?.nonce, highlightDealId]);
 
   const handleDragStart = (e: React.DragEvent, dealId: string) => {
     e.dataTransfer.setData('text/plain', dealId);
@@ -80,71 +102,90 @@ export const CrmPipeline: React.FC<CrmPipelineProps> = ({ deals, contacts, onDea
 
           <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-320px)] custom-scrollbar">
             {stages.map(stage => {
-              const stageDeals = deals.filter(d => d.stage === stage.id);
-              const stageTotal = stageDeals.reduce((sum, d) => sum + d.value, 0);
+              const stageDeals = deals.filter(d => 
+                d.stage === stage.id || 
+                (stage.id === 'CLOSED_WON' && d.stage === ('GANADO' as any)) ||
+                (stage.id === 'PROSPECTO' && d.stage === ('LEAD' as any))
+              );
+              const stageTotal = stageDeals.reduce((sum, d) => sum + (d.value || 0), 0);
 
               return (
                 <div 
                   key={stage.id} 
-                  className="flex-shrink-0 w-80 flex flex-col"
+                  className="flex-shrink-0 w-80 bg-slate-50/50 rounded-xl flex flex-col max-h-full border border-slate-200/60 shadow-xs"
                   onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, stage.id)}
+                  onDrop={(e) => handleDrop(e, stage.id as CrmDealStage)}
                 >
-                  <div className={`p-3 rounded-t-xl border-t border-x ${stage.color}`}>
-                    <div className="flex justify-between items-center mb-1">
-                      <h3 className="font-semibold text-slate-800">{stage.label}</h3>
-                      <span className="text-xs font-medium bg-white px-2 py-1 rounded-full shadow-sm">
+                  {/* Column Header */}
+                  <div className={`p-3 border-b rounded-t-xl ${stage.color} flex justify-between items-center`}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-slate-800">{stage.label}</span>
+                      <span className="bg-white/80 text-slate-600 text-xs px-2 py-0.5 rounded-full font-bold shadow-xs">
                         {stageDeals.length}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 font-medium">${stageTotal.toLocaleString('es-CO')} COP</p>
+                    <span className="text-xs font-semibold text-slate-600">
+                      ${stageTotal.toLocaleString('es-CO')}
+                    </span>
                   </div>
-                  <div className="flex-1 bg-slate-50 border-x border-b border-slate-200 rounded-b-xl p-3 space-y-3 overflow-y-auto">
+
+                  {/* Deals List */}
+                  <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
                     {stageDeals.map(deal => {
-                      const contact = contacts.find(c => c.id === deal.contactId);
-                      const sourceBadge = contact ? getSourceBadge(contact.source) : null;
-                      const SourceIcon = sourceBadge?.icon;
+                      const sourceBadge = deal.contactId ? getSourceBadge('MANUAL' as any) : null;
+                      const SourceIcon = sourceBadge ? sourceBadge.icon : null;
 
                       return (
-                      <motion.div 
-                        layoutId={deal.id}
-                        key={deal.id} 
-                        draggable
-                        onDragStart={(e) => handleDragStart(e as any, deal.id)}
-                        onDragEnd={handleDragEnd}
-                        onClick={() => onDealClick(deal.contactId)}
-                        className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:border-indigo-300 transition-colors"
-                      >
-                        <div className="flex justify-between items-start mb-2 pointer-events-none">
-                          <h4 className="text-sm font-semibold text-slate-900 line-clamp-2">{deal.title}</h4>
-                          <button className="text-slate-400 hover:text-slate-600 pointer-events-auto">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between mb-3 pointer-events-none">
-                          <div className="flex items-center gap-1 text-xs text-slate-500">
-                            <Building2 className="w-3 h-3" />
-                            <span className="truncate max-w-[120px]">{deal.company}</span>
-                          </div>
-                          {sourceBadge && SourceIcon && (
-                            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider ${sourceBadge.color}`}>
-                              <SourceIcon className="w-2.5 h-2.5" />
-                              {sourceBadge.label}
+                        <motion.div
+                          id={`crm-deal-${deal.id}`}
+                          layoutId={deal.id}
+                          key={deal.id} 
+                          draggable
+                          onDragStart={(e) => handleDragStart(e as any, deal.id)}
+                          onDragEnd={handleDragEnd}
+                          onClick={() => {
+                            onDealClick(deal.contactId);
+                          }}
+                          className="p-4 rounded-xl shadow-xs border cursor-grab active:cursor-grabbing transition-all duration-200 relative bg-white border-slate-200 hover:border-indigo-300 hover:shadow-md"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-1.5 flex-1">
+                              {deal.items && deal.items.length > 0 && (
+                                <div className="bg-indigo-100 text-indigo-700 p-0.5 rounded shadow-sm" title="Cotización Adjunta">
+                                  <Box className="w-3.5 h-3.5" />
+                                </div>
+                              )}
+                              <h4 className="text-sm font-semibold line-clamp-2 text-slate-900">{deal.title}</h4>
                             </div>
-                          )}
-                        </div>
-                        <div className="flex justify-between items-end mt-2 pt-2 border-t border-slate-100 pointer-events-none">
-                          <span className="text-sm font-bold text-indigo-600">${deal.value.toLocaleString('es-CO')} COP</span>
-                          <div className="flex items-center gap-1 text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                            <Clock className="w-3 h-3" />
-                            {new Date(deal.expectedCloseDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            <button className="text-slate-400 hover:text-slate-600 pointer-events-auto">
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
                           </div>
-                        </div>
-                      </motion.div>
-                    )})}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-1 text-xs text-slate-500">
+                              <Building2 className="w-3 h-3" />
+                              <span className="truncate max-w-[120px]">{deal.company}</span>
+                            </div>
+                            {sourceBadge && SourceIcon && (
+                              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider ${sourceBadge.color}`}>
+                                <SourceIcon className="w-2.5 h-2.5" />
+                                {sourceBadge.label}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                            <span className="font-bold text-slate-900">${deal.value.toLocaleString('es-CO')}</span>
+                            <div className="flex items-center gap-1 text-slate-400">
+                              <Clock className="w-3 h-3" />
+                              <span>{new Date(deal.expectedCloseDate).toLocaleDateString('es-CO')}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                     {stageDeals.length === 0 && (
-                      <div className="h-24 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-lg pointer-events-none">
-                        <span className="text-sm text-slate-400">Suelta aquí</span>
+                      <div className="h-24 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center text-xs text-slate-400 font-medium">
+                        Sin tratos
                       </div>
                     )}
                   </div>
@@ -154,24 +195,35 @@ export const CrmPipeline: React.FC<CrmPipelineProps> = ({ deals, contacts, onDea
           </div>
         </>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        /* List / Table View */
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-r border-slate-200/60">Trato</th>
-                <th className="py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-r border-slate-200/60">Empresa</th>
-                <th className="py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-r border-slate-200/60">Etapa</th>
-                <th className="py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-r border-slate-200/60">Valor</th>
-                <th className="py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Cierre Esperado</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="py-3 px-4">Trato</th>
+                <th className="py-3 px-4">Empresa / Contacto</th>
+                <th className="py-3 px-4">Etapa</th>
+                <th className="py-3 px-4">Valor (COP)</th>
+                <th className="py-3 px-4">Fecha Cierre</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {deals.filter(d => d.stage !== 'CLOSED_LOST').map(deal => {
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {deals.map(deal => {
                 const stageObj = stages.find(s => s.id === deal.stage);
+
                 return (
-                  <tr key={deal.id} className="hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => onDealClick(deal.contactId)}>
-                    <td className="py-2 px-4 border-r border-slate-100/50">
-                      <span className="text-sm font-semibold text-slate-800">{deal.title}</span>
+                  <tr 
+                    id={`crm-deal-${deal.id}`}
+                    key={deal.id} 
+                    className="hover:bg-slate-50/80 transition-colors cursor-pointer" 
+                    onClick={() => {
+                      onDealClick(deal.contactId);
+                    }}
+                  >
+                    <td className="py-2.5 px-4 border-r border-slate-100/50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-800">{deal.title}</span>
+                      </div>
                     </td>
                     <td className="py-2 px-4 border-r border-slate-100/50">
                       <div className="flex items-center gap-1.5 text-sm text-slate-600">

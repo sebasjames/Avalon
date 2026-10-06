@@ -5,11 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { formatCOP } from '../utils/format';
 import { InventoryExcelModal } from './InventoryExcelModal';
+import { CreateProductModal } from './CreateProductModal';
 import { InventoryStatus, Category } from '../types';
 import { 
     Search, Layers, Box, Cpu, Activity, Droplet, Ghost,
     LayoutGrid, List, X, History, TrendingUp, TrendingDown, RefreshCw, AlertCircle,
-    TestTube, Shield, BoxSelect, PaintBucket, Sparkles, Palette, Grid3x3, Waves, Tent, Wand2, Flame, Hexagon, Armchair, Hammer, Zap, Timer, Brush, Crown, Edit3, Save, Check, FileSpreadsheet
+    TestTube, Shield, BoxSelect, PaintBucket, Sparkles, Palette, Grid3x3, Waves, Tent, Wand2, Flame, Hexagon, Armchair, Hammer, Zap, Timer, Brush, Crown, Edit3, Save, Check, FileSpreadsheet, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react'; // if not installed, use framer-motion approach, but I see motion is imported in CrmFull
 
@@ -573,7 +574,7 @@ const Card = ({ product, onClick }: { product: any, onClick: () => void }) => {
             <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100/80 relative z-10">
                 <div className="bg-slate-50/50 rounded-xl p-2 text-center border border-slate-100">
                     <div className="text-[10px] text-slate-400 uppercase font-bold">Total Val.</div>
-                    <div className="text-sm font-bold text-slate-700">${(value/1000).toFixed(1)}k</div>
+                    <div className="text-xs font-bold text-slate-700 truncate" title={formatCOP(value)}>{formatCOP(value)}</div>
                 </div>
                 <div className={`rounded-xl p-2 text-center border bg-white/50 ${
                     product.agingDays > 60 ? 'border-rose-100' : 'border-emerald-100'
@@ -639,6 +640,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
     const [editedRows, setEditedRows] = useState<Record<string, { totalStock?: number; price?: number; barcode?: string; taxRate?: number; category?: Category; family?: string; brand?: string; minStock?: number; }>>({});
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [showExcelModal, setShowExcelModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedChanges, setSelectedChanges] = useState<string[]>([]);
     const [authSignature, setAuthSignature] = useState('');
     const [filter, setFilter] = useState('ALL');
@@ -690,6 +692,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
 
   // Escape key hooks
   useEscapeKey(() => setShowExcelModal(false), showExcelModal);
+  useEscapeKey(() => setShowCreateModal(false), showCreateModal);
 
 
     const availableBrands = useMemo(() => {
@@ -979,7 +982,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
                         <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
 
                         <CheckboxDropdown 
-                            title="Proveedor" 
+                            title="Linea" 
                             options={availableBrands} 
                             selected={selectedBrands} 
                             onChange={setSelectedBrands} 
@@ -1047,6 +1050,9 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
                                     <>
                                         <button onClick={() => setShowExcelModal(true)} className="flex items-center justify-center w-[42px] h-[42px] bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg border border-emerald-200 shadow-sm transition-colors" title="Auditoría Excel">
                                             <FileSpreadsheet className="w-5 h-5" />
+                                        </button>
+                                        <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors h-[42px]">
+                                            <Plus className="w-4 h-4" /> Agregar Producto
                                         </button>
                                         <button onClick={() => setIsEditing(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold rounded-lg border border-indigo-200 shadow-sm transition-colors h-[42px]">
                                             <Edit3 className="w-4 h-4" /> Editar Precios/Stock
@@ -1458,6 +1464,13 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
                     onClose={() => setShowExcelModal(false)} 
                     data={filteredData} 
                 />
+                <CreateProductModal 
+                    isOpen={showCreateModal} 
+                    onClose={() => setShowCreateModal(false)} 
+                    onSuccess={(newProduct) => {
+                        setSelectedProduct(newProduct);
+                    }}
+                />
                 {selectedProduct && (
                     <ProductDrawer product={selectedProduct} onClose={() => setSelectedProduct(null)} />
                 )}
@@ -1466,7 +1479,7 @@ export const SmartInventoryView: React.FC<{ segmentFilter?: string }> = ({ segme
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
                     >
                         <motion.div 
                             initial={{ scale: 0.95, y: 20 }}

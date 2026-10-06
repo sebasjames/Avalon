@@ -694,7 +694,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
       </div>
 
       {isReassignModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
             <h2 className="text-xl font-bold mb-2">Reasignar Contactos</h2>
             <p className="text-sm text-slate-500 mb-4">Selecciona el comercial al que deseas reasignar {selectedContactIds.length} contacto(s).</p>
@@ -735,7 +735,7 @@ export const CrmContactsTable: React.FC<CrmContactsTableProps> = ({
       )}
 
       {isNewViewModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[9999] p-4">
               <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                       <h3 className="font-bold text-lg text-slate-800">Crear Nueva Vista</h3>

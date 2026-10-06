@@ -23,6 +23,7 @@ interface Rule {
 }
 
 import { useEnterprise } from '../context/EnterpriseContext';
+import { CommissionEngine, SalesMetrics } from '../utils/CommissionEngine';
 
 export const MatrixComisiones: React.FC = () => {
   const { commissionRules, addCommissionRule, updateCommissionRule, deleteCommissionRule } = useEnterprise();
@@ -30,76 +31,27 @@ export const MatrixComisiones: React.FC = () => {
   // Alias the global state variable
   const rules = commissionRules;
 
-  // --- SIMULATION LOGIC ---
-  // Proxy historical data (Last Month)
-  const historical = {
+  // Data proxy simulada (En producción provendría del store/backend)
+  const historicalMetrics: SalesMetrics = {
     totalRecaudo: 400000,
     totalFacturacion: 650000,
-    ventasDesengrasantes: 45000,
-    ventasCarpoly: 200000, // For CARPOLY test (30.7% of total)
-    tareasCrmEstimadas: 150 // instances
+    ventasPorFamilia: {
+      'DESENGRASANTES': 45000,
+      'CARPOLY': 200000
+    },
+    ventasPorProducto: {},
+    tareasCrmCompletadas: 150,
+    porcentajeDescuentosAltos: 0.20,
+    porcentajeRecaudoEnTiempo: {
+      menosDe30Dias: 0.70,
+      entre31Y60Dias: 0.20,
+      masDe90Dias: 0.10
+    }
   };
 
   const simulateRuleCost = (rule: Rule) => {
-    if (!rule.active) return 0;
-    
-    let cost = 0;
-    if (rule.baseVariable === 'Recaudo' && rule.type === 'Porcentaje') {
-      cost = historical.totalRecaudo * (rule.value / 100);
-    } else if (rule.baseVariable === 'Facturación' && rule.type === 'Porcentaje') {
-      cost = historical.totalFacturacion * (rule.value / 100);
-      if (rule.target === 'Oro/Diamante') cost = cost * 0.4; // assume 40% of sales are from top tier
-    } else if (rule.baseVariable === 'Facturación Neta (Menos Retención)' && rule.type === 'Porcentaje') {
-      // Logic from Excel: Retención 2.5% if > 895,000
-      // Assuming avg ticket size or simulating based on total. We will simulate a rough aggregate:
-      const retencionAvg = historical.totalFacturacion * 0.025; 
-      const facturacionNeta = historical.totalFacturacion - retencionAvg;
-      cost = facturacionNeta * (rule.value / 100);
-      
-      // Target specific simulation adjustments
-      if (rule.target === 'Clientes Especiales (1%)') {
-        cost = cost * 0.15; // Assume 15% volume is special clients
-      } else if (rule.target === 'Clientes Estándar / Regulares') {
-        cost = cost * 0.85; // Assume 85% volume is standard clients (prevents double counting special clients)
-      } // If 'Todos', cost remains 100% of facturacionNeta
-    } else if (rule.baseVariable === 'Familia' && rule.type === 'Porcentaje') {
-      // Simulate that this rule is CARPOLY for demo purposes if it has threshold
-      const familiaSales = rule.minVolumeThreshold ? historical.ventasCarpoly : historical.ventasDesengrasantes;
-      
-      // Volume threshold condition check
-      let qualifies = true;
-      if (rule.minVolumeThreshold) {
-        const percentageOfTotal = (familiaSales / historical.totalFacturacion) * 100;
-        if (percentageOfTotal <= rule.minVolumeThreshold) {
-          qualifies = false;
-        }
-      }
-
-      if (qualifies) {
-        cost = familiaSales * (rule.value / 100);
-      }
-    } else if (rule.baseVariable === 'Tarea CRM' && rule.type === 'Fijo') {
-      cost = historical.tareasCrmEstimadas * rule.value;
-    }
-    
-    // Apply cap if exists
-    if (rule.cap && cost > rule.cap * 10 /* rough estimate of team size */) {
-      cost = rule.cap * 10; 
-    }
-    
-    // Apply aging penalty simulation
-    // Assume distribution: 70% paid <30 days (100%), 20% 31-60 days (50%), 10% >90 days (0%)
-    if (rule.hasAgingPenalty) {
-      cost = cost * (0.70 * 1.0 + 0.20 * 0.5 + 0.10 * 0.0);
-    }
-
-    // Apply discount penalty simulation
-    // Assume 20% of sales are aggressively discounted (>5%), dropping their commission payout by 50%
-    if (rule.hasDiscountPenalty) {
-      cost = cost * (0.80 * 1.0 + 0.20 * 0.5);
-    }
-    
-    return Math.round(cost);
+    // Delegamos la matemática a nuestro motor de dominio puro
+    return CommissionEngine.calculateRuleCost(rule as any, historicalMetrics);
   };
 
   // Calculate total costs for the Pie Chart
@@ -166,7 +118,7 @@ export const MatrixComisiones: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-8 font-sans pb-24">
+    <div className="flex-1 w-full min-w-0 flex flex-col min-h-screen bg-slate-900 text-slate-200 p-4 md:p-8 font-sans pb-24 overflow-x-hidden">
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -188,7 +140,7 @@ export const MatrixComisiones: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
         {/* LEFT COLUMN: The Rules Builder */}
-        <div className="xl:col-span-8 space-y-4">
+        <div className="xl:col-span-8 space-y-4 min-w-0">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-slate-400" />
             Lienzo de Reglas
@@ -197,11 +149,11 @@ export const MatrixComisiones: React.FC = () => {
           {rules.map((rule) => (
             <div 
               key={rule.id} 
-              className={`bg-slate-800 rounded-2xl p-5 border transition-all duration-300 ${
+              className={`bg-slate-800 rounded-2xl p-5 border transition-all duration-300 overflow-x-auto custom-scrollbar ${
                 rule.active ? 'border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]' : 'border-slate-700 opacity-60'
               }`}
             >
-              <div className="flex flex-col md:flex-row justify-between gap-4">
+              <div className="flex flex-col md:flex-row justify-between gap-4 min-w-min">
                 
                 {/* Rule Header & Toggle */}
                 <div className="flex-1">
@@ -403,7 +355,7 @@ export const MatrixComisiones: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: Dashboard & Simulator */}
-        <div className="xl:col-span-4 space-y-6">
+        <div className="xl:col-span-4 space-y-6 min-w-0">
           
           {/* Master Pie Chart */}
           <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative">
@@ -478,7 +430,7 @@ export const MatrixComisiones: React.FC = () => {
               <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center">
                 <span className="text-sm text-slate-400">Margen Comprometido:</span>
                 <span className="text-emerald-400 font-bold text-lg">
-                  {((totalSimulatedCost / historical.totalFacturacion) * 100).toFixed(1)}%
+                  {((totalSimulatedCost / historicalMetrics.totalFacturacion) * 100).toFixed(1)}%
                 </span>
               </div>
             </div>
@@ -498,7 +450,7 @@ export const MatrixComisiones: React.FC = () => {
 
       {/* Modal Crear Regla */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               <Plus className="w-6 h-6 text-indigo-400" />

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Printer, Download, Copy, X, Check, QrCode, Maximize2, Minimize2, CheckCircle2, ShieldCheck, Receipt } from 'lucide-react';
 import { useUIStore } from '../stores/uiStore';
@@ -218,7 +219,9 @@ export const PosReceiptModal: React.FC<PosReceiptModalProps> = ({
         addToast({ title: 'Factura 80mm Generada', message: `Ticket térmico POS descargado para Starpos TP80NC.`, severity: 'SUCCESS' });
     };
 
-    return (
+    if (!isOpen) return null;
+
+    return createPortal(
         <AnimatePresence>
             <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/85 backdrop-blur-sm ${isFullscreen ? 'p-0' : 'p-4'}`}>
                 <motion.div
@@ -388,6 +391,7 @@ export const PosReceiptModal: React.FC<PosReceiptModalProps> = ({
                     </div>
                 </motion.div>
             </div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };

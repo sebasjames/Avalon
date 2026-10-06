@@ -58,7 +58,7 @@ const FlagBadge = ({ type }: { type: 'SILENT' | 'EXPIRING' | 'OVERSTOCK' | 'REOR
 }
 
 export const InventoryControlDeep: React.FC = () => {
-    const { inventory, kardexTransactions, updateBatchStatus } = useEnterprise();
+    const { inventory, systemSettings, kardexTransactions, updateBatchStatus } = useEnterprise();
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('ALL');
     const [orderBy, setOrderBy] = useState('risk_first');
@@ -122,8 +122,8 @@ export const InventoryControlDeep: React.FC = () => {
             if (!matchesSearch) return false;
 
             if (filter === 'CADUCANDO') return batch.daysToExpiry < 30;
-            if (filter === 'SILENCIOSO') return batch.aging > 90;
-            if (filter === 'EXCESO') return batch.freeStock > 2000 && batch.aging > 90;
+            if (filter === 'SILENCIOSO') return batch.aging > systemSettings.inventory.silentAgingDays;
+            if (filter === 'EXCESO') return batch.freeStock > 2000 && batch.aging > systemSettings.inventory.silentAgingDays;
             if (filter === 'REORDEN') return batch.freeStock < batch.minStock;
 
             return true;
@@ -138,18 +138,18 @@ export const InventoryControlDeep: React.FC = () => {
             if (orderBy === 'loc_asc') return a.location.localeCompare(b.location);
             
             // risk_first
-            const aRisk = (a.daysToExpiry < 30 ? 1000 : 0) + (a.freeStock < a.minStock ? 500 : 0) + (a.aging > 90 ? 100 : 0);
-            const bRisk = (b.daysToExpiry < 30 ? 1000 : 0) + (b.freeStock < b.minStock ? 500 : 0) + (b.aging > 90 ? 100 : 0);
+            const aRisk = (a.daysToExpiry < 30 ? 1000 : 0) + (a.freeStock < a.minStock ? 500 : 0) + (a.aging > systemSettings.inventory.silentAgingDays ? 100 : 0);
+            const bRisk = (b.daysToExpiry < 30 ? 1000 : 0) + (b.freeStock < b.minStock ? 500 : 0) + (b.aging > systemSettings.inventory.silentAgingDays ? 100 : 0);
             return bRisk - aRisk;
         });
 
         return result;
-    }, [rawBatches, search, filter, orderBy]);
+    }, [rawBatches, search, filter, orderBy, systemSettings.inventory.silentAgingDays]);
 
     // Derived metrics
     const totalInventoryValue = flattenedBatches.reduce((sum, b) => sum + b.totalValue, 0);
     const expiringBatchesCount = flattenedBatches.filter(b => b.daysToExpiry < 30).length;
-    const overstockBatchesCount = flattenedBatches.filter(b => b.freeStock > 2000 && b.aging > 90).length;
+    const overstockBatchesCount = flattenedBatches.filter(b => b.freeStock > 2000 && b.aging > systemSettings.inventory.silentAgingDays).length;
 
     return (
         <div className="p-6 bg-slate-50 min-h-screen space-y-6">
@@ -389,7 +389,7 @@ export const InventoryControlDeep: React.FC = () => {
 
             {/* HISTORY MODAL (Kardex Ledger) */}
             {historyModalBatch && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
