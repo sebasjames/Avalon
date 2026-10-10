@@ -31,12 +31,16 @@ import {
   Sparkles,
   MapPin,
   Building,
-  Target
+  Target,
+  LifeBuoy,
+  Send,
+  Camera
 } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../constants';
 import { SystemSettings, TaxRule, PricingRule, PaymentRule, Supplier } from '../types';
 import { useEnterprise } from '../context/EnterpriseContext';
 import { DemoPanel } from './DemoPanel';
+import { AvalonSupportCenter } from './AvalonSupportCenter';
 
 export const Configuration: React.FC = () => {
   const {
@@ -47,12 +51,13 @@ export const Configuration: React.FC = () => {
     locations, addLocation, updateLocation, deleteLocation,
     crmSettings, updateCrmSettings,
     worldOfficeConfig, updateWorldOfficeConfig,
-    systemSettings, updateSystemSettings
+    systemSettings, updateSystemSettings,
+    setIsReportingMode, supportScreenshots, clearSupportScreenshots
   } = useEnterprise();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const initialTab = (searchParams.get('tab') || location.state?.tab || 'worldoffice') as any;
-  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'locaciones' | 'integraciones' | 'worldoffice' | 'demo'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'inventario' | 'produccion' | 'formulas' | 'ventas' | 'compras' | 'finanzas' | 'impuestos' | 'reglas' | 'contabilidad' | 'usuarios' | 'proveedores' | 'locaciones' | 'integraciones' | 'worldoffice' | 'demo' | 'soporte' | 'emergencia'>(initialTab);
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') || location.state?.tab;
@@ -79,6 +84,14 @@ export const Configuration: React.FC = () => {
   const [newRawCategory, setNewRawCategory] = useState('');
 
   const [geminiKeyInput, setGeminiKeyInput] = useState(localStorage.getItem('gemini_api_key') || '');
+
+  // Búnker State
+  const [tripwires, setTripwires] = useState([
+    'Eliminar > 5 registros / min',
+    'Exportar catálogo fuera de horario',
+    'Intentos login masivos (MFA Fail)'
+  ]);
+  const [newTripwire, setNewTripwire] = useState('');
 
   // RBAC State
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -208,6 +221,8 @@ export const Configuration: React.FC = () => {
     { id: 'integraciones', label: 'Integraciones', icon: Database },
     { id: 'worldoffice', label: 'World Office ERP', icon: Building },
     { id: 'demo', label: 'Entorno Demo', icon: Beaker },
+    { id: 'soporte', label: 'Soporte', icon: LifeBuoy },
+    { id: 'emergencia', label: 'Panel Emergencia', icon: AlertCircle },
   ];
 
   return (
@@ -252,7 +267,7 @@ export const Configuration: React.FC = () => {
       </AnimatePresence>
 
       {/* Superior Navigation Tabs */}
-      <nav className="flex gap-2 overflow-x-auto pb-6 custom-scrollbar-hide h-fit">
+      <nav className="flex gap-2 overflow-x-auto pt-3 px-3 pb-6 -mx-3 -mt-3 custom-scrollbar-hide h-fit">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -2224,6 +2239,408 @@ export const Configuration: React.FC = () => {
                       </div>
                     </div>
                   </section>
+                </div>
+              )}
+
+              {activeTab === 'soporte' && (
+                <div className="space-y-12">
+                  {/* CENTRO DE SOPORTE & MANUAL DE USUARIO AVALON V1 */}
+                  <AvalonSupportCenter />
+
+                  <div className="border-t border-slate-200 pt-8 mt-8">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                        <LifeBuoy size={24} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-semibold text-slate-800">Soporte Técnico Scarpian AI</h2>
+                        <p className="text-slate-500">Genera un ticket de soporte directamente con nuestro equipo de ingeniería.</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm w-full">
+                      <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const subject = formData.get('subject') as string;
+                      const category = formData.get('category') as string;
+                      const description = formData.get('description') as string;
+
+                      // Construir el objeto del ticket
+                      const ticket = {
+                        id: 'TKT-' + Math.floor(1000 + Math.random() * 9000),
+                        subject,
+                        category,
+                        description,
+                        status: 'Pendiente',
+                        createdAt: new Date().toISOString(),
+                        systemInfo: {
+                          appVersion: 'Avalon V1',
+                          userAgent: navigator.userAgent,
+                          resolution: `${window.innerWidth}x${window.innerHeight}`
+                        }
+                      };
+
+                      // 1. Guardar en Base de Datos (Simulado usando LocalStorage por ahora)
+                      const existingTickets = JSON.parse(localStorage.getItem('scarpian_tickets') || '[]');
+                      localStorage.setItem('scarpian_tickets', JSON.stringify([...existingTickets, ticket]));
+
+                      // 2. Enviar Webhook a Discord / Slack
+                      // Configura tu URL real de webhook aquí o en el entorno
+                      const webhookUrl = localStorage.getItem('scarpian_webhook_url') || ''; 
+                      
+                      try {
+                        if (webhookUrl) {
+                          await fetch(webhookUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              content: `🚨 **Nuevo Ticket de Soporte (Avalon V1)** 🚨\n**ID:** ${ticket.id}\n**Asunto:** ${ticket.subject}\n**Categoría:** ${ticket.category}\n**Descripción:** ${ticket.description}\n**Resolución:** ${ticket.systemInfo.resolution}\n**Capturas Adjuntas:** ${supportScreenshots.length}`
+                            })
+                          });
+                        } else {
+                          console.log('Webhook simulado exitosamente. Ticket:', ticket);
+                          console.log('Para enviar a Discord/Slack, establece "scarpian_webhook_url" en localStorage.');
+                        }
+                        
+                        alert(`¡Tu ticket (${ticket.id}) ha sido enviado a Scarpian AI!\nPronto nos pondremos en contacto.`);
+                        e.currentTarget.reset();
+                        clearSupportScreenshots();
+                      } catch (err) {
+                        alert(`El ticket (${ticket.id}) se guardó localmente, pero hubo un error de red al notificar al equipo.`);
+                      }
+                    }} className="space-y-6">
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-slate-700">Asunto del Ticket</label>
+                          <input name="subject" type="text" required placeholder="Ej: Error al facturar un producto..." className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-slate-700">Categoría</label>
+                          <select name="category" required className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            <option value="">Selecciona una categoría...</option>
+                            <option value="error">Error del Sistema (Bug)</option>
+                            <option value="duda">Duda de Uso</option>
+                            <option value="mejora">Sugerencia de Mejora</option>
+                            <option value="facturacion">Problema de Facturación</option>
+                            <option value="otro">Otro</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start mt-4">
+                        {/* Columna Izquierda: Descripción */}
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-slate-700">Descripción Detallada</label>
+                            <textarea name="description" required rows={6} placeholder="Describe detalladamente lo que estaba pasando, qué intentabas hacer y qué resultado esperabas..." className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"></textarea>
+                          </div>
+
+                          {supportScreenshots.length > 0 && (
+                            <div className="space-y-3">
+                              <label className="block text-sm font-bold text-slate-700">Capturas Adjuntas ({supportScreenshots.length})</label>
+                              <div className="grid grid-cols-2 gap-4">
+                                {supportScreenshots.map((shot) => (
+                                  <div key={shot.id} className="relative group rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50">
+                                    <img src={shot.image} alt={shot.note} className="w-full h-24 object-cover" />
+                                    {shot.note && (
+                                      <div className="absolute bottom-0 inset-x-0 bg-slate-900/80 p-2 text-white text-[10px] truncate">
+                                        {shot.note}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Columna Derecha: Información y Botones */}
+                        <div className="flex flex-col h-full space-y-4 pt-7">
+                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-start gap-3">
+                            <AlertCircle className="text-slate-400 mt-0.5 shrink-0" size={18} />
+                            <div className="text-sm text-slate-600">
+                              <p className="font-semibold text-slate-700 mb-1">Información Adjunta Automáticamente</p>
+                              Al enviar este ticket, adjuntaremos de forma segura tu versión actual (Avalon V1), navegador, resolución de pantalla y el estado general del sistema para agilizar la resolución.
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1"></div>
+
+                          <div className="flex flex-wrap justify-end gap-3">
+                            <button 
+                              type="button"
+                              onClick={() => setIsReportingMode(true)}
+                              className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg text-sm flex-1 whitespace-nowrap"
+                            >
+                              <Camera size={16} />
+                              Tomar fotos
+                            </button>
+                            <button type="submit" className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 text-sm flex-1 whitespace-nowrap">
+                              <Send size={16} />
+                              Enviar Ticket
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                    </form>
+                  </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'emergencia' && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="p-3 bg-rose-100 text-rose-600 rounded-xl animate-pulse">
+                      <AlertCircle size={28} />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-black text-slate-900 tracking-tight">Centro de Comando Táctico (DEFCON)</h2>
+                      <p className="text-slate-500 font-medium">Out-of-Band Control Plane. Ejecución de protocolos de contingencia automatizados y manuales.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-start gap-2 mb-4">
+                    <Database size={16} className="text-slate-400 mt-0.5 shrink-0" />
+                    <p>
+                      <strong>Infraestructura Aislada:</strong> Esta interfaz se comunica directamente con el microservicio Búnker en Cloud Run. No depende del clúster principal de Avalon. Si la UI principal colapsa, ingrese por la ruta de escape SOS.
+                    </p>
+                  </div>
+
+                  {/* 1 y 2. Pausa Global y Lockdown de Accesos */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-rose-50 border-2 border-rose-200 rounded-2xl p-6 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-xl font-black text-rose-900 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                          <AlertCircle size={20} /> 1. Pausa Global (Defcon 1)
+                        </h3>
+                        <p className="text-rose-700 text-sm mb-6 font-medium">
+                          Detiene todas las transacciones, integraciones y mutaciones de BD. El sistema entra en mantenimiento estricto. Requiere "Two-Man Rule".
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const code = prompt("Paso 1: Ingrese credencial de administrador autorizada:");
+                          if (code) {
+                            const code2 = prompt("Paso 2: Esperando segunda llave de autorización (Two-Man Rule)...");
+                            if (code2) alert("Protocolo DEFCON 1 ejecutado. Sistema bloqueado.");
+                          }
+                        }}
+                        className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-4 rounded-xl font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-rose-200 transition-all active:scale-95 w-full flex justify-center items-center gap-2"
+                      >
+                        <Shield size={18} /> Ejecutar Lockdown Total
+                      </button>
+                    </div>
+
+                    <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-xl font-black text-orange-900 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                          <Users size={20} /> 2. Frontera Cerrada
+                        </h3>
+                        <p className="text-orange-700 text-sm mb-6 font-medium">
+                          Rechaza cualquier nuevo intento de inicio de sesión (JWT) excepto para perfiles MASTER_ADMIN. Revoca sesiones activas no autorizadas.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-orange-100">
+                        <span className="font-bold text-slate-800">Bloquear Nuevos Logins</span>
+                        <button className="w-14 h-7 bg-slate-300 rounded-full relative transition-colors cursor-pointer hover:bg-slate-400">
+                          <div className="w-5 h-5 bg-white rounded-full absolute left-1 top-1 shadow-sm transition-transform"></div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Kill-Switches Granulares */}
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-sm font-black text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                      3. Circuit Breakers (Degradación Elegante)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                      {[
+                        { id: 'ia', label: 'Motor de IA (EMP)', desc: 'Desactiva LLMs', active: true },
+                        { id: 'apis', label: 'APIs Externas', desc: 'Pasarelas/Proveedores', active: true },
+                        { id: 'ventas', label: 'Motor POS/Checkout', desc: 'Pausa compras', active: true },
+                        { id: 'backups', label: 'Lockdown de BD', desc: 'Solo Lectura', active: true },
+                        { id: 'cronjobs', label: 'Workers de Fondo', desc: 'Pausa colas', active: true }
+                      ].map((sw) => (
+                        <div key={sw.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between">
+                          <div className="mb-4">
+                            <h4 className="font-bold text-slate-800 text-sm">{sw.label}</h4>
+                            <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold">{sw.desc}</p>
+                          </div>
+                          <button className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer hover:opacity-80 ${sw.active ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                            <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform ${sw.active ? 'right-1' : 'left-1'}`}></div>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4, 5 y 9. Auditoría y Usuarios */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="bg-indigo-950 text-white border border-indigo-900 rounded-2xl p-6">
+                      <h3 className="text-lg font-black text-indigo-300 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                        <Camera size={18} /> 4. Freeze & Snapshot
+                      </h3>
+                      <p className="text-indigo-200 text-xs mb-6 opacity-80">
+                        El "Ojo de Dios". Congela las pantallas de todos los usuarios conectados y fuerza un pantallazo enviado al Búnker.
+                      </p>
+                      <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-xl font-bold uppercase tracking-wider text-sm transition-all border border-indigo-400/30">
+                        Disparar Snapshot Global
+                      </button>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                      <h3 className="text-lg font-black text-slate-800 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                        <Target size={18} className="text-rose-500" /> 5. Francotirador
+                      </h3>
+                      <p className="text-slate-500 text-xs mb-4">
+                        Invalida el JWT de un usuario específico instantáneamente.
+                      </p>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="ID o Email..." className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 text-sm outline-none focus:border-rose-300" />
+                        <button className="bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-2 rounded-lg font-bold text-sm transition-all">
+                          Kick
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                      <h3 className="text-lg font-black text-slate-800 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                        <UserPlus size={18} className="text-slate-400" /> 9. Modo Fantasma
+                      </h3>
+                      <p className="text-slate-500 text-xs mb-4">
+                        Sandboxing silencioso para interceptar acciones.
+                      </p>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="ID o Email..." className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 text-sm outline-none focus:border-slate-400" />
+                        <button className="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg font-bold text-sm transition-all">
+                          Shadow Ban
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 6, 7 y 10. Broadcast, Térmico y Visual */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                      <h3 className="text-lg font-black text-amber-900 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                        <Send size={18} /> 6. Override Broadcast
+                      </h3>
+                      <p className="text-amber-700 text-xs mb-3">Interrumpe todas las pantallas con un mensaje crítico ineludible.</p>
+                      <textarea rows={2} placeholder="Mensaje de emergencia..." className="w-full bg-white border border-amber-300 rounded-lg p-2 text-sm mb-3 resize-none outline-none focus:border-amber-500"></textarea>
+                      <button className="w-full bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-sm">
+                        Lanzar Alerta Global
+                      </button>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                      <h3 className="text-lg font-black text-slate-800 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                        <TrendingUp size={18} className="text-blue-500" /> 7. Control Térmico
+                      </h3>
+                      <p className="text-slate-500 text-xs mb-4">Degradación forzada (Throttling) para mitigar scraping o ataques DDoS.</p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-bold text-slate-400">
+                          <span>0ms (Normal)</span>
+                          <span>+3000ms (Crítico)</span>
+                        </div>
+                        <input type="range" min="0" max="3000" defaultValue="0" step="500" className="w-full accent-blue-500" />
+                        <div className="text-center font-mono font-bold text-blue-600 mt-2">Latencia Inducida: 0ms</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900 text-white border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-lg font-black text-slate-300 mb-2 flex items-center gap-2 uppercase tracking-widest">
+                          <Package size={18} /> 10. Pánico Visual
+                        </h3>
+                        <p className="text-slate-400 text-xs mb-5">
+                          Difumina (Blur) o enmascara (****) toda la data financiera e inventario en las pantallas (Anti-Raid).
+                        </p>
+                      </div>
+                      <button className="w-full border-2 border-slate-600 hover:bg-slate-800 text-white px-4 py-3 rounded-xl font-bold uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-2">
+                        Activar Data Masking
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 8 y 11. Tripwires y Hombre Muerto */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col">
+                      <h3 className="text-sm font-black text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                        8. Tripwires Automáticos
+                      </h3>
+                      
+                      <div className="flex gap-2 mb-4">
+                        <input 
+                          type="text" 
+                          value={newTripwire}
+                          onChange={(e) => setNewTripwire(e.target.value)}
+                          placeholder="Nueva regla de tripwire..." 
+                          className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500" 
+                        />
+                        <button 
+                          onClick={() => {
+                            if (newTripwire.trim()) {
+                              setTripwires([...tripwires, newTripwire.trim()]);
+                              setNewTripwire('');
+                            }
+                          }}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-sm transition-all shadow-sm flex items-center gap-1"
+                        >
+                          <Plus size={16} /> Añadir
+                        </button>
+                      </div>
+
+                      <ul className="space-y-2 flex-1 overflow-y-auto max-h-48 custom-scrollbar-hide">
+                        {tripwires.map((tw, i) => (
+                          <li key={i} className="flex items-center justify-between text-sm bg-slate-50 p-2.5 rounded-lg border border-slate-100 group transition-all hover:border-slate-300">
+                            <span className="font-semibold text-slate-700">{tw}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded uppercase">
+                                <CheckCircle2 size={12} /> Armado
+                              </div>
+                              <button 
+                                onClick={() => setTripwires(tripwires.filter((_, idx) => idx !== i))}
+                                className="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+                                title="Eliminar Tripwire"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                        {tripwires.length === 0 && (
+                          <li className="text-center text-slate-400 text-xs py-4 italic">
+                            No hay tripwires configurados. El sistema es vulnerable a ataques continuos.
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                      <h3 className="text-sm font-black text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                        11. Dead Man's Switch
+                      </h3>
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-slate-100 text-slate-400 rounded-full mt-1">
+                          <RotateCcw size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-600 font-medium mb-4">
+                            Si el sistema no recibe un ping del MASTER_ADMIN en los días especificados, se ejecuta un Lockdown Total (Encriptación + Pausa).
+                          </p>
+                          <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-100 w-fit">
+                            <input type="number" defaultValue={7} className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-center font-bold outline-none focus:border-indigo-500" />
+                            <span className="text-xs font-bold text-slate-500 uppercase">Días para detonación</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>

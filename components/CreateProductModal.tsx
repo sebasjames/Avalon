@@ -567,6 +567,20 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({ isOpen, 
                                 </div>
                             </div>
 
+                            {/* Price / Cost Validation Alerts */}
+                            {numPrice <= 0 && (
+                                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-bold flex items-center gap-2">
+                                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+                                    <span>Validación obligatoria: El precio de venta debe ser superior a $0 COP para habilitar el producto en el POS.</span>
+                                </div>
+                            )}
+                            {numPrice > 0 && numCost > 0 && numPrice < numCost && (
+                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 font-bold flex items-center gap-2">
+                                    <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+                                    <span>Alerta de rentabilidad: El precio de venta no puede ser inferior al costo unitario ({formatCOP(numCost)}).</span>
+                                </div>
+                            )}
+
                             {/* Stock Initial & Safety Stock */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                 <div>

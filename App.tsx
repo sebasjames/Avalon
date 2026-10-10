@@ -62,6 +62,7 @@ import { AuthGate } from './components/AuthGate';
 import { FloatingTaskNote } from './components/FloatingTaskNote';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ToastContainer } from './components/ToastContainer';
+import { SupportReporter } from './components/SupportReporter';
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -189,6 +190,7 @@ const App: React.FC = () => {
         
         <FloatingTaskNote />
         <ToastContainer />
+        <SupportReporter />
       </div>
     </HashRouter>
     </EnterpriseProvider>

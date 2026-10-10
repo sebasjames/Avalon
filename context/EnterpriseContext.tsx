@@ -221,6 +221,13 @@ interface EnterpriseContextType {
     // Sandbox / Demo Mode Support
     getCompleteState: () => any;
     restoreCompleteState: (data: any) => void;
+
+    // --- Support Reporting ---
+    isReportingMode: boolean;
+    setIsReportingMode: (val: boolean) => void;
+    supportScreenshots: Array<{id: string, image: string, note: string}>;
+    addSupportScreenshot: (img: string, note: string) => void;
+    clearSupportScreenshots: () => void;
 }
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
@@ -792,6 +799,14 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // --- Snooze State & Timer ---
     const [snoozedNotifs, setSnoozedNotifs] = useState<Record<string, string>>({});
     const [timeTick, setTimeTick] = useState(0);
+
+    // --- Support Reporting State ---
+    const [isReportingMode, setIsReportingMode] = useState(false);
+    const [supportScreenshots, setSupportScreenshots] = useState<Array<{id: string, image: string, note: string}>>([]);
+    const addSupportScreenshot = (image: string, note: string) => {
+        setSupportScreenshots(prev => [...prev, { id: 'IMG-' + Date.now(), image, note }]);
+    };
+    const clearSupportScreenshots = () => setSupportScreenshots([]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -1569,6 +1584,13 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     const addInventoryProduct = (newProduct: Product) => {
+        // Validación preventiva de integridad de datos contables y POS
+        if (!newProduct.price || Number(newProduct.price) <= 0) {
+            console.error('Intento de crear producto con precio inválido:', newProduct);
+            alert('Validación de seguridad: El producto debe tener un precio de venta mayor a $0 COP antes de ingresar al catálogo.');
+            return;
+        }
+
         setInventory(prev => [newProduct, ...prev]);
         addAuditEvent({
             event_type: 'PRODUCT_CREATED',
@@ -2175,7 +2197,8 @@ const MOCK_STATIC_NOTIFICATIONS: CrmNotification[] = [
             updateWorldOfficeConfig,
             mezclaOrders, addMezclaOrder, updateMezclaOrder, mezclaCatalogo, saveMezclaToCatalogo, updateMezclaCatalogo, deleteMezclaFromCatalogo,
             getCompleteState,
-            restoreCompleteState
+            restoreCompleteState,
+            isReportingMode, setIsReportingMode, supportScreenshots, addSupportScreenshot, clearSupportScreenshots
         }}>
             {children}
         </EnterpriseContext.Provider>
